@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>traineo — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Outfit', sans-serif; background: #F1EFE8; min-height: 100vh; }
+
+    .app {
+      max-width: 390px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: #F8F7F4;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* NAV */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+    }
+    .nav-logo { font-size: 1.2rem; font-weight: 400; color: #111110; letter-spacing: -0.3px; }
+    .nav-neo { color: #163A28; }
+    .nav-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: #163A28; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 500;
+    }
+
+    /* GREETING */
+    .greeting { padding: 0 1.25rem 1rem; }
+    .greeting-sub { font-size: 0.75rem; color: #888780; margin-bottom: 2px; }
+    .greeting-name { font-size: 1.3rem; font-weight: 500; color: #111110; letter-spacing: -0.3px; }
+
+    /* TODAY CARD */
+    .today {
+      margin: 0 1.25rem 1rem;
+      background: #163A28;
+      border-radius: 18px;
+      padding: 1.25rem;
+    }
+    .today-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .today-label { font-size: 0.7rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.1em; }
+    .today-badge {
+      background: rgba(255,255,255,0.12); color: #fff;
+      font-size: 0.7rem; font-weight: 400;
+      padding: 0.2rem 0.6rem; border-radius: 20px;
+    }
+    .today-title { font-size: 1.6rem; font-weight: 500; color: #fff; letter-spacing: -0.4px; margin-bottom: 0.25rem; }
+    .today-sub { font-size: 0.85rem; color: rgba(255,255,255,0.55); margin-bottom: 1rem; }
+    .today-tags { display: flex; gap: 0.4rem; margin-bottom: 1rem; }
+    .today-tag {
+      background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);
+      font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 20px;
+    }
+    .today-why {
+      background: rgba(255,255,255,0.06);
+      border-radius: 8px; padding: 0.75rem;
+      font-size: 0.8rem; color: rgba(255,255,255,0.45);
+      font-style: italic; line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+    .today-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .btn-white {
+      background: #fff; color: #163A28;
+      border: none; border-radius: 8px;
+      padding: 0.7rem; font-size: 0.85rem; font-weight: 500;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.3rem;
+      transition: opacity 0.15s;
+    }
+    .btn-white:hover { opacity: 0.9; }
+    .btn-ghost {
+      background: rgba(255,255,255,0.1); color: #fff;
+      border: none; border-radius: 8px;
+      padding: 0.7rem; font-size: 0.85rem; font-weight: 500;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.3rem;
+      transition: opacity 0.15s;
+    }
+    .btn-ghost:hover { opacity: 0.8; }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: flex-end; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #F8F7F4;
+      border-radius: 20px 20px 0 0;
+      padding: 1.5rem 1.25rem 2rem;
+      width: 100%; max-width: 390px;
+    }
+    .modal-handle {
+      width: 36px; height: 4px; border-radius: 2px;
+      background: #D3D1C7; margin: 0 auto 1.25rem;
+    }
+    .modal-title { font-size: 1.1rem; font-weight: 500; color: #111110; margin-bottom: 0.25rem; letter-spacing: -0.2px; }
+    .modal-sub { font-size: 0.85rem; color: #888780; margin-bottom: 1.25rem; }
+    .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+    .time-opt {
+      border: 0.5px solid #D3D1C7; border-radius: 10px;
+      padding: 0.9rem; text-align: center;
+      cursor: pointer; transition: all 0.15s; background: #fff;
+    }
+    .time-opt.sel { border: 1.5px solid #163A28; background: #F1FAF5; }
+    .time-opt-min { font-size: 1.3rem; font-weight: 500; color: #111110; }
+    .time-opt.sel .time-opt-min { color: #163A28; }
+    .time-opt-label { font-size: 0.7rem; color: #888780; margin-top: 2px; }
+    .time-opt.sel .time-opt-label { color: #4A9E6B; }
+    .slider-wrap {
+      background: #F1EFE8; border-radius: 10px;
+      padding: 0.75rem 1rem; margin-bottom: 1rem;
+    }
+    .slider-label { font-size: 0.7rem; color: #888780; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; font-weight: 500; }
+    .slider-row { display: flex; align-items: center; gap: 0.75rem; }
+    .slider-row input { flex: 1; accent-color: #163A28; }
+    .slider-val { font-size: 0.9rem; font-weight: 500; color: #163A28; min-width: 40px; text-align: right; }
+    .ai-msg {
+      background: #EBF5EF; border-radius: 10px;
+      padding: 0.75rem 1rem; margin-bottom: 1rem;
+      display: flex; gap: 0.5rem; align-items: flex-start;
+    }
+    .ai-msg-dot { width: 6px; height: 6px; border-radius: 50%; background: #163A28; margin-top: 5px; flex-shrink: 0; }
+    .ai-msg-text { font-size: 0.8rem; color: #163A28; line-height: 1.5; }
+    .btn-green {
+      width: 100%; background: #163A28; color: #fff;
+      border: none; border-radius: 10px;
+      padding: 0.9rem; font-size: 0.95rem; font-weight: 500;
+      font-family: 'Outfit', sans-serif; cursor: pointer;
+      margin-bottom: 0.5rem; transition: opacity 0.15s;
+    }
+    .btn-green:hover { opacity: 0.9; }
+    .btn-skip {
+      width: 100%; background: none; border: none;
+      color: #888780; font-size: 0.85rem;
+      font-family: 'Outfit', sans-serif; cursor: pointer; padding: 0.5rem;
+    }
+
+    /* WEEK */
+    .week { margin: 0 1.25rem; }
+    .week-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .week-title { font-size: 0.9rem; font-weight: 500; color: #111110; }
+    .week-link { font-size: 0.8rem; color: #163A28; font-weight: 500; cursor: pointer; background: none; border: none; font-family: 'Outfit', sans-serif; }
+    .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 1rem; }
+    .day {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      background: #fff; border: 0.5px solid #E8E6DF;
+      border-radius: 8px; padding: 6px 2px;
+    }
+    .day.active { background: #163A28; border-color: #163A28; }
+    .day.rest { background: #F1EFE8; border-color: #F1EFE8; }
+    .day-name { font-size: 0.55rem; color: #888780; font-weight: 400; }
+    .day.active .day-name { color: rgba(255,255,255,0.6); }
+    .day-icon { font-size: 0.8rem; }
+    .day.rest .day-icon { opacity: 0.3; }
+    .day-dot { width: 4px; height: 4px; border-radius: 50%; background: #E8E6DF; }
+    .day.active .day-dot { background: rgba(255,255,255,0.5); }
+    .day.done .day-dot { background: #4A9E6B; }
+
+    /* STATS */
+    .stats {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.75rem 1rem;
+      background: #fff; border: 0.5px solid #E8E6DF;
+      border-radius: 10px; margin-bottom: 1.25rem;
+    }
+    .stat-val { font-size: 1rem; font-weight: 500; color: #111110; }
+    .stat-lbl { font-size: 0.7rem; color: #888780; margin-top: 1px; }
+    .stat-val.green { color: #163A28; }
+    .btn-reorganize {
+      background: #163A28; color: #fff;
+      border: none; border-radius: 8px;
+      padding: 0.5rem 0.85rem; font-size: 0.8rem; font-weight: 500;
+      font-family: 'Outfit', sans-serif; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="nav">
+    <div>
+      <svg width="28" height="28" viewBox="0 0 56 56" fill="none" style="vertical-align:middle;margin-right:6px">
+        <rect width="56" height="56" rx="14" fill="#163A28"/>
+        <rect x="8" y="11" width="32" height="7" rx="2" fill="white" transform="skewX(-12)"/>
+        <rect x="21" y="11" width="9" height="28" rx="2" fill="white" transform="skewX(-12)"/>
+        <circle cx="32" cy="43" r="3.5" fill="white"/>
+      </svg>
+      <span class="nav-logo">trai<span class="nav-neo">neo</span></span>
+    </div>
+    <div class="nav-avatar">M</div>
+  </div>
+
+  <div class="greeting">
+    <div class="greeting-sub">Lunes · 13 mayo</div>
+    <div class="greeting-name">Hola, Marc</div>
+  </div>
+
+  <div class="today">
+    <div class="today-meta">
+      <span class="today-label">Hoy</span>
+      <span class="today-badge">Semana 4 · Construcción</span>
+    </div>
+    <div class="today-title">Rodaje Z2</div>
+    <div class="today-sub">45 min · 132–148 bpm · ~6 km</div>
+    <div class="today-tags">
+      <span class="today-tag">Running</span>
+      <span class="today-tag">Z2</span>
+      <span class="today-tag">Aeróbico base</span>
+    </div>
+    <div class="today-why">"Hoy toca Z2 porque llevas 3 días de carga alta. El cuerpo necesita consolidar."</div>
+    <div class="today-actions">
+      <button class="btn-white" onclick="openModal()">⏱ Cambiar tiempo</button>
+      <button class="btn-ghost">▶ Empezar</button>
+    </div>
+  </div>
+
+  <div class="week">
+    <div class="week-head">
+      <span class="week-title">Esta semana</span>
+      <button class="week-link">Ver todo ↗</button>
+    </div>
+    <div class="week-grid">
+      <div class="day active">
+        <span class="day-name">Lu</span>
+        <span class="day-icon">🏃</span>
+        <div class="day-dot"></div>
+      </div>
+      <div class="day">
+        <span class="day-name">Ma</span>
+        <span class="day-icon">🏋️</span>
+        <div class="day-dot"></div>
+      </div>
+      <div class="day rest">
+        <span class="day-name">Mi</span>
+        <span class="day-icon">💤</span>
+        <div class="day-dot"></div>
+      </div>
+      <div class="day">
+        <span class="day-name">Ju</span>
+        <span class="day-icon">🚴</span>
+        <div class="day-dot"></div>
+      </div>
+      <div class="day">
+        <span class="day-name">Vi</span>
+        <span class="day-icon">🏋️</span>
+        <div class="day-dot"></div>
+      </div>
+      <div class="day rest">
+        <span class="day-name">Sá</span>
+        <span class="day-icon">💤</span>
+        <div class="day-dot"></div>
+      </div>
+      <div class="day">
+        <span class="day-name">Do</span>
+        <span class="day-icon">🏃</span>
+        <div class="day-dot"></div>
+      </div>
+    </div>
+    <div class="stats">
+      <div>
+        <div class="stat-val">4h 30m</div>
+        <div class="stat-lbl">Carga planificada</div>
+      </div>
+      <div>
+        <div class="stat-val green">5/5</div>
+        <div class="stat-lbl">Sesiones</div>
+      </div>
+      <button class="btn-reorganize">↺ Reorganizar</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">¿Cuánto tiempo tienes?</div>
+    <div class="modal-sub">El plan eran 45 min. Ajústalo.</div>
+    <div class="time-grid">
+      <div class="time-opt sel" onclick="selectTime(this, 20, 'Tengo poco tiempo')">
+        <div class="time-opt-min">20'</div>
+        <div class="time-opt-label">Tengo poco tiempo</div>
+      </div>
+      <div class="time-opt" onclick="selectTime(this, 30, 'Entreno corto')">
+        <div class="time-opt-min">30'</div>
+        <div class="time-opt-label">Entreno corto</div>
+      </div>
+      <div class="time-opt" onclick="selectTime(this, 45, 'Según el plan')">
+        <div class="time-opt-min">45'</div>
+        <div class="time-opt-label">Según el plan</div>
+      </div>
+      <div class="time-opt" onclick="selectTime(this, 60, 'Tengo más tiempo')">
+        <div class="time-opt-min">60'</div>
+        <div class="time-opt-label">Tengo más tiempo</div>
+      </div>
+    </div>
+    <div class="slider-wrap">
+      <div class="slider-label">O elige exacto</div>
+      <div class="slider-row">
+        <input type="range" min="10" max="90" value="20" id="sl" oninput="updateSlider(this.value)">
+        <span class="slider-val" id="slv">20 min</span>
+      </div>
+    </div>
+    <div class="ai-msg">
+      <div class="ai-msg-dot"></div>
+      <div class="ai-msg-text" id="ai-text">Con 20 min harás un rodaje Z2 reducido. Mismo beneficio aeróbico, menos volumen. Perfecto.</div>
+    </div>
+    <button class="btn-green" id="confirm-btn">Ajustar a 20 min →</button>
+    <button class="btn-skip" onclick="closeModal()">No puedo entrenar hoy</button>
+  </div>
+</div>
+
+<script>
+function openModal(){ document.getElementById('modal').classList.add('open'); }
+function closeModal(e){
+  if(!e || e.target===document.getElementById('modal'))
+    document.getElementById('modal').classList.remove('open');
+}
+function selectTime(el, min, label){
+  document.querySelectorAll('.time-opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('sl').value = min;
+  updateSlider(min);
+}
+const msgs = {
+  10:"10 min es poco pero cuenta. Activación ligera.",
+  20:"Con 20 min harás un rodaje Z2 reducido. Mismo beneficio aeróbico, menos volumen. Perfecto.",
+  30:"30 min en Z2 es sólido. Recuperamos 15 min el domingo.",
+  40:"40 min, casi el plan completo. Muy bien.",
+  45:"El plan original. Perfecto.",
+  60:"60 min, tienes más tiempo. Añadimos un poco de ritmo al final.",
+  90:"90 min es mucho hoy. Reducimos carga mañana para compensar."
+};
+function updateSlider(v){
+  document.getElementById('slv').textContent = v+' min';
+  document.getElementById('confirm-btn').textContent = 'Ajustar a '+v+' min →';
+  const k = Math.round(v/10)*10;
+  document.getElementById('ai-text').textContent = msgs[k]||msgs[20];
+  document.querySelectorAll('.time-opt').forEach(o=>o.classList.remove('sel'));
+  [20,30,45,60].forEach((m,i)=>{
+    if(parseInt(v)===m) document.querySelectorAll('.time-opt')[i].classList.add('sel');
+  });
+}
+</script>
+</body>
+</html>
