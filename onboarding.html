@@ -143,7 +143,7 @@
     <button class="btn-next" id="btn2" disabled onclick="nextStep(3)">Siguiente →</button>
   </div>
 
-  <!-- STEP 3: DIAS -->
+  <!-- STEP 3: DIES -->
   <div class="step" id="s3">
     <div class="step-label">Disponibilidad</div>
     <div class="step-title">¿Cuántos días puedes entrenar?</div>
@@ -196,14 +196,14 @@
     <button class="btn-next" id="btn4" disabled onclick="nextStep(5)">Siguiente →</button>
   </div>
 
-  <!-- STEP 5: PLAN PREVIEW -->
+  <!-- STEP 5: PREVIEW -->
   <div class="step" id="s5">
     <div class="step-label">Tu plan</div>
     <div class="step-title">Aquí está tu primera semana</div>
-    <div class="step-sub">Generado según tus respuestas. Lo ajustamos cada lunes.</div>
+    <div class="step-sub">Generado según tus respuestas.</div>
     <div class="ai-preview">
       <div class="ai-dot"></div>
-      <div class="ai-text" id="ai-summary">He creado tu plan combinando tus deportes favoritos. Empezamos suave — el cuerpo necesita adaptarse.</div>
+      <div class="ai-text" id="ai-summary">He creado tu plan personalizado.</div>
     </div>
     <div class="plan-preview" id="plan-preview"></div>
     <button class="btn-next" onclick="savePlan()">Ver mi dashboard →</button>
@@ -213,12 +213,39 @@
 <script>
   let userData = { objetivo: '', sports: [], dias: 0, descanso: '', wearable: '' };
 
+  const dayNames = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
+
+  const sportSessions = {
+    running: [
+      {icon:'🏃', title:'Rodaje Z2', sub:'45 min · Aeróbico base'},
+      {icon:'🏃', title:'Rodaje largo', sub:'60 min · Fondo'},
+      {icon:'🏃', title:'Series de velocidad', sub:'40 min · Calidad'}
+    ],
+    ciclismo: [
+      {icon:'🚴', title:'Rodada Z2', sub:'60 min · Fondo en bici'},
+      {icon:'🚴', title:'Series en bici', sub:'50 min · Potencia'}
+    ],
+    gimnasio: [
+      {icon:'🏋️', title:'Fuerza tren inferior', sub:'50 min · Piernas'},
+      {icon:'🏋️', title:'Fuerza tren superior', sub:'50 min · Upper'}
+    ],
+    natacion: [
+      {icon:'🏊', title:'Técnica en piscina', sub:'45 min · Brazada'}
+    ],
+    calistenia: [
+      {icon:'🤸', title:'Calistenia básica', sub:'40 min · Dominadas'}
+    ],
+    triatlon: [
+      {icon:'🥇', title:'Brick bici-running', sub:'60 min · Transición'}
+    ]
+  };
+
   function nextStep(n) {
     document.getElementById('s'+(n-1)).classList.remove('active');
     document.getElementById('s'+n).classList.add('active');
     document.getElementById('prog').style.width = (n*20)+'%';
     document.getElementById('prog-text').textContent = 'Paso '+n+' de 5';
-    if(n===5) generatePlan();
+    if(n===5) generatePreview();
     window.scrollTo(0,0);
   }
 
@@ -234,7 +261,7 @@
   function toggleSport(el, sport) {
     el.classList.toggle('sel');
     if(el.classList.contains('sel')) {
-      userData.sports.push(sport);
+      if(!userData.sports.includes(sport)) userData.sports.push(sport);
     } else {
       userData.sports = userData.sports.filter(s=>s!==sport);
     }
@@ -264,66 +291,31 @@
     document.getElementById('btn3').disabled = !(userData.dias && userData.descanso);
   }
 
-  const sportSessions = {
-    running: [
-      {icon:'🏃', title:'Rodaje Z2', sub:'Aeróbico base · 45 min'},
-      {icon:'🏃', title:'Rodaje largo', sub:'Fondo · 60-70 min'},
-      {icon:'🏃', title:'Intervals', sub:'Calidad · 40 min'}
-    ],
-    ciclismo: [
-      {icon:'🚴', title:'Rodada Z2', sub:'Fondo en bici · 60 min'},
-      {icon:'🚴', title:'Series en bici', sub:'Potencia · 50 min'},
-      {icon:'🚴', title:'Ruta larga', sub:'Resistencia · 90 min'}
-    ],
-    gimnasio: [
-      {icon:'🏋️', title:'Fuerza tren inferior', sub:'Sentadillas, hip hinge · 50 min'},
-      {icon:'🏋️', title:'Fuerza tren superior', sub:'Empuje y tracción · 50 min'},
-      {icon:'🏋️', title:'Full body funcional', sub:'Core y estabilidad · 45 min'}
-    ],
-    natacion: [
-      {icon:'🏊', title:'Técnica de natación', sub:'Eficiencia · 45 min'},
-      {icon:'🏊', title:'Series en piscina', sub:'Resistencia · 50 min'}
-    ],
-    calistenia: [
-      {icon:'🤸', title:'Calistenia básica', sub:'Dominadas, fondos · 40 min'},
-      {icon:'🤸', title:'Core y movilidad', sub:'Estabilidad · 35 min'}
-    ],
-    triatlon: [
-      {icon:'🥇', title:'Brick bici-running', sub:'Transición · 60 min'},
-      {icon:'🥇', title:'Nado técnico', sub:'Piscina · 40 min'}
-    ]
-  };
-
-  const days = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
-
-  function generatePlan() {
-    const sports = userData.sports;
+  function generatePreview() {
+    const sports = userData.sports.length > 0 ? userData.sports : ['running'];
     const dias = userData.dias || 3;
-    const descanso = userData.descanso;
+    const descanso = userData.descanso || 'Ninguno';
 
-    let sessions = [];
-    sports.forEach((sport, i) => {
-      const pool = sportSessions[sport] || [];
-      pool.forEach(s => sessions.push(s));
+    let allSessions = [];
+    sports.forEach(sport => {
+      (sportSessions[sport]||[]).forEach(s => allSessions.push(s));
     });
-
-    sessions = sessions.sort(()=>Math.random()-0.5).slice(0, dias);
 
     let planDays = [];
     let sessionIdx = 0;
-    days.forEach(d => {
+    dayNames.forEach(d => {
       if(d === descanso) {
-        planDays.push({day: d, rest: true, icon:'💤', title:'Descanso', sub:'Recuperación activa'});
-      } else if(sessionIdx < sessions.length) {
-        planDays.push({day: d, rest: false, ...sessions[sessionIdx]});
+        planDays.push({day:d, rest:true, icon:'💤', title:'Descanso', sub:''});
+      } else if(sessionIdx < dias) {
+        const s = allSessions[sessionIdx % allSessions.length];
+        planDays.push({day:d, rest:false, ...s});
         sessionIdx++;
       } else {
-        planDays.push({day: d, rest: true, icon:'💤', title:'Descanso', sub:''});
+        planDays.push({day:d, rest:true, icon:'💤', title:'Descanso', sub:''});
       }
     });
 
-    const preview = document.getElementById('plan-preview');
-    preview.innerHTML = planDays.map(d=>`
+    document.getElementById('plan-preview').innerHTML = planDays.map(d=>`
       <div class="plan-day ${d.rest?'rest-day-plan':''}">
         <span class="plan-day-name">${d.day}</span>
         <span class="plan-day-icon">${d.icon}</span>
@@ -334,19 +326,17 @@
       </div>
     `).join('');
 
-    const sportNames = sports.map(s=>s.charAt(0).toUpperCase()+s.slice(1)).join(', ');
+    const sportNames = sports.map(s=>s.charAt(0).toUpperCase()+s.slice(1)).join(' + ');
     document.getElementById('ai-summary').textContent =
-      `He creado un plan de ${dias} días combinando ${sportNames}. Empezamos con una fase base — aeróbico y fuerza funcional. La primera semana es suave para que el cuerpo se adapte.`;
+      `He creado un plan de ${dias} días con ${sportNames}. Empezamos suave — el cuerpo necesita adaptarse la primera semana.`;
   }
 
-function savePlan() {
-    const data = JSON.stringify(userData);
-    localStorage.setItem('traineo_user', data);
-    console.log('Guardado:', data);
-    setTimeout(() => {
-        window.location.href = 'dashboard.html';
-    }, 500);
-}
+  function savePlan() {
+    const sports = userData.sports.length > 0 ? userData.sports.join(',') : 'running';
+    const dias = userData.dias || 3;
+    const descanso = encodeURIComponent(userData.descanso || 'Ninguno');
+    window.location.href = 'dashboard.html?sports='+sports+'&dias='+dias+'&descanso='+descanso;
+  }
 </script>
 </body>
 </html>
