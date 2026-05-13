@@ -9,88 +9,58 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Outfit', sans-serif; background: #F1EFE8; min-height: 100vh; }
     .app { max-width: 390px; margin: 0 auto; min-height: 100vh; background: #F8F7F4; display: flex; flex-direction: column; }
-
     .top { padding: 1.25rem 1.25rem 0; }
     .nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
     .nav-logo { font-size: 1.1rem; font-weight: 400; color: #111110; letter-spacing: -0.3px; }
     .nav-neo { color: #163A28; }
     .btn-skip { background: none; border: none; color: #888780; font-size: 0.85rem; font-family: 'Outfit', sans-serif; cursor: pointer; }
-
     .progress-wrap { margin-bottom: 1.5rem; }
     .progress-bar { height: 3px; background: #E8E6DF; border-radius: 2px; overflow: hidden; }
     .progress-fill { height: 100%; background: #163A28; border-radius: 2px; transition: width 0.4s ease; }
     .progress-text { font-size: 0.7rem; color: #888780; margin-top: 0.4rem; }
-
     .step { display: none; flex: 1; padding: 0 1.25rem 2rem; flex-direction: column; }
     .step.active { display: flex; }
-
     .step-label { font-size: 0.7rem; color: #888780; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.5rem; }
     .step-title { font-size: 1.4rem; font-weight: 500; color: #111110; letter-spacing: -0.3px; line-height: 1.2; margin-bottom: 0.4rem; }
     .step-sub { font-size: 0.9rem; color: #888780; line-height: 1.5; margin-bottom: 1.5rem; font-weight: 300; }
-
     .options { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
-    .opt {
-      border: 0.5px solid #E8E6DF; border-radius: 12px;
-      padding: 0.9rem 1rem; background: #fff;
-      cursor: pointer; transition: all 0.15s;
-      display: flex; align-items: center; gap: 0.75rem;
-    }
+    .opt { border: 0.5px solid #E8E6DF; border-radius: 12px; padding: 0.9rem 1rem; background: #fff; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 0.75rem; }
     .opt:hover { border-color: #163A28; }
     .opt.sel { border: 1.5px solid #163A28; background: #F1FAF5; }
     .opt-icon { font-size: 1.3rem; flex-shrink: 0; }
     .opt-title { font-size: 0.95rem; font-weight: 500; color: #111110; margin-bottom: 1px; }
     .opt.sel .opt-title { color: #163A28; }
     .opt-sub { font-size: 0.78rem; color: #888780; }
-
-    .grid-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 1.5rem; }
-    .grid-opt {
-      border: 0.5px solid #E8E6DF; border-radius: 12px;
-      padding: 0.9rem; background: #fff;
-      cursor: pointer; transition: all 0.15s; text-align: center;
-    }
+    .grid-options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.75rem; }
+    .grid-opt { border: 0.5px solid #E8E6DF; border-radius: 12px; padding: 0.9rem; background: #fff; cursor: pointer; transition: all 0.15s; text-align: center; position: relative; }
     .grid-opt:hover { border-color: #163A28; }
     .grid-opt.sel { border: 1.5px solid #163A28; background: #F1FAF5; }
     .grid-opt-icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
     .grid-opt-title { font-size: 0.85rem; font-weight: 500; color: #111110; }
     .grid-opt.sel .grid-opt-title { color: #163A28; }
-
-    .days-selector { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
-    .day-num {
-      width: 48px; height: 48px; border-radius: 50%;
-      border: 0.5px solid #E8E6DF; background: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1rem; font-weight: 500; color: #888780;
-      cursor: pointer; transition: all 0.15s;
-    }
+    .check-badge { position: absolute; top: 6px; right: 6px; width: 16px; height: 16px; border-radius: 50%; background: #163A28; color: #fff; font-size: 0.6rem; display: none; align-items: center; justify-content: center; }
+    .grid-opt.sel .check-badge { display: flex; }
+    .sel-hint { font-size: 0.75rem; color: #888780; margin-bottom: 1.5rem; text-align: center; }
+    .days-selector { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.5rem; }
+    .day-num { width: 48px; height: 48px; border-radius: 50%; border: 0.5px solid #E8E6DF; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 500; color: #888780; cursor: pointer; transition: all 0.15s; }
     .day-num.sel { background: #163A28; border-color: #163A28; color: #fff; }
-
     .rest-days { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
-    .rest-day {
-      padding: 0.5rem 0.9rem; border-radius: 20px;
-      border: 0.5px solid #E8E6DF; background: #fff;
-      font-size: 0.85rem; color: #888780; cursor: pointer; transition: all 0.15s;
-    }
+    .rest-day { padding: 0.5rem 0.9rem; border-radius: 20px; border: 0.5px solid #E8E6DF; background: #fff; font-size: 0.85rem; color: #888780; cursor: pointer; transition: all 0.15s; }
     .rest-day.sel { background: #163A28; border-color: #163A28; color: #fff; }
-
-    .ai-preview {
-      background: #EBF5EF; border-radius: 12px;
-      padding: 0.9rem 1rem; margin-bottom: 1.5rem;
-      display: flex; gap: 0.6rem; align-items: flex-start;
-    }
+    .ai-preview { background: #EBF5EF; border-radius: 12px; padding: 0.9rem 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.6rem; align-items: flex-start; }
     .ai-dot { width: 6px; height: 6px; border-radius: 50%; background: #163A28; margin-top: 5px; flex-shrink: 0; }
     .ai-text { font-size: 0.82rem; color: #163A28; line-height: 1.5; }
-
-    .btn-next {
-      width: 100%; background: #163A28; color: #fff;
-      border: none; border-radius: 12px;
-      padding: 0.95rem; font-size: 1rem; font-weight: 500;
-      font-family: 'Outfit', sans-serif; cursor: pointer;
-      margin-top: auto; transition: opacity 0.15s;
-    }
+    .plan-preview { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .plan-day { background: #fff; border: 0.5px solid #E8E6DF; border-radius: 10px; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .plan-day-name { font-size: 0.75rem; font-weight: 500; color: #888780; width: 24px; flex-shrink: 0; }
+    .plan-day-icon { font-size: 1rem; flex-shrink: 0; }
+    .plan-day-title { font-size: 0.9rem; font-weight: 500; color: #111110; }
+    .plan-day-sub { font-size: 0.75rem; color: #888780; }
+    .plan-day.rest-day-plan { background: #F1EFE8; border-color: #F1EFE8; }
+    .plan-day.rest-day-plan .plan-day-title { color: #888780; font-weight: 400; }
+    .btn-next { width: 100%; background: #163A28; color: #fff; border: none; border-radius: 12px; padding: 0.95rem; font-size: 1rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; margin-top: auto; transition: opacity 0.15s; }
     .btn-next:hover { opacity: 0.9; }
     .btn-next:disabled { opacity: 0.3; cursor: default; }
-
-    .wearable-opts { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
   </style>
 </head>
 <body>
@@ -110,35 +80,23 @@
   <div class="step active" id="s1">
     <div class="step-label">Objetivo</div>
     <div class="step-title">¿Para qué entrenas?</div>
-    <div class="step-sub">Cuéntame qué quieres conseguir y diseñaré tu plan.</div>
+    <div class="step-sub">Cuéntame qué quieres conseguir.</div>
     <div class="options">
-      <div class="opt" onclick="selOpt(this)">
+      <div class="opt" onclick="selOpt(this,'s1')">
         <span class="opt-icon">🏅</span>
-        <div>
-          <div class="opt-title">Tengo una carrera en mente</div>
-          <div class="opt-sub">Quiero llegar bien preparado a una prueba concreta</div>
-        </div>
+        <div><div class="opt-title">Tengo una carrera en mente</div><div class="opt-sub">Quiero llegar bien preparado a una prueba concreta</div></div>
       </div>
-      <div class="opt" onclick="selOpt(this)">
+      <div class="opt" onclick="selOpt(this,'s1')">
         <span class="opt-icon">💪</span>
-        <div>
-          <div class="opt-title">Quiero estar en forma</div>
-          <div class="opt-sub">Mejorar mi condición física general</div>
-        </div>
+        <div><div class="opt-title">Quiero estar en forma</div><div class="opt-sub">Mejorar mi condición física general</div></div>
       </div>
-      <div class="opt" onclick="selOpt(this)">
+      <div class="opt" onclick="selOpt(this,'s1')">
         <span class="opt-icon">⚖️</span>
-        <div>
-          <div class="opt-title">Perder peso y ganar energía</div>
-          <div class="opt-sub">Combinar ejercicio con un estilo de vida más sano</div>
-        </div>
+        <div><div class="opt-title">Perder peso y ganar energía</div><div class="opt-sub">Combinar ejercicio con un estilo de vida más sano</div></div>
       </div>
-      <div class="opt" onclick="selOpt(this)">
+      <div class="opt" onclick="selOpt(this,'s1')">
         <span class="opt-icon">🔄</span>
-        <div>
-          <div class="opt-title">Volver después de una pausa</div>
-          <div class="opt-sub">Retomar el entreno de forma progresiva y sin lesiones</div>
-        </div>
+        <div><div class="opt-title">Volver después de una pausa</div><div class="opt-sub">Retomar el entreno de forma progresiva</div></div>
       </div>
     </div>
     <button class="btn-next" id="btn1" disabled onclick="nextStep(2)">Siguiente →</button>
@@ -148,33 +106,40 @@
   <div class="step" id="s2">
     <div class="step-label">Disciplinas</div>
     <div class="step-title">¿Qué deportes practicas?</div>
-    <div class="step-sub">Puedes elegir más de uno. El plan los combinará.</div>
+    <div class="step-sub">Elige los que quieras combinar.</div>
     <div class="grid-options">
-      <div class="grid-opt" onclick="toggleOpt(this)">
+      <div class="grid-opt" onclick="toggleSport(this,'running')">
+        <div class="check-badge">✓</div>
         <div class="grid-opt-icon">🏃</div>
         <div class="grid-opt-title">Running</div>
       </div>
-      <div class="grid-opt" onclick="toggleOpt(this)">
+      <div class="grid-opt" onclick="toggleSport(this,'ciclismo')">
+        <div class="check-badge">✓</div>
         <div class="grid-opt-icon">🚴</div>
         <div class="grid-opt-title">Ciclismo</div>
       </div>
-      <div class="grid-opt" onclick="toggleOpt(this)">
+      <div class="grid-opt" onclick="toggleSport(this,'natacion')">
+        <div class="check-badge">✓</div>
         <div class="grid-opt-icon">🏊</div>
         <div class="grid-opt-title">Natación</div>
       </div>
-      <div class="grid-opt" onclick="toggleOpt(this)">
+      <div class="grid-opt" onclick="toggleSport(this,'gimnasio')">
+        <div class="check-badge">✓</div>
         <div class="grid-opt-icon">🏋️</div>
         <div class="grid-opt-title">Gimnasio</div>
       </div>
-      <div class="grid-opt" onclick="toggleOpt(this)">
+      <div class="grid-opt" onclick="toggleSport(this,'calistenia')">
+        <div class="check-badge">✓</div>
         <div class="grid-opt-icon">🤸</div>
         <div class="grid-opt-title">Calistenia</div>
       </div>
-      <div class="grid-opt" onclick="toggleOpt(this)">
+      <div class="grid-opt" onclick="toggleSport(this,'triatlon')">
+        <div class="check-badge">✓</div>
         <div class="grid-opt-icon">🥇</div>
         <div class="grid-opt-title">Triatlón</div>
       </div>
     </div>
+    <p class="sel-hint" id="sport-hint">Selecciona al menos un deporte</p>
     <button class="btn-next" id="btn2" disabled onclick="nextStep(3)">Siguiente →</button>
   </div>
 
@@ -182,7 +147,7 @@
   <div class="step" id="s3">
     <div class="step-label">Disponibilidad</div>
     <div class="step-title">¿Cuántos días puedes entrenar?</div>
-    <div class="step-sub">En una semana normal. Si cambia, lo ajustamos cada lunes.</div>
+    <div class="step-sub">En una semana normal. Lo ajustamos cada lunes si cambia.</div>
     <div class="days-selector">
       <div class="day-num" onclick="selDay(this)">2</div>
       <div class="day-num" onclick="selDay(this)">3</div>
@@ -190,7 +155,7 @@
       <div class="day-num" onclick="selDay(this)">5</div>
       <div class="day-num" onclick="selDay(this)">6</div>
     </div>
-    <div class="step-title" style="font-size:1rem;margin-bottom:0.5rem">¿Tienes algún día libre fijo?</div>
+    <div class="step-title" style="font-size:1rem;margin-bottom:0.5rem">¿Día de descanso fijo?</div>
     <div class="step-sub">El día que nunca puedes entrenar.</div>
     <div class="rest-days">
       <div class="rest-day" onclick="selRest(this)">Lu</div>
@@ -210,118 +175,174 @@
     <div class="step-label">Tus datos</div>
     <div class="step-title">¿Usas algún dispositivo?</div>
     <div class="step-sub">Importaré tu historial para calibrar el plan desde el primer día.</div>
-    <div class="wearable-opts">
-      <div class="opt" onclick="selOpt(this)">
+    <div class="options">
+      <div class="opt" onclick="selOpt(this,'s4')">
         <span class="opt-icon">⌚</span>
-        <div>
-          <div class="opt-title">Garmin</div>
-          <div class="opt-sub">Importo tu historial completo automáticamente</div>
-        </div>
+        <div><div class="opt-title">Garmin</div><div class="opt-sub">Importo tu historial completo automáticamente</div></div>
       </div>
-      <div class="opt" onclick="selOpt(this)">
+      <div class="opt" onclick="selOpt(this,'s4')">
         <span class="opt-icon">🍎</span>
-        <div>
-          <div class="opt-title">Apple Watch</div>
-          <div class="opt-sub">Conecto con Apple Health</div>
-        </div>
+        <div><div class="opt-title">Apple Watch</div><div class="opt-sub">Conecto con Apple Health</div></div>
       </div>
-      <div class="opt" onclick="selOpt(this)">
+      <div class="opt" onclick="selOpt(this,'s4')">
         <span class="opt-icon">🔷</span>
-        <div>
-          <div class="opt-title">Polar</div>
-          <div class="opt-sub">Conecto con Polar Flow</div>
-        </div>
+        <div><div class="opt-title">Polar</div><div class="opt-sub">Conecto con Polar Flow</div></div>
       </div>
-      <div class="opt" onclick="selOpt(this)">
+      <div class="opt" onclick="selOpt(this,'s4')">
         <span class="opt-icon">📱</span>
-        <div>
-          <div class="opt-title">Solo el móvil</div>
-          <div class="opt-sub">Usaré el GPS del teléfono</div>
-        </div>
+        <div><div class="opt-title">Solo el móvil</div><div class="opt-sub">Usaré el GPS del teléfono</div></div>
       </div>
     </div>
     <button class="btn-next" id="btn4" disabled onclick="nextStep(5)">Siguiente →</button>
   </div>
 
-  <!-- STEP 5: RESUMEN -->
+  <!-- STEP 5: PLAN PREVIEW -->
   <div class="step" id="s5">
-    <div class="step-label">Todo listo</div>
-    <div class="step-title">Tu plan está siendo generado</div>
-    <div class="step-sub">traineo ha procesado tus respuestas. Esto es lo que te espera.</div>
+    <div class="step-label">Tu plan</div>
+    <div class="step-title">Aquí está tu primera semana</div>
+    <div class="step-sub">Generado según tus respuestas. Lo ajustamos cada lunes.</div>
     <div class="ai-preview">
       <div class="ai-dot"></div>
-      <div class="ai-text" id="summary-text">He creado un plan de 4 días semanales combinando running y gimnasio. Empezamos con una fase base para construir tu aeróbico y fuerza funcional. La primera semana es suave — el cuerpo necesita adaptarse.</div>
+      <div class="ai-text" id="ai-summary">He creado tu plan combinando tus deportes favoritos. Empezamos suave — el cuerpo necesita adaptarse.</div>
     </div>
-    <div class="options" style="margin-bottom:1.5rem">
-      <div class="opt sel">
-        <span class="opt-icon">📅</span>
-        <div>
-          <div class="opt-title">Plan de 12 semanas</div>
-          <div class="opt-sub">Fase base → Construcción → Pico</div>
-        </div>
-      </div>
-      <div class="opt sel">
-        <span class="opt-icon">⚡</span>
-        <div>
-          <div class="opt-title">Ajuste cada lunes</div>
-          <div class="opt-sub">El plan se adapta a tu semana real</div>
-        </div>
-      </div>
-      <div class="opt sel">
-        <span class="opt-icon">🎯</span>
-        <div>
-          <div class="opt-title">Sin bronca si fallas</div>
-          <div class="opt-sub">Reorganizamos sin drama</div>
-        </div>
-      </div>
-    </div>
-    <button class="btn-next" onclick="window.location.href='dashboard.html'">Ver mi primer entrenamiento →</button>
+    <div class="plan-preview" id="plan-preview"></div>
+    <button class="btn-next" onclick="savePlan()">Ver mi dashboard →</button>
   </div>
-
 </div>
 
 <script>
-let currentStep = 1;
+  let userData = { objetivo: '', sports: [], dias: 0, descanso: '', wearable: '' };
 
-function nextStep(n) {
-  document.getElementById('s'+currentStep).classList.remove('active');
-  currentStep = n;
-  document.getElementById('s'+n).classList.add('active');
-  document.getElementById('prog').style.width = (n*20)+'%';
-  document.getElementById('prog-text').textContent = 'Paso '+n+' de 5';
-  window.scrollTo(0,0);
-}
+  function nextStep(n) {
+    document.getElementById('s'+(n-1)).classList.remove('active');
+    document.getElementById('s'+n).classList.add('active');
+    document.getElementById('prog').style.width = (n*20)+'%';
+    document.getElementById('prog-text').textContent = 'Paso '+n+' de 5';
+    if(n===5) generatePlan();
+    window.scrollTo(0,0);
+  }
 
-function selOpt(el) {
-  el.closest('.options, .wearable-opts').querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
-  el.classList.add('sel');
-  const step = el.closest('.step').id;
-  document.getElementById('btn'+step.replace('s','')).disabled = false;
-}
+  function selOpt(el, stepId) {
+    el.closest('.options').querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
+    el.classList.add('sel');
+    const n = stepId.replace('s','');
+    if(n==='1') userData.objetivo = el.querySelector('.opt-title').textContent;
+    if(n==='4') userData.wearable = el.querySelector('.opt-title').textContent;
+    document.getElementById('btn'+n).disabled = false;
+  }
 
-function toggleOpt(el) {
-  el.classList.toggle('sel');
-  const anysel = el.closest('.grid-options').querySelectorAll('.sel').length > 0;
-  document.getElementById('btn2').disabled = !anysel;
-}
+  function toggleSport(el, sport) {
+    el.classList.toggle('sel');
+    if(el.classList.contains('sel')) {
+      userData.sports.push(sport);
+    } else {
+      userData.sports = userData.sports.filter(s=>s!==sport);
+    }
+    const count = userData.sports.length;
+    const hint = document.getElementById('sport-hint');
+    if(count===0) hint.textContent = 'Selecciona al menos un deporte';
+    else if(count===1) hint.textContent = '1 deporte seleccionado · puedes añadir más';
+    else hint.textContent = count+' deportes seleccionados ✓';
+    document.getElementById('btn2').disabled = count===0;
+  }
 
-function selDay(el) {
-  document.querySelectorAll('.day-num').forEach(d=>d.classList.remove('sel'));
-  el.classList.add('sel');
-  checkStep3();
-}
+  function selDay(el) {
+    document.querySelectorAll('.day-num').forEach(d=>d.classList.remove('sel'));
+    el.classList.add('sel');
+    userData.dias = parseInt(el.textContent);
+    checkStep3();
+  }
 
-function selRest(el) {
-  document.querySelectorAll('.rest-day').forEach(d=>d.classList.remove('sel'));
-  el.classList.add('sel');
-  checkStep3();
-}
+  function selRest(el) {
+    document.querySelectorAll('.rest-day').forEach(d=>d.classList.remove('sel'));
+    el.classList.add('sel');
+    userData.descanso = el.textContent;
+    checkStep3();
+  }
 
-function checkStep3() {
-  const day = document.querySelector('.day-num.sel');
-  const rest = document.querySelector('.rest-day.sel');
-  document.getElementById('btn3').disabled = !(day && rest);
-}
+  function checkStep3() {
+    document.getElementById('btn3').disabled = !(userData.dias && userData.descanso);
+  }
+
+  const sportSessions = {
+    running: [
+      {icon:'🏃', title:'Rodaje Z2', sub:'Aeróbico base · 45 min'},
+      {icon:'🏃', title:'Rodaje largo', sub:'Fondo · 60-70 min'},
+      {icon:'🏃', title:'Intervals', sub:'Calidad · 40 min'}
+    ],
+    ciclismo: [
+      {icon:'🚴', title:'Rodada Z2', sub:'Fondo en bici · 60 min'},
+      {icon:'🚴', title:'Series en bici', sub:'Potencia · 50 min'},
+      {icon:'🚴', title:'Ruta larga', sub:'Resistencia · 90 min'}
+    ],
+    gimnasio: [
+      {icon:'🏋️', title:'Fuerza tren inferior', sub:'Sentadillas, hip hinge · 50 min'},
+      {icon:'🏋️', title:'Fuerza tren superior', sub:'Empuje y tracción · 50 min'},
+      {icon:'🏋️', title:'Full body funcional', sub:'Core y estabilidad · 45 min'}
+    ],
+    natacion: [
+      {icon:'🏊', title:'Técnica de natación', sub:'Eficiencia · 45 min'},
+      {icon:'🏊', title:'Series en piscina', sub:'Resistencia · 50 min'}
+    ],
+    calistenia: [
+      {icon:'🤸', title:'Calistenia básica', sub:'Dominadas, fondos · 40 min'},
+      {icon:'🤸', title:'Core y movilidad', sub:'Estabilidad · 35 min'}
+    ],
+    triatlon: [
+      {icon:'🥇', title:'Brick bici-running', sub:'Transición · 60 min'},
+      {icon:'🥇', title:'Nado técnico', sub:'Piscina · 40 min'}
+    ]
+  };
+
+  const days = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
+
+  function generatePlan() {
+    const sports = userData.sports;
+    const dias = userData.dias || 3;
+    const descanso = userData.descanso;
+
+    let sessions = [];
+    sports.forEach((sport, i) => {
+      const pool = sportSessions[sport] || [];
+      pool.forEach(s => sessions.push(s));
+    });
+
+    sessions = sessions.sort(()=>Math.random()-0.5).slice(0, dias);
+
+    let planDays = [];
+    let sessionIdx = 0;
+    days.forEach(d => {
+      if(d === descanso) {
+        planDays.push({day: d, rest: true, icon:'💤', title:'Descanso', sub:'Recuperación activa'});
+      } else if(sessionIdx < sessions.length) {
+        planDays.push({day: d, rest: false, ...sessions[sessionIdx]});
+        sessionIdx++;
+      } else {
+        planDays.push({day: d, rest: true, icon:'💤', title:'Descanso', sub:''});
+      }
+    });
+
+    const preview = document.getElementById('plan-preview');
+    preview.innerHTML = planDays.map(d=>`
+      <div class="plan-day ${d.rest?'rest-day-plan':''}">
+        <span class="plan-day-name">${d.day}</span>
+        <span class="plan-day-icon">${d.icon}</span>
+        <div>
+          <div class="plan-day-title">${d.title}</div>
+          ${d.sub?`<div class="plan-day-sub">${d.sub}</div>`:''}
+        </div>
+      </div>
+    `).join('');
+
+    const sportNames = sports.map(s=>s.charAt(0).toUpperCase()+s.slice(1)).join(', ');
+    document.getElementById('ai-summary').textContent =
+      `He creado un plan de ${dias} días combinando ${sportNames}. Empezamos con una fase base — aeróbico y fuerza funcional. La primera semana es suave para que el cuerpo se adapte.`;
+  }
+
+  function savePlan() {
+    localStorage.setItem('traineo_user', JSON.stringify(userData));
+    window.location.href = 'dashboard.html';
+  }
 </script>
 </body>
 </html>
