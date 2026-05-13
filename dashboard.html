@@ -9,16 +9,13 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Outfit', sans-serif; background: #F1EFE8; min-height: 100vh; }
     .app { max-width: 390px; margin: 0 auto; min-height: 100vh; background: #F8F7F4; display: flex; flex-direction: column; padding-bottom: 2rem; }
-
     .nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; }
     .nav-logo { font-size: 1.2rem; font-weight: 400; color: #111110; letter-spacing: -0.3px; }
     .nav-neo { color: #163A28; }
     .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: #163A28; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 500; }
-
     .greeting { padding: 0 1.25rem 1rem; }
     .greeting-sub { font-size: 0.75rem; color: #888780; margin-bottom: 2px; }
     .greeting-name { font-size: 1.3rem; font-weight: 500; color: #111110; letter-spacing: -0.3px; }
-
     .today { margin: 0 1.25rem 1rem; background: #163A28; border-radius: 18px; padding: 1.25rem; }
     .today-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
     .today-label { font-size: 0.7rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.1em; }
@@ -29,10 +26,8 @@
     .today-tag { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 20px; }
     .today-why { background: rgba(255,255,255,0.06); border-radius: 8px; padding: 0.75rem; font-size: 0.8rem; color: rgba(255,255,255,0.45); font-style: italic; line-height: 1.5; margin-bottom: 1rem; }
     .today-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-    .btn-white { background: #fff; color: #163A28; border: none; border-radius: 8px; padding: 0.7rem; font-size: 0.85rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.3rem; transition: opacity 0.15s; }
-    .btn-white:hover { opacity: 0.9; }
+    .btn-white { background: #fff; color: #163A28; border: none; border-radius: 8px; padding: 0.7rem; font-size: 0.85rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.3rem; }
     .btn-ghost { background: rgba(255,255,255,0.1); color: #fff; border: none; border-radius: 8px; padding: 0.7rem; font-size: 0.85rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.3rem; }
-
     .week { margin: 0 1.25rem; }
     .week-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
     .week-title { font-size: 0.9rem; font-weight: 500; color: #111110; }
@@ -47,14 +42,11 @@
     .day.rest .day-icon { opacity: 0.3; }
     .day-dot { width: 4px; height: 4px; border-radius: 50%; background: #E8E6DF; }
     .day.active .day-dot { background: rgba(255,255,255,0.5); }
-
     .stats { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: #fff; border: 0.5px solid #E8E6DF; border-radius: 10px; margin-bottom: 1.25rem; }
     .stat-val { font-size: 1rem; font-weight: 500; color: #111110; }
     .stat-lbl { font-size: 0.7rem; color: #888780; margin-top: 1px; }
     .stat-val.green { color: #163A28; }
     .btn-reorganize { background: #163A28; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 0.85rem; font-size: 0.8rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; }
-
-    /* MODAL */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: flex-end; justify-content: center; }
     .modal-overlay.open { display: flex; }
     .modal { background: #F8F7F4; border-radius: 20px 20px 0 0; padding: 1.5rem 1.25rem 2rem; width: 100%; max-width: 390px; }
@@ -62,7 +54,7 @@
     .modal-title { font-size: 1.1rem; font-weight: 500; color: #111110; margin-bottom: 0.25rem; }
     .modal-sub { font-size: 0.85rem; color: #888780; margin-bottom: 1.25rem; }
     .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
-    .time-opt { border: 0.5px solid #D3D1C7; border-radius: 10px; padding: 0.9rem; text-align: center; cursor: pointer; transition: all 0.15s; background: #fff; }
+    .time-opt { border: 0.5px solid #D3D1C7; border-radius: 10px; padding: 0.9rem; text-align: center; cursor: pointer; background: #fff; transition: all 0.15s; }
     .time-opt.sel { border: 1.5px solid #163A28; background: #F1FAF5; }
     .time-opt-min { font-size: 1.3rem; font-weight: 500; color: #111110; }
     .time-opt.sel .time-opt-min { color: #163A28; }
@@ -77,7 +69,6 @@
     .ai-msg-text { font-size: 0.8rem; color: #163A28; line-height: 1.5; }
     .btn-green { width: 100%; background: #163A28; color: #fff; border: none; border-radius: 10px; padding: 0.9rem; font-size: 0.95rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; margin-bottom: 0.5rem; }
     .btn-skip-modal { width: 100%; background: none; border: none; color: #888780; font-size: 0.85rem; font-family: 'Outfit', sans-serif; cursor: pointer; padding: 0.5rem; }
-
     .no-plan { margin: 2rem 1.25rem; background: #fff; border: 0.5px solid #E8E6DF; border-radius: 16px; padding: 1.5rem; text-align: center; }
     .no-plan-icon { font-size: 2rem; margin-bottom: 0.75rem; }
     .no-plan-title { font-size: 1rem; font-weight: 500; color: #111110; margin-bottom: 0.5rem; }
@@ -87,7 +78,6 @@
 </head>
 <body>
 <div class="app">
-
   <div class="nav">
     <div style="display:flex;align-items:center;gap:8px">
       <svg width="28" height="28" viewBox="0 0 56 56" fill="none">
@@ -98,24 +88,22 @@
       </svg>
       <span class="nav-logo">trai<span class="nav-neo">neo</span></span>
     </div>
-    <div class="nav-avatar" id="nav-avatar">T</div>
+    <div class="nav-avatar">T</div>
   </div>
 
   <div class="greeting">
     <div class="greeting-sub" id="greeting-date">Hoy</div>
-    <div class="greeting-name" id="greeting-name">Hola!</div>
+    <div class="greeting-name" id="greeting-name">Hola! 👋</div>
   </div>
 
   <div id="main-content"></div>
-
 </div>
 
-<!-- MODAL TEMPS -->
 <div class="modal-overlay" id="modal" onclick="closeModal(event)">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">¿Cuánto tiempo tienes?</div>
-    <div class="modal-sub" id="modal-sub">El plan eran 45 min. Ajústalo.</div>
+    <div class="modal-sub">Ajusta el tiempo de tu sesión.</div>
     <div class="time-grid">
       <div class="time-opt sel" onclick="selectTime(this,20)"><div class="time-opt-min">20'</div><div class="time-opt-label">Poco tiempo</div></div>
       <div class="time-opt" onclick="selectTime(this,30)"><div class="time-opt-min">30'</div><div class="time-opt-label">Corto</div></div>
@@ -131,7 +119,7 @@
     </div>
     <div class="ai-msg">
       <div class="ai-msg-dot"></div>
-      <div class="ai-msg-text" id="ai-modal-text">Con 20 min harás una versión reducida. Mismo beneficio, menos volumen. Perfecto.</div>
+      <div class="ai-msg-text" id="ai-modal-text">Con 20 min harás una versión reducida. Mismo beneficio, menos volumen.</div>
     </div>
     <button class="btn-green" id="confirm-btn" onclick="closeModal()">Ajustar a 20 min →</button>
     <button class="btn-skip-modal" onclick="closeModal()">No puedo entrenar hoy</button>
@@ -139,87 +127,86 @@
 </div>
 
 <script>
-  const days = ['Do','Lu','Ma','Mi','Ju','Vi','Sá'];
+  const dayNames = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
+  const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   const today = new Date();
   const todayIdx = today.getDay();
-  const todayName = days[todayIdx];
-  const dayNames = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
+  const todayName = dayNames[(todayIdx+6)%7];
 
-  const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   document.getElementById('greeting-date').textContent =
-    dayNames[(todayIdx+6)%7] + ' · ' + today.getDate() + ' ' + months[today.getMonth()];
+    todayName + ' · ' + today.getDate() + ' ' + months[today.getMonth()];
 
-  // Llegeix dades de l'onboarding
-  const raw = localStorage.getItem('traineo_user');
-  const user = raw ? JSON.parse(raw) : null;
+  // LLEGEIX PARAMS DE LA URL
+  const params = new URLSearchParams(window.location.search);
+  const sportsParam = params.get('sports');
+  const user = sportsParam ? {
+    sports: sportsParam.split(','),
+    dias: parseInt(params.get('dias')) || 3,
+    descanso: decodeURIComponent(params.get('descanso') || 'Ninguno')
+  } : null;
+
+  const sportSessions = {
+    running: [
+      {icon:'🏃', title:'Rodaje Z2', sub:'45 min · 132–148 bpm', why:'Hoy toca Z2. Construyes base aeróbica — el entreno más importante de la semana.', tags:['Running','Z2','~6 km']},
+      {icon:'🏃', title:'Rodaje largo', sub:'60 min · Z2 suave', why:'El fondo construye resistencia. Ve despacio, si puedes hablar vas bien.', tags:['Running','Fondo','~8 km']},
+      {icon:'🏃', title:'Series de velocidad', sub:'40 min · Intervalos', why:'Hoy tocas calidad. Estas series mejoran tu umbral y te hacen más rápido.', tags:['Running','Calidad','Intervalos']}
+    ],
+    ciclismo: [
+      {icon:'🚴', title:'Rodada Z2', sub:'60 min · Fondo en bici', why:'Base aeróbica en bici. Cadencia alta, esfuerzo bajo — si puedes hablar, perfecto.', tags:['Ciclismo','Z2','Fondo']},
+      {icon:'🚴', title:'Series en bici', sub:'50 min · Potencia', why:'Series al umbral para mejorar tu potencia. Duele pero vale.', tags:['Ciclismo','Potencia']}
+    ],
+    gimnasio: [
+      {icon:'🏋️', title:'Fuerza tren inferior', sub:'50 min · Piernas y glúteos', why:'La fuerza de piernas es clave para correr y pedalear mejor. No la saltes.', tags:['Gimnasio','Piernas','Fuerza']},
+      {icon:'🏋️', title:'Fuerza tren superior', sub:'50 min · Empuje y tracción', why:'Espalda y brazos fuertes mejoran tu postura en carrera y en bici.', tags:['Gimnasio','Upper','Fuerza']}
+    ],
+    natacion: [
+      {icon:'🏊', title:'Técnica en piscina', sub:'45 min · Brazada y giro', why:'La técnica en natación lo es todo. Hoy foco total en la eficiencia.', tags:['Natación','Técnica']}
+    ],
+    calistenia: [
+      {icon:'🤸', title:'Calistenia básica', sub:'40 min · Dominadas y fondos', why:'El peso corporal construye fuerza real y funcional.', tags:['Calistenia','Fuerza']}
+    ],
+    triatlon: [
+      {icon:'🥇', title:'Brick bici-running', sub:'60 min · Transición', why:'El brick entrena a tu cuerpo a cambiar de disciplina. Esencial para el triatlón.', tags:['Triatlón','Brick']}
+    ]
+  };
 
   if(user) {
-    document.getElementById('greeting-name').textContent = 'Hola! 👋';
-    document.getElementById('nav-avatar').textContent = user.sports && user.sports[0] ? user.sports[0][0].toUpperCase() : 'T';
     renderPlan(user);
   } else {
     renderNoPlan();
   }
 
-  const sportSessions = {
-    running: [
-      {icon:'🏃', title:'Rodaje Z2', sub:'45 min · 132–148 bpm · Aeróbico base', why:'Hoy toca Z2 porque necesitas construir tu base aeróbica. Es el entreno más importante de la semana.', tags:['Running','Z2','~6 km']},
-      {icon:'🏃', title:'Rodaje largo', sub:'60 min · Z2 suave · Fondo', why:'El rodaje largo construye resistencia aeróbica. Ve despacio, habla si puedes.', tags:['Running','Fondo','~8 km']},
-      {icon:'🏃', title:'Series de velocidad', sub:'40 min · Intervalos · Calidad', why:'Hoy tocas calidad. Estas series mejoran tu umbral y te hacen más rápido.', tags:['Running','Calidad','Intervalos']}
-    ],
-    ciclismo: [
-      {icon:'🚴', title:'Rodada Z2', sub:'60 min · Fondo en bici · Z2', why:'Hoy construyes base aeróbica en bici. Cadencia alta, esfuerzo bajo.', tags:['Ciclismo','Z2','Fondo']},
-      {icon:'🚴', title:'Series en bici', sub:'50 min · Potencia · Umbral', why:'Series al umbral para mejorar tu potencia. Duele pero vale la pena.', tags:['Ciclismo','Potencia','Umbral']},
-    ],
-    gimnasio: [
-      {icon:'🏋️', title:'Fuerza tren inferior', sub:'50 min · Sentadillas, hip hinge · Fuerza', why:'La fuerza de piernas es clave para correr y pedalear mejor. No la saltes.', tags:['Gimnasio','Piernas','Fuerza']},
-      {icon:'🏋️', title:'Fuerza tren superior', sub:'50 min · Empuje y tracción · Fuerza', why:'Brazos y espalda fuerte te da mejor postura en carrera y en bici.', tags:['Gimnasio','Upper','Fuerza']},
-    ],
-    natacion: [
-      {icon:'🏊', title:'Técnica en piscina', sub:'45 min · Eficiencia · Brazada', why:'La técnica en natación lo es todo. Hoy foco en la brazada y el giro.', tags:['Natación','Técnica','Piscina']},
-    ],
-    calistenia: [
-      {icon:'🤸', title:'Calistenia básica', sub:'40 min · Dominadas, fondos · Fuerza', why:'El peso corporal construye fuerza real y funcional. Perfecto para complementar el cardio.', tags:['Calistenia','Fuerza','Básico']},
-    ],
-    triatlon: [
-      {icon:'🥇', title:'Brick bici-running', sub:'60 min · Transición · Específico', why:'El brick entrena tu cuerpo a cambiar de disciplina. Esencial para el triatlón.', tags:['Triatlón','Brick','Específico']},
-    ]
-  };
-
   function renderPlan(user) {
-    const sports = user.sports || ['running'];
-    const dias = user.dias || 3;
-    const descanso = user.descanso || 'Ninguno';
+    const sports = user.sports;
+    const dias = user.dias;
+    const descanso = user.descanso;
 
     let allSessions = [];
     sports.forEach(sport => {
-      const pool = sportSessions[sport] || [];
-      pool.forEach(s => allSessions.push({...s, sport}));
+      (sportSessions[sport]||[]).forEach(s => allSessions.push(s));
     });
-    allSessions = allSessions.sort(()=>Math.random()-0.5);
 
     let planDays = [];
     let sessionIdx = 0;
     dayNames.forEach(d => {
       if(d === descanso) {
-        planDays.push({day:d, rest:true, icon:'💤', title:'Descanso', sub:'Recuperación activa', tags:[]});
+        planDays.push({day:d, rest:true, icon:'💤', title:'Descanso', sub:'Recuperación activa', tags:[], why:''});
       } else if(sessionIdx < dias) {
         const s = allSessions[sessionIdx % allSessions.length];
         planDays.push({day:d, rest:false, ...s});
         sessionIdx++;
       } else {
-        planDays.push({day:d, rest:true, icon:'💤', title:'Descanso', sub:'', tags:[]});
+        planDays.push({day:d, rest:true, icon:'💤', title:'Descanso', sub:'', tags:[], why:''});
       }
     });
 
-    const todayDayName = dayNames[(todayIdx+6)%7];
-    const todaySession = planDays.find(d => d.day === todayDayName) || planDays.find(d => !d.rest) || planDays[0];
-
-    const totalMin = planDays.filter(d=>!d.rest).length * 45;
+    const todaySession = planDays.find(d => d.day === todayName) || planDays.find(d => !d.rest) || planDays[0];
+    const totalMin = dias * 50;
     const h = Math.floor(totalMin/60);
     const m = totalMin%60;
+    const sportNames = sports.map(s=>s.charAt(0).toUpperCase()+s.slice(1)).join(' + ');
 
-    const html = `
+    document.getElementById('main-content').innerHTML = `
       <div class="today">
         <div class="today-meta">
           <span class="today-label">Hoy</span>
@@ -230,21 +217,21 @@
         <div class="today-tags">
           ${(todaySession.tags||[]).map(t=>`<span class="today-tag">${t}</span>`).join('')}
         </div>
-        <div class="today-why">"${todaySession.why || 'Hoy es un buen día para entrenar.'}"</div>
+        <div class="today-why">"${todaySession.why}"</div>
         <div class="today-actions">
-          <button class="btn-white" onclick="openModal('${todaySession.sub}')">⏱ Cambiar tiempo</button>
+          <button class="btn-white" onclick="document.getElementById('modal').classList.add('open')">⏱ Cambiar tiempo</button>
           <button class="btn-ghost">▶ Empezar</button>
         </div>
       </div>
 
       <div class="week">
         <div class="week-head">
-          <span class="week-title">Esta semana</span>
-          <button class="week-link" onclick="window.location.href='onboarding.html'">Reconfigurar ↗</button>
+          <span class="week-title">Esta semana · ${sportNames}</span>
+          <button class="week-link" onclick="window.location.href='onboarding.html'">Cambiar ↗</button>
         </div>
         <div class="week-grid">
           ${planDays.map(d=>`
-            <div class="day ${d.day===todayDayName?'active':''} ${d.rest?'rest':''}">
+            <div class="day ${d.day===todayName?'active':''} ${d.rest?'rest':''}">
               <span class="day-name">${d.day}</span>
               <span class="day-icon">${d.icon}</span>
               <div class="day-dot"></div>
@@ -252,13 +239,12 @@
           `).join('')}
         </div>
         <div class="stats">
-          <div><div class="stat-val">${h}h ${m>0?m+'m':''}</div><div class="stat-lbl">Carga planificada</div></div>
-          <div><div class="stat-val green">${dias}/${dias}</div><div class="stat-lbl">Sesiones</div></div>
-          <button class="btn-reorganize" onclick="window.location.href='onboarding.html'">↺ Cambiar</button>
+          <div><div class="stat-val">${h}h${m>0?' '+m+'m':''}</div><div class="stat-lbl">Esta semana</div></div>
+          <div><div class="stat-val green">${dias} sesiones</div><div class="stat-lbl">Planificadas</div></div>
+          <button class="btn-reorganize" onclick="window.location.href='onboarding.html'">↺ Editar</button>
         </div>
       </div>
     `;
-    document.getElementById('main-content').innerHTML = html;
   }
 
   function renderNoPlan() {
@@ -266,16 +252,12 @@
       <div class="no-plan">
         <div class="no-plan-icon">🏃</div>
         <div class="no-plan-title">Aún no tienes un plan</div>
-        <div class="no-plan-sub">Cuéntame tus objetivos y deportes y crearé tu plan personalizado en 2 minutos.</div>
+        <div class="no-plan-sub">Cuéntame tus objetivos y crearé tu plan personalizado en 2 minutos.</div>
         <button class="btn-start" onclick="window.location.href='onboarding.html'">Crear mi plan →</button>
       </div>
     `;
   }
 
-  function openModal(sub) {
-    document.getElementById('modal-sub').textContent = 'Ajusta el tiempo de tu sesión.';
-    document.getElementById('modal').classList.add('open');
-  }
   function closeModal(e) {
     if(!e || e.target===document.getElementById('modal'))
       document.getElementById('modal').classList.remove('open');
@@ -287,13 +269,13 @@
     updateSlider(min);
   }
   const msgs = {
-    10:"10 min es poco pero cuenta. Activación ligera.",
-    20:"Con 20 min harás una versión reducida. Mismo beneficio, menos volumen.",
-    30:"30 min sólido. Recuperamos el resto otro día.",
-    40:"40 min, casi el plan completo. Muy bien.",
-    45:"El plan original. Perfecto.",
-    60:"Tienes más tiempo. Añadimos un poco de trabajo de calidad al final.",
-    90:"90 min hoy. Reducimos carga mañana para compensar."
+    10:'10 min es poco pero cuenta. Activación ligera.',
+    20:'Con 20 min harás una versión reducida. Mismo beneficio, menos volumen.',
+    30:'30 min sólido. Recuperamos el resto otro día.',
+    40:'40 min, casi el plan completo. Muy bien.',
+    45:'El plan original. Perfecto.',
+    60:'Tienes más tiempo. Añadimos trabajo de calidad al final.',
+    90:'90 min hoy. Reducimos carga mañana.'
   };
   function updateSlider(v) {
     document.getElementById('slv').textContent = v+' min';
