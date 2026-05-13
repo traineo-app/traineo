@@ -9,21 +9,21 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Outfit', sans-serif; background: #F1EFE8; min-height: 100vh; }
     .app { max-width: 390px; margin: 0 auto; min-height: 100vh; background: #F8F7F4; display: flex; flex-direction: column; }
-    .top { padding: 1.25rem 1.25rem 0; }
-    .nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    .top { padding: 1.25rem 1.25rem 0; position: sticky; top: 0; background: #F8F7F4; z-index: 10; }
+    .nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
     .nav-logo { font-size: 1.1rem; font-weight: 400; color: #111110; letter-spacing: -0.3px; }
     .nav-neo { color: #163A28; }
     .btn-skip { background: none; border: none; color: #888780; font-size: 0.85rem; font-family: 'Outfit', sans-serif; cursor: pointer; }
-    .progress-wrap { margin-bottom: 1.5rem; }
+    .progress-wrap { margin-bottom: 1rem; }
     .progress-bar { height: 3px; background: #E8E6DF; border-radius: 2px; overflow: hidden; }
     .progress-fill { height: 100%; background: #163A28; border-radius: 2px; transition: width 0.4s ease; }
     .progress-text { font-size: 0.7rem; color: #888780; margin-top: 0.4rem; }
-    .step { display: none; flex: 1; padding: 0 1.25rem 2rem; flex-direction: column; }
+    .step { display: none; flex: 1; padding: 1rem 1.25rem 2rem; flex-direction: column; }
     .step.active { display: flex; }
     .step-label { font-size: 0.7rem; color: #888780; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.5rem; }
     .step-title { font-size: 1.4rem; font-weight: 500; color: #111110; letter-spacing: -0.3px; line-height: 1.2; margin-bottom: 0.4rem; }
-    .step-sub { font-size: 0.9rem; color: #888780; line-height: 1.5; margin-bottom: 1.5rem; font-weight: 300; }
-    .options { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.5rem; }
+    .step-sub { font-size: 0.9rem; color: #888780; line-height: 1.5; margin-bottom: 1.25rem; font-weight: 300; }
+    .options { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.25rem; }
     .opt { border: 0.5px solid #E8E6DF; border-radius: 12px; padding: 0.9rem 1rem; background: #fff; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 0.75rem; }
     .opt:hover { border-color: #163A28; }
     .opt.sel { border: 1.5px solid #163A28; background: #F1FAF5; }
@@ -40,23 +40,38 @@
     .grid-opt.sel .grid-opt-title { color: #163A28; }
     .check-badge { position: absolute; top: 6px; right: 6px; width: 16px; height: 16px; border-radius: 50%; background: #163A28; color: #fff; font-size: 0.6rem; display: none; align-items: center; justify-content: center; }
     .grid-opt.sel .check-badge { display: flex; }
-    .sel-hint { font-size: 0.75rem; color: #888780; margin-bottom: 1.5rem; text-align: center; }
-    .days-selector { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.5rem; }
+    .sel-hint { font-size: 0.75rem; color: #888780; margin-bottom: 1.25rem; text-align: center; }
+    .days-selector { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.25rem; }
     .day-num { width: 48px; height: 48px; border-radius: 50%; border: 0.5px solid #E8E6DF; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 500; color: #888780; cursor: pointer; transition: all 0.15s; }
     .day-num.sel { background: #163A28; border-color: #163A28; color: #fff; }
-    .rest-days { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .rest-days { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
     .rest-day { padding: 0.5rem 0.9rem; border-radius: 20px; border: 0.5px solid #E8E6DF; background: #fff; font-size: 0.85rem; color: #888780; cursor: pointer; transition: all 0.15s; }
     .rest-day.sel { background: #163A28; border-color: #163A28; color: #fff; }
     .slider-block { background: #fff; border: 0.5px solid #E8E6DF; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
     .slider-block-title { font-size: 0.9rem; font-weight: 500; color: #111110; margin-bottom: 0.25rem; }
     .slider-block-sub { font-size: 0.78rem; color: #888780; margin-bottom: 0.75rem; }
     .slider-row { display: flex; align-items: center; gap: 0.75rem; }
-    .slider-row input { flex: 1; accent-color: #163A28; }
-    .slider-val { font-size: 1rem; font-weight: 500; color: #163A28; min-width: 50px; text-align: right; }
-    .ai-preview { background: #EBF5EF; border-radius: 12px; padding: 0.9rem 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.6rem; align-items: flex-start; }
+    .slider-row input[type=range] { flex: 1; accent-color: #163A28; }
+    .slider-val { font-size: 1rem; font-weight: 500; color: #163A28; min-width: 60px; text-align: right; }
+    .zones-preview { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; margin-top: 1rem; }
+    .zone-bar { border-radius: 6px; padding: 6px 4px; text-align: center; }
+    .zone-label { font-size: 0.65rem; font-weight: 500; color: #fff; }
+    .zone-range { font-size: 0.6rem; color: rgba(255,255,255,0.8); margin-top: 2px; }
+    .field-group { margin-bottom: 1rem; }
+    .field-label { font-size: 0.8rem; font-weight: 500; color: #111110; margin-bottom: 0.4rem; display: block; }
+    .field-input { width: 100%; padding: 0.75rem 1rem; border: 0.5px solid #E8E6DF; border-radius: 10px; font-size: 0.95rem; font-family: 'Outfit', sans-serif; color: #111110; background: #fff; outline: none; transition: border-color 0.15s; }
+    .field-input:focus { border-color: #163A28; }
+    .dist-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.5rem; margin-bottom: 1rem; }
+    .dist-opt { border: 0.5px solid #E8E6DF; border-radius: 10px; padding: 0.75rem 0.5rem; background: #fff; cursor: pointer; text-align: center; transition: all 0.15s; }
+    .dist-opt:hover { border-color: #163A28; }
+    .dist-opt.sel { border: 1.5px solid #163A28; background: #F1FAF5; }
+    .dist-opt-dist { font-size: 1rem; font-weight: 500; color: #111110; }
+    .dist-opt.sel .dist-opt-dist { color: #163A28; }
+    .dist-opt-name { font-size: 0.65rem; color: #888780; margin-top: 2px; }
+    .ai-preview { background: #EBF5EF; border-radius: 12px; padding: 0.9rem 1rem; margin-bottom: 1.25rem; display: flex; gap: 0.6rem; align-items: flex-start; }
     .ai-dot { width: 6px; height: 6px; border-radius: 50%; background: #163A28; margin-top: 5px; flex-shrink: 0; }
     .ai-text { font-size: 0.82rem; color: #163A28; line-height: 1.5; }
-    .plan-preview { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .plan-preview { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
     .plan-day { background: #fff; border: 0.5px solid #E8E6DF; border-radius: 10px; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.75rem; }
     .plan-day-name { font-size: 0.75rem; font-weight: 500; color: #888780; width: 24px; flex-shrink: 0; }
     .plan-day-icon { font-size: 1rem; flex-shrink: 0; }
@@ -67,10 +82,10 @@
     .btn-next { width: 100%; background: #163A28; color: #fff; border: none; border-radius: 12px; padding: 0.95rem; font-size: 1rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; margin-top: auto; transition: opacity 0.15s; }
     .btn-next:hover { opacity: 0.9; }
     .btn-next:disabled { opacity: 0.3; cursor: default; }
-    .zones-preview { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; margin-top: 1rem; }
-    .zone-bar { border-radius: 6px; padding: 6px 4px; text-align: center; }
-    .zone-label { font-size: 0.65rem; font-weight: 500; color: #fff; }
-    .zone-range { font-size: 0.6rem; color: rgba(255,255,255,0.8); margin-top: 2px; }
+    .race-summary { background: #111110; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .race-summary-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .race-summary-title { font-size: 0.9rem; font-weight: 500; color: #fff; }
+    .race-summary-sub { font-size: 0.75rem; color: rgba(255,255,255,0.45); margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -81,42 +96,113 @@
       <button class="btn-skip" onclick="savePlan()">Saltar →</button>
     </div>
     <div class="progress-wrap">
-      <div class="progress-bar"><div class="progress-fill" id="prog" style="width:16%"></div></div>
-      <div class="progress-text" id="prog-text">Paso 1 de 6</div>
+      <div class="progress-bar"><div class="progress-fill" id="prog" style="width:12%"></div></div>
+      <div class="progress-text" id="prog-text">Paso 1 de 7</div>
     </div>
   </div>
 
-  <!-- STEP 1: OBJETIVO -->
+  <!-- S1: OBJETIVO -->
   <div class="step active" id="s1">
     <div class="step-label">Objetivo</div>
     <div class="step-title">¿Para qué entrenas?</div>
     <div class="step-sub">Cuéntame qué quieres conseguir.</div>
     <div class="options">
-      <div class="opt" onclick="selOpt(this,'s1')">
+      <div class="opt" onclick="selOpt(this,'s1','carrera')">
         <span class="opt-icon">🏅</span>
         <div><div class="opt-title">Tengo una carrera en mente</div><div class="opt-sub">Quiero llegar bien preparado a una prueba concreta</div></div>
       </div>
-      <div class="opt" onclick="selOpt(this,'s1')">
+      <div class="opt" onclick="selOpt(this,'s1','forma')">
         <span class="opt-icon">💪</span>
         <div><div class="opt-title">Quiero estar en forma</div><div class="opt-sub">Mejorar mi condición física general</div></div>
       </div>
-      <div class="opt" onclick="selOpt(this,'s1')">
+      <div class="opt" onclick="selOpt(this,'s1','peso')">
         <span class="opt-icon">⚖️</span>
         <div><div class="opt-title">Perder peso y ganar energía</div><div class="opt-sub">Combinar ejercicio con un estilo de vida más sano</div></div>
       </div>
-      <div class="opt" onclick="selOpt(this,'s1')">
+      <div class="opt" onclick="selOpt(this,'s1','vuelta')">
         <span class="opt-icon">🔄</span>
         <div><div class="opt-title">Volver después de una pausa</div><div class="opt-sub">Retomar el entreno de forma progresiva</div></div>
       </div>
     </div>
-    <button class="btn-next" id="btn1" disabled onclick="nextStep(2)">Siguiente →</button>
+    <button class="btn-next" id="btn1" disabled onclick="goNext()">Siguiente →</button>
   </div>
 
-  <!-- STEP 2: DISCIPLINAS -->
+  <!-- S2: CARRERA (solo si objetivo = carrera) -->
   <div class="step" id="s2">
+    <div class="step-label">Tu carrera</div>
+    <div class="step-title">Cuéntame sobre la prueba</div>
+    <div class="step-sub">Adaptaré todo el plan a tu objetivo concreto.</div>
+
+    <div class="field-group">
+      <label class="field-label">¿Qué disciplina es?</label>
+      <div class="grid-options" style="margin-bottom:0">
+        <div class="grid-opt" onclick="selCarrera(this,'running')">
+          <div class="check-badge">✓</div>
+          <div class="grid-opt-icon">🏃</div>
+          <div class="grid-opt-title">Running</div>
+        </div>
+        <div class="grid-opt" onclick="selCarrera(this,'trail')">
+          <div class="check-badge">✓</div>
+          <div class="grid-opt-icon">🏔️</div>
+          <div class="grid-opt-title">Trail</div>
+        </div>
+        <div class="grid-opt" onclick="selCarrera(this,'ciclismo')">
+          <div class="check-badge">✓</div>
+          <div class="grid-opt-icon">🚴</div>
+          <div class="grid-opt-title">Ciclismo</div>
+        </div>
+        <div class="grid-opt" onclick="selCarrera(this,'triatlon')">
+          <div class="check-badge">✓</div>
+          <div class="grid-opt-icon">🥇</div>
+          <div class="grid-opt-title">Triatlón</div>
+        </div>
+        <div class="grid-opt" onclick="selCarrera(this,'duatlon')">
+          <div class="check-badge">✓</div>
+          <div class="grid-opt-icon">⚡</div>
+          <div class="grid-opt-title">Duatlón</div>
+        </div>
+        <div class="grid-opt" onclick="selCarrera(this,'otro')">
+          <div class="check-badge">✓</div>
+          <div class="grid-opt-icon">🎯</div>
+          <div class="grid-opt-title">Otro</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group" id="dist-section" style="display:none">
+      <label class="field-label">Distancia</label>
+      <div class="dist-grid" id="dist-grid"></div>
+    </div>
+
+    <div class="field-group" id="desnivel-section" style="display:none">
+      <div class="slider-block">
+        <div class="slider-block-title">Desnivel positivo</div>
+        <div class="slider-block-sub">Si es llana, déjalo en 0.</div>
+        <div class="slider-row">
+          <input type="range" min="0" max="5000" step="50" value="0" id="desnivel-slider" oninput="updateDesnivel(this.value)">
+          <span class="slider-val" id="desnivel-val">0 m D+</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Nombre de la carrera (opcional)</label>
+      <input type="text" class="field-input" id="carrera-nombre" placeholder="Ej: Marató de Barcelona">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Fecha de la carrera</label>
+      <input type="date" class="field-input" id="carrera-fecha" min="">
+    </div>
+
+    <button class="btn-next" id="btn2" disabled onclick="goNext()">Siguiente →</button>
+  </div>
+
+  <!-- S3: ESPORTS COMPLEMENTARIS -->
+  <div class="step" id="s3">
     <div class="step-label">Disciplinas</div>
-    <div class="step-title">¿Qué deportes practicas?</div>
-    <div class="step-sub">Elige los que quieras combinar.</div>
+    <div class="step-title" id="s3-title">¿Practicas algún deporte más?</div>
+    <div class="step-sub" id="s3-sub">Para complementar tu entrenamiento principal.</div>
     <div class="grid-options">
       <div class="grid-opt" onclick="toggleSport(this,'running')">
         <div class="check-badge">✓</div>
@@ -143,72 +229,69 @@
         <div class="grid-opt-icon">🤸</div>
         <div class="grid-opt-title">Calistenia</div>
       </div>
-      <div class="grid-opt" onclick="toggleSport(this,'triatlon')">
+      <div class="grid-opt" onclick="toggleSport(this,'trail')">
         <div class="check-badge">✓</div>
-        <div class="grid-opt-icon">🥇</div>
-        <div class="grid-opt-title">Triatlón</div>
+        <div class="grid-opt-icon">🏔️</div>
+        <div class="grid-opt-title">Trail</div>
       </div>
     </div>
-    <p class="sel-hint" id="sport-hint">Selecciona al menos un deporte</p>
-    <button class="btn-next" id="btn2" disabled onclick="nextStep(3)">Siguiente →</button>
+    <p class="sel-hint" id="sport-hint">Puedes no seleccionar nada si solo quieres entrenar tu disciplina principal</p>
+    <button class="btn-next" id="btn3" onclick="goNext()">Siguiente →</button>
   </div>
 
-  <!-- STEP 3: NIVEL -->
-  <div class="step" id="s3">
+  <!-- S4: NIVEL -->
+  <div class="step" id="s4">
     <div class="step-label">Tu nivel</div>
-    <div class="step-title">¿Cómo describirías tu forma actual?</div>
+    <div class="step-title">¿Cómo es tu forma actual?</div>
     <div class="step-sub">Sé honesto — el plan será mejor cuanto más preciso seas.</div>
     <div class="options">
-      <div class="opt" onclick="selOpt(this,'s3')">
+      <div class="opt" onclick="selOpt(this,'s4','inicio')">
         <span class="opt-icon">🌱</span>
         <div><div class="opt-title">Empezando</div><div class="opt-sub">Menos de 6 meses entrenando regularmente</div></div>
       </div>
-      <div class="opt" onclick="selOpt(this,'s3')">
+      <div class="opt" onclick="selOpt(this,'s4','intermedio')">
         <span class="opt-icon">📈</span>
-        <div><div class="opt-title">Intermedio</div><div class="opt-sub">1-3 años entrenando. Hago carreras o eventos ocasionales</div></div>
+        <div><div class="opt-title">Intermedio</div><div class="opt-sub">1-3 años entrenando. Hago eventos ocasionales</div></div>
       </div>
-      <div class="opt" onclick="selOpt(this,'s3')">
+      <div class="opt" onclick="selOpt(this,'s4','avanzado')">
         <span class="opt-icon">🔥</span>
-        <div><div class="opt-title">Avanzado</div><div class="opt-sub">3+ años. Compito regularmente y sigo planes estructurados</div></div>
+        <div><div class="opt-title">Avanzado</div><div class="opt-sub">3+ años. Compito regularmente</div></div>
       </div>
-      <div class="opt" onclick="selOpt(this,'s3')">
+      <div class="opt" onclick="selOpt(this,'s4','vuelta')">
         <span class="opt-icon">😴</span>
         <div><div class="opt-title">Volviendo</div><div class="opt-sub">Tenía buen nivel pero llevo tiempo parado</div></div>
       </div>
     </div>
-    <button class="btn-next" id="btn3" disabled onclick="nextStep(4)">Siguiente →</button>
+    <button class="btn-next" id="btn4" disabled onclick="goNext()">Siguiente →</button>
   </div>
 
-  <!-- STEP 4: FC I VOLUM -->
-  <div class="step" id="s4">
+  <!-- S5: FC I VOLUM -->
+  <div class="step" id="s5">
     <div class="step-label">Tus datos físicos</div>
     <div class="step-title">Calibremos tus zonas</div>
-    <div class="step-sub">Con estos datos tu plan será mucho más preciso. Puedes ajustarlo después.</div>
-
+    <div class="step-sub">Con estos datos tu plan será mucho más preciso.</div>
     <div class="slider-block">
       <div class="slider-block-title">Frecuencia cardíaca máxima</div>
-      <div class="slider-block-sub">Si no la sabes, usa: 220 − tu edad</div>
+      <div class="slider-block-sub">Si no la sabes exactamente: 220 − tu edad</div>
       <div class="slider-row">
         <input type="range" min="150" max="210" value="185" id="fc-slider" oninput="updateFC(this.value)">
         <span class="slider-val" id="fc-val">185 bpm</span>
       </div>
       <div class="zones-preview" id="zones-preview"></div>
     </div>
-
     <div class="slider-block">
-      <div class="slider-block-title">Horas de entreno por semana (ahora mismo)</div>
+      <div class="slider-block-title">Horas de entreno por semana ahora</div>
       <div class="slider-block-sub">En una semana normal, ¿cuánto entrenas?</div>
       <div class="slider-row">
         <input type="range" min="1" max="15" value="4" id="vol-slider" oninput="updateVol(this.value)">
         <span class="slider-val" id="vol-val">4h / sem</span>
       </div>
     </div>
-
-    <button class="btn-next" onclick="nextStep(5)">Siguiente →</button>
+    <button class="btn-next" onclick="goNext()">Siguiente →</button>
   </div>
 
-  <!-- STEP 5: DIES -->
-  <div class="step" id="s5">
+  <!-- S6: DIES -->
+  <div class="step" id="s6">
     <div class="step-label">Disponibilidad</div>
     <div class="step-title">¿Cuántos días puedes entrenar?</div>
     <div class="step-sub">En una semana normal. Lo ajustamos cada lunes.</div>
@@ -231,14 +314,15 @@
       <div class="rest-day" onclick="selRest(this)">Do</div>
       <div class="rest-day" onclick="selRest(this)">Ninguno</div>
     </div>
-    <button class="btn-next" id="btn5" disabled onclick="nextStep(6)">Siguiente →</button>
+    <button class="btn-next" id="btn6" disabled onclick="goNext()">Siguiente →</button>
   </div>
 
-  <!-- STEP 6: PREVIEW -->
-  <div class="step" id="s6">
+  <!-- S7: PREVIEW -->
+  <div class="step" id="s7">
     <div class="step-label">Tu plan</div>
     <div class="step-title">Aquí está tu primera semana</div>
-    <div class="step-sub">Generado según tus respuestas.</div>
+    <div class="step-sub">Generado según tus respuestas. Lo puedes editar en el dashboard.</div>
+    <div id="race-summary-preview"></div>
     <div class="ai-preview">
       <div class="ai-dot"></div>
       <div class="ai-text" id="ai-summary">He creado tu plan personalizado.</div>
@@ -249,126 +333,245 @@
 </div>
 
 <script>
-  const dayNames = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
-  let userData = { objetivo:'', sports:[], nivel:'', fcmax:185, volum:4, dias:0, descanso:'' };
+  const dayNames=['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
+  let userData={objetivo:'',carreraDisciplina:'',carreraNombre:'',carreraDistancia:'',carreraDesnivel:0,carreraFecha:'',sports:[],nivel:'',fcmax:185,volum:4,dias:0,descanso:''};
+  let stepOrder=[];
+  let currentStepIdx=0;
+  const TOTAL_STEPS_BASE=6;
 
-  const sportSessions = {
+  const distancias={
+    running:[
+      {dist:'5K',name:'5 kilómetros'},
+      {dist:'10K',name:'10 kilómetros'},
+      {dist:'15K',name:'15 kilómetros'},
+      {dist:'½ M',name:'Media maratón'},
+      {dist:'Maratón',name:'42.2 km'},
+      {dist:'Ultra',name:'+42 km'}
+    ],
+    trail:[
+      {dist:'10K',name:'Trail corto'},
+      {dist:'21K',name:'Trail medio'},
+      {dist:'42K',name:'Trail largo'},
+      {dist:'50K',name:'Ultra trail'},
+      {dist:'80K',name:'Ultra largo'},
+      {dist:'100K+',name:'Ultra extremo'}
+    ],
+    ciclismo:[
+      {dist:'50K',name:'Corta'},
+      {dist:'100K',name:'Fondo'},
+      {dist:'150K',name:'Gran fondo'},
+      {dist:'200K+',name:'Ultra fondo'},
+      {dist:'Etapas',name:'Carrera etapas'},
+      {dist:'CX/MTB',name:'Off road'}
+    ],
+    triatlon:[
+      {dist:'Sprint',name:'750m/20K/5K'},
+      {dist:'Olímpico',name:'1.5K/40K/10K'},
+      {dist:'70.3',name:'Half Ironman'},
+      {dist:'Ironman',name:'Full 226K'},
+      {dist:'Super Sprint',name:'Super corto'},
+      {dist:'Otro',name:'Distancia custom'}
+    ],
+    duatlon:[
+      {dist:'Sprint',name:'5K/20K/2.5K'},
+      {dist:'Estándar',name:'10K/40K/5K'},
+      {dist:'Largo',name:'20K/80K/10K'},
+      {dist:'Otro',name:'Distancia custom'},
+      {dist:'Classic',name:'10K/40K/5K'},
+      {dist:'Ultra',name:'Ultra distancia'}
+    ],
+    otro:[
+      {dist:'Corta',name:'< 10K o equivalente'},
+      {dist:'Media',name:'10-30K o equivalente'},
+      {dist:'Larga',name:'30-60K o equivalente'},
+      {dist:'Ultra',name:'> 60K o equivalente'},
+      {dist:'1 día',name:'Prueba de un día'},
+      {dist:'Varios días',name:'Prueba multietapa'}
+    ]
+  };
+
+  const sportSessions={
     running:[
       {icon:'🏃',title:'Rodaje Z2',sub:'Aeróbico base'},
       {icon:'🏃',title:'Rodaje largo',sub:'Fondo'},
-      {icon:'🏃',title:'Series',sub:'Calidad · Umbral'}
+      {icon:'🏃',title:'Series de velocidad',sub:'Calidad · Umbral'},
+      {icon:'🏃',title:'Rodaje de recuperación',sub:'Regenerativo'}
     ],
     ciclismo:[
       {icon:'🚴',title:'Rodada Z2',sub:'Fondo en bici'},
       {icon:'🚴',title:'Series en bici',sub:'Potencia'}
     ],
     gimnasio:[
-      {icon:'🏋️',title:'Fuerza inferior',sub:'Piernas y glúteos'},
-      {icon:'🏋️',title:'Fuerza superior',sub:'Empuje y tracción'}
+      {icon:'🏋️',title:'Fuerza tren inferior',sub:'Piernas y glúteos'},
+      {icon:'🏋️',title:'Fuerza tren superior',sub:'Empuje y tracción'}
     ],
     natacion:[{icon:'🏊',title:'Técnica piscina',sub:'Eficiencia'}],
-    calistenia:[{icon:'🤸',title:'Calistenia',sub:'Dominadas y fondos'}],
+    calistenia:[{icon:'🤸',title:'Calistenia básica',sub:'Dominadas y fondos'}],
+    trail:[{icon:'🏔️',title:'Trail Z2',sub:'Montaña suave'},{icon:'🏔️',title:'Series de cuestas',sub:'Desnivel'}],
     triatlon:[{icon:'🥇',title:'Brick bici-run',sub:'Transición'}]
   };
 
-  function updateFC(v) {
-    userData.fcmax = parseInt(v);
-    document.getElementById('fc-val').textContent = v+' bpm';
-    const fc = parseInt(v);
-    const zones = [
-      {label:'Z1', color:'#60B8F0', min:Math.round(fc*0.50), max:Math.round(fc*0.60)},
-      {label:'Z2', color:'#4EA84A', min:Math.round(fc*0.60), max:Math.round(fc*0.70)},
-      {label:'Z3', color:'#F0C84A', min:Math.round(fc*0.70), max:Math.round(fc*0.80)},
-      {label:'Z4', color:'#F08C30', min:Math.round(fc*0.80), max:Math.round(fc*0.90)},
-      {label:'Z5', color:'#E04040', min:Math.round(fc*0.90), max:fc}
-    ];
-    document.getElementById('zones-preview').innerHTML = zones.map(z=>`
-      <div class="zone-bar" style="background:${z.color}">
-        <div class="zone-label">${z.label}</div>
-        <div class="zone-range">${z.min}-${z.max}</div>
-      </div>
-    `).join('');
+  function buildStepOrder(){
+    stepOrder=['s1'];
+    if(userData.objetivo==='carrera') stepOrder.push('s2');
+    stepOrder.push('s3','s4','s5','s6','s7');
   }
 
-  function updateVol(v) {
-    userData.volum = parseInt(v);
-    document.getElementById('vol-val').textContent = v+'h / sem';
+  function updateProgress(){
+    const total=stepOrder.length;
+    const current=currentStepIdx+1;
+    const pct=Math.round((current/total)*100);
+    document.getElementById('prog').style.width=pct+'%';
+    document.getElementById('prog-text').textContent='Paso '+current+' de '+total;
   }
 
-  updateFC(185);
-
-  function nextStep(n) {
-    const prev = n===6?5:n-1;
-    document.getElementById('s'+prev).classList.remove('active');
-    document.getElementById('s'+n).classList.add('active');
-    const total = 6;
-    document.getElementById('prog').style.width = (n/total*100)+'%';
-    document.getElementById('prog-text').textContent = 'Paso '+n+' de '+total;
-    if(n===6) generatePreview();
+  function goNext(){
+    const currentId=stepOrder[currentStepIdx];
+    document.getElementById(currentId).classList.remove('active');
+    currentStepIdx++;
+    if(currentStepIdx>=stepOrder.length) currentStepIdx=stepOrder.length-1;
+    const nextId=stepOrder[currentStepIdx];
+    document.getElementById(nextId).classList.add('active');
+    updateProgress();
+    if(nextId==='s7') generatePreview();
+    if(nextId==='s3') setupS3();
     window.scrollTo(0,0);
   }
 
-  function selOpt(el, stepId) {
+  function setupS3(){
+    const disc=userData.carreraDisciplina;
+    if(disc&&disc!=='otro'){
+      document.getElementById('s3-title').textContent='¿Practicas algún deporte más para complementar?';
+      document.getElementById('s3-sub').textContent='La '+disc+' es tu disciplina principal. Añade complementos si quieres.';
+      // Pre-selecciona la disciplina principal i deshabilita-la
+      document.querySelectorAll('#s3 .grid-opt').forEach(el=>{
+        const sp=el.getAttribute('onclick').match(/'([^']+)'/)[1];
+        if(sp===disc){
+          el.classList.add('sel');
+          if(!userData.sports.includes(disc)) userData.sports.push(disc);
+        }
+      });
+    } else {
+      document.getElementById('s3-title').textContent='¿Qué deportes practicas?';
+      document.getElementById('s3-sub').textContent='Elige los que quieras combinar en tu plan.';
+    }
+  }
+
+  function selOpt(el,stepId,val){
     el.closest('.options').querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
     el.classList.add('sel');
-    const n = stepId.replace('s','');
-    if(n==='1') userData.objetivo = el.querySelector('.opt-title').textContent;
-    if(n==='3') userData.nivel = el.querySelector('.opt-title').textContent;
-    document.getElementById('btn'+n).disabled = false;
+    const n=stepId.replace('s','');
+    if(n==='1'){
+      userData.objetivo=val;
+      buildStepOrder();
+    }
+    if(n==='4') userData.nivel=val;
+    document.getElementById('btn'+n).disabled=false;
   }
 
-  function toggleSport(el, sport) {
+  function selCarrera(el,disc){
+    document.querySelectorAll('#s2 .grid-opt').forEach(o=>o.classList.remove('sel'));
+    el.classList.add('sel');
+    userData.carreraDisciplina=disc;
+    const distSection=document.getElementById('dist-section');
+    const desnSection=document.getElementById('desnivel-section');
+    distSection.style.display='block';
+    desnSection.style.display=(disc==='trail'||disc==='ciclismo')?'block':'none';
+    const dists=distancias[disc]||distancias.otro;
+    document.getElementById('dist-grid').innerHTML=dists.map(d=>`
+      <div class="dist-opt" onclick="selDist(this,'${d.dist}')">
+        <div class="dist-opt-dist">${d.dist}</div>
+        <div class="dist-opt-name">${d.name}</div>
+      </div>`).join('');
+    checkBtn2();
+  }
+
+  function selDist(el,dist){
+    document.querySelectorAll('.dist-opt').forEach(o=>o.classList.remove('sel'));
+    el.classList.add('sel');
+    userData.carreraDistancia=dist;
+    checkBtn2();
+  }
+
+  function updateDesnivel(v){
+    userData.carreraDesnivel=parseInt(v);
+    document.getElementById('desnivel-val').textContent=v==0?'0 m D+ (llana)':'+'+v+' m D+';
+  }
+
+  function checkBtn2(){
+    const ok=userData.carreraDisciplina&&userData.carreraDistancia;
+    document.getElementById('btn2').disabled=!ok;
+  }
+
+  function toggleSport(el,sport){
     el.classList.toggle('sel');
-    if(el.classList.contains('sel')) {
+    if(el.classList.contains('sel')){
       if(!userData.sports.includes(sport)) userData.sports.push(sport);
     } else {
-      userData.sports = userData.sports.filter(s=>s!==sport);
+      userData.sports=userData.sports.filter(s=>s!==sport);
     }
-    const count = userData.sports.length;
-    document.getElementById('sport-hint').textContent =
-      count===0 ? 'Selecciona al menos un deporte' :
-      count===1 ? '1 deporte · puedes añadir más' :
+    const count=userData.sports.length;
+    document.getElementById('sport-hint').textContent=
+      count===0?'Puedes continuar sin seleccionar nada':
+      count===1?'1 deporte seleccionado':
       count+' deportes seleccionados ✓';
-    document.getElementById('btn2').disabled = count===0;
   }
 
-  function selDay(el) {
+  function updateFC(v){
+    userData.fcmax=parseInt(v);
+    document.getElementById('fc-val').textContent=v+' bpm';
+    const fc=parseInt(v);
+    const zones=[
+      {label:'Z1',color:'#60B8F0',min:Math.round(fc*0.50),max:Math.round(fc*0.60)},
+      {label:'Z2',color:'#4EA84A',min:Math.round(fc*0.60),max:Math.round(fc*0.70)},
+      {label:'Z3',color:'#F0C84A',min:Math.round(fc*0.70),max:Math.round(fc*0.80)},
+      {label:'Z4',color:'#F08C30',min:Math.round(fc*0.80),max:Math.round(fc*0.90)},
+      {label:'Z5',color:'#E04040',min:Math.round(fc*0.90),max:fc}
+    ];
+    document.getElementById('zones-preview').innerHTML=zones.map(z=>`
+      <div class="zone-bar" style="background:${z.color}">
+        <div class="zone-label">${z.label}</div>
+        <div class="zone-range">${z.min}-${z.max}</div>
+      </div>`).join('');
+  }
+
+  function updateVol(v){ userData.volum=parseInt(v); document.getElementById('vol-val').textContent=v+'h / sem'; }
+
+  function selDay(el){
     document.querySelectorAll('.day-num').forEach(d=>d.classList.remove('sel'));
     el.classList.add('sel');
-    userData.dias = parseInt(el.textContent);
-    checkStep5();
+    userData.dias=parseInt(el.textContent);
+    checkBtn6();
   }
 
-  function selRest(el) {
+  function selRest(el){
     document.querySelectorAll('.rest-day').forEach(d=>d.classList.remove('sel'));
     el.classList.add('sel');
-    userData.descanso = el.textContent;
-    checkStep5();
+    userData.descanso=el.textContent;
+    checkBtn6();
   }
 
-  function checkStep5() {
-    document.getElementById('btn5').disabled = !(userData.dias && userData.descanso);
-  }
+  function checkBtn6(){ document.getElementById('btn6').disabled=!(userData.dias&&userData.descanso); }
 
-  function generatePreview() {
-    const sports = userData.sports.length>0 ? userData.sports : ['running'];
-    const dias = userData.dias||3;
-    const descanso = userData.descanso||'Ninguno';
-    let allSessions = [];
-    sports.forEach(s=>(sportSessions[s]||[]).forEach(x=>allSessions.push(x)));
-    let planDays = [];
-    let idx = 0;
+  function generatePreview(){
+    const fecha=document.getElementById('carrera-fecha')?.value||'';
+    const nom=document.getElementById('carrera-nombre')?.value||'';
+    userData.carreraFecha=fecha;
+    userData.carreraNombre=nom;
+
+    const sports=userData.sports.length>0?userData.sports:['running'];
+    const dias=userData.dias||3;
+    const descanso=userData.descanso||'Ninguno';
+    let allS=[];
+    sports.forEach(s=>(sportSessions[s]||[]).forEach(x=>allS.push(x)));
+    let planDays=[];let idx=0;
     dayNames.forEach(d=>{
-      if(d===descanso) {
-        planDays.push({day:d,rest:true,icon:'💤',title:'Descanso',sub:''});
-      } else if(idx<dias) {
-        planDays.push({day:d,rest:false,...allSessions[idx%allSessions.length]});
-        idx++;
-      } else {
-        planDays.push({day:d,rest:true,icon:'💤',title:'Descanso',sub:''});
-      }
+      if(d===descanso){planDays.push({day:d,rest:true,icon:'💤',title:'Descanso',sub:''});}
+      else if(idx<dias){planDays.push({day:d,rest:false,...allS[idx%allS.length]});idx++;}
+      else planDays.push({day:d,rest:true,icon:'💤',title:'Descanso',sub:''});
     });
-    document.getElementById('plan-preview').innerHTML = planDays.map(d=>`
+
+    document.getElementById('plan-preview').innerHTML=planDays.map(d=>`
       <div class="plan-day ${d.rest?'rest-day-plan':''}">
         <span class="plan-day-name">${d.day}</span>
         <span class="plan-day-icon">${d.icon}</span>
@@ -376,26 +579,62 @@
           <div class="plan-day-title">${d.title}</div>
           ${d.sub?`<div class="plan-day-sub">${d.sub}</div>`:''}
         </div>
-      </div>
-    `).join('');
-    const fc = userData.fcmax;
-    const z2min = Math.round(fc*0.60);
-    const z2max = Math.round(fc*0.70);
-    const sportNames = sports.map(s=>s.charAt(0).toUpperCase()+s.slice(1)).join(' + ');
-    document.getElementById('ai-summary').textContent =
-      `Plan de ${dias} días con ${sportNames}. Tu Z2 es ${z2min}-${z2max} bpm. Empezamos con fase base — aeróbico y fuerza. La primera semana es suave para que el cuerpo se adapte.`;
+      </div>`).join('');
+
+    const fc=userData.fcmax;
+    const z2min=Math.round(fc*0.60);
+    const z2max=Math.round(fc*0.70);
+    const sportNames=sports.map(s=>s.charAt(0).toUpperCase()+s.slice(1)).join(' + ');
+
+    let aiText=`Plan de ${dias} días con ${sportNames}. Tu Z2 es ${z2min}-${z2max} bpm. `;
+    if(userData.carreraDisciplina&&userData.carreraDistancia){
+      aiText+=`Orientado a tu ${userData.carreraDisciplina} de ${userData.carreraDistancia}`;
+      if(userData.carreraDesnivel>0) aiText+=` con +${userData.carreraDesnivel}m de desnivel`;
+      aiText+='. ';
+    }
+    aiText+='Empezamos con fase base — el cuerpo necesita adaptarse la primera semana.';
+    document.getElementById('ai-summary').textContent=aiText;
+
+    const racePrev=document.getElementById('race-summary-preview');
+    if(userData.carreraDisciplina&&userData.carreraDistancia){
+      const diff=fecha?Math.ceil((new Date(fecha)-new Date())/(1000*60*60*24)):null;
+      racePrev.innerHTML=`
+        <div class="race-summary">
+          <div class="race-summary-icon">🏁</div>
+          <div>
+            <div class="race-summary-title">${nom||userData.carreraDistancia+' de '+userData.carreraDisciplina}</div>
+            <div class="race-summary-sub">${userData.carreraDistancia}${userData.carreraDesnivel>0?' · +'+userData.carreraDesnivel+'m D+':''}${diff&&diff>0?' · '+diff+' días':''}</div>
+          </div>
+        </div>`;
+    } else { racePrev.innerHTML=''; }
   }
 
-  function savePlan() {
-    const sports = userData.sports.length>0 ? userData.sports.join(',') : 'running';
-    const url = 'dashboard.html?sports='+sports+
+  function savePlan(){
+    const fecha=document.getElementById('carrera-fecha')?.value||userData.carreraFecha||'';
+    const nom=document.getElementById('carrera-nombre')?.value||userData.carreraNombre||'';
+    const sports=userData.sports.length>0?userData.sports.join(','):'running';
+    const url='dashboard.html?sports='+sports+
       '&dias='+(userData.dias||3)+
       '&descanso='+encodeURIComponent(userData.descanso||'Ninguno')+
       '&nivel='+encodeURIComponent(userData.nivel||'Intermedio')+
       '&fcmax='+(userData.fcmax||185)+
-      '&volum='+(userData.volum||4);
-    window.location.href = url;
+      '&volum='+(userData.volum||4)+
+      '&objetivo='+encodeURIComponent(userData.objetivo||'')+
+      '&carrera='+encodeURIComponent(nom||userData.carreraDisciplina||'')+
+      '&distancia='+encodeURIComponent(userData.carreraDistancia||'')+
+      '&desnivel='+(userData.carreraDesnivel||0)+
+      '&fecha='+encodeURIComponent(fecha);
+    window.location.href=url;
   }
+
+  // Init
+  buildStepOrder();
+  updateProgress();
+  updateFC(185);
+  const minDate=new Date();
+  minDate.setDate(minDate.getDate()+7);
+  const fc=document.getElementById('carrera-fecha');
+  if(fc) fc.min=minDate.toISOString().split('T')[0];
 </script>
 </body>
 </html>
