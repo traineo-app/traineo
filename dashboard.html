@@ -38,6 +38,8 @@
     .plan-item.rest-item { background: #F1EFE8; border-color: #F1EFE8; }
     .plan-item.dragging { opacity: 0.4; }
     .plan-item.drag-over { border: 1.5px dashed #163A28; background: #EBF5EF; transform: scale(1.01); }
+    .plan-item.changed { border: 1.5px solid #4A9E6B; background: #F1FAF5; animation: highlight 2s ease-out forwards; }
+    @keyframes highlight { 0%{background:#E8F4ED} 100%{background:#F1FAF5} }
     .plan-day-badge { width: 28px; height: 28px; border-radius: 8px; background: #F1EFE8; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; color: #888780; flex-shrink: 0; }
     .plan-item.today-item .plan-day-badge { background: #163A28; color: #fff; }
     .plan-item-icon { font-size: 1.1rem; flex-shrink: 0; }
@@ -64,6 +66,10 @@
     .race-sub { font-size: 0.75rem; color: rgba(255,255,255,0.45); }
     .race-days { font-size: 1.2rem; font-weight: 500; color: #4A9E6B; margin-left: auto; flex-shrink: 0; }
     .race-days-lbl { font-size: 0.65rem; color: rgba(255,255,255,0.4); text-align: right; }
+    .reajust-banner { margin: 0 1.25rem 1rem; background: #EBF5EF; border: 0.5px solid #4A9E6B; border-radius: 12px; padding: 0.75rem 1rem; display: none; align-items: center; gap: 0.75rem; }
+    .reajust-banner.show { display: flex; }
+    .reajust-dot { width: 8px; height: 8px; border-radius: 50%; background: #163A28; flex-shrink: 0; }
+    .reajust-text { font-size: 0.82rem; color: #163A28; line-height: 1.4; }
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: flex-end; justify-content: center; }
     .modal-overlay.open { display: flex; }
     .modal { background: #F8F7F4; border-radius: 20px 20px 0 0; padding: 1.5rem 1.25rem 2rem; width: 100%; max-width: 390px; max-height: 80vh; overflow-y: auto; }
@@ -101,6 +107,11 @@
     .btn-start { background: #163A28; color: #fff; border: none; border-radius: 10px; padding: 0.75rem 1.5rem; font-size: 0.9rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; }
     .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #111110; color: #fff; font-size: 0.85rem; font-weight: 500; padding: 0.65rem 1.25rem; border-radius: 20px; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
     .toast.show { opacity: 1; }
+    .loading-overlay { position: fixed; inset: 0; background: rgba(248,247,244,0.9); z-index: 150; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; }
+    .loading-overlay.show { display: flex; }
+    .spinner { width: 40px; height: 40px; border: 3px solid #E8E6DF; border-top-color: #163A28; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 0.9rem; color: #888780; text-align: center; }
     .email-modal-input { width: 100%; padding: 0.75rem 1rem; border: 0.5px solid #E8E6DF; border-radius: 10px; font-size: 0.95rem; font-family: 'Outfit', sans-serif; color: #111110; background: #fff; outline: none; margin-bottom: 1rem; }
     .email-modal-input:focus { border-color: #163A28; }
     .saved-badge { display: inline-flex; align-items: center; gap: 4px; background: #E8F4ED; color: #163A28; font-size: 0.7rem; font-weight: 500; padding: 3px 8px; border-radius: 20px; margin-left: 8px; }
@@ -124,12 +135,20 @@
     <div class="greeting-sub" id="greeting-date">Hoy</div>
     <div class="greeting-name" id="greeting-name">Hola! 👋</div>
   </div>
+  <div id="reajust-banner" class="reajust-banner">
+    <div class="reajust-dot"></div>
+    <div class="reajust-text" id="reajust-text"></div>
+  </div>
   <div id="main-content"></div>
+</div>
+
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">El coach está reajustando<br>tu plan...</div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- MODAL EMAIL -->
 <div class="modal-overlay" id="modal-email" onclick="closeModal('modal-email',event)">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -141,7 +160,6 @@
   </div>
 </div>
 
-<!-- MODAL TEMPS -->
 <div class="modal-overlay" id="modal-time" onclick="closeModal('modal-time',event)">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -166,7 +184,6 @@
   </div>
 </div>
 
-<!-- MODAL SESSIÓ -->
 <div class="modal-overlay" id="modal-session" onclick="closeModal('modal-session',event)">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -207,36 +224,36 @@
 
   const allSessionsDB={
     running:[
-      {icon:'🏃',title:'Rodaje Z2',sub:'Aeróbico base · 45 min',why:'Construyes base aeróbica. El entreno más importante de la semana.',tags:['Running','Z2','~6 km']},
-      {icon:'🏃',title:'Rodaje largo',sub:'Fondo · 60 min',why:'El fondo construye resistencia. Ve despacio — si puedes hablar, vas bien.',tags:['Running','Fondo','~8 km']},
-      {icon:'🏃',title:'Series de velocidad',sub:'Calidad · 40 min',why:'Hoy tocas calidad. Estas series mejoran tu umbral anaeróbico.',tags:['Running','Calidad','Intervalos']},
-      {icon:'🏃',title:'Rodaje de recuperación',sub:'Regenerativo · 30 min',why:'Rodaje muy suave para activar la recuperación muscular.',tags:['Running','Recuperación']}
+      {icon:'🏃',title:'Rodaje Z2',sub:'Aeróbico base · 45 min',why:'Construyes base aeróbica.',tags:['Running','Z2','~6 km']},
+      {icon:'🏃',title:'Rodaje largo',sub:'Fondo · 60 min',why:'El fondo construye resistencia.',tags:['Running','Fondo','~8 km']},
+      {icon:'🏃',title:'Series de velocidad',sub:'Calidad · 40 min',why:'Mejoras tu umbral anaeróbico.',tags:['Running','Calidad']},
+      {icon:'🏃',title:'Rodaje de recuperación',sub:'Regenerativo · 30 min',why:'Activas la recuperación muscular.',tags:['Running','Recuperación']}
     ],
     ciclismo:[
-      {icon:'🚴',title:'Rodada Z2',sub:'Fondo en bici · 60 min',why:'Base aeróbica en bici. Cadencia alta, esfuerzo bajo.',tags:['Ciclismo','Z2','Fondo']},
-      {icon:'🚴',title:'Series en bici',sub:'Potencia · 50 min',why:'Series al umbral para mejorar tu potencia en bici.',tags:['Ciclismo','Potencia','Umbral']},
-      {icon:'🚴',title:'Ruta larga',sub:'Resistencia · 90 min',why:'Ruta larga para construir resistencia de base.',tags:['Ciclismo','Fondo','Largo']}
+      {icon:'🚴',title:'Rodada Z2',sub:'Fondo en bici · 60 min',why:'Base aeróbica en bici.',tags:['Ciclismo','Z2']},
+      {icon:'🚴',title:'Series en bici',sub:'Potencia · 50 min',why:'Mejoras tu potencia en bici.',tags:['Ciclismo','Potencia']},
+      {icon:'🚴',title:'Ruta larga',sub:'Resistencia · 90 min',why:'Construyes resistencia de base.',tags:['Ciclismo','Fondo']}
     ],
     gimnasio:[
-      {icon:'🏋️',title:'Fuerza tren inferior',sub:'Piernas · 50 min',why:'La fuerza de piernas es clave para correr y pedalear mejor.',tags:['Gimnasio','Piernas','Fuerza']},
-      {icon:'🏋️',title:'Fuerza tren superior',sub:'Upper · 50 min',why:'Espalda y brazos fuertes mejoran tu postura en carrera.',tags:['Gimnasio','Upper','Fuerza']},
-      {icon:'🏋️',title:'Full body funcional',sub:'Core · 45 min',why:'Trabajo funcional y core para prevenir lesiones.',tags:['Gimnasio','Core','Funcional']}
+      {icon:'🏋️',title:'Fuerza tren inferior',sub:'Piernas · 50 min',why:'La fuerza de piernas es clave.',tags:['Gimnasio','Piernas']},
+      {icon:'🏋️',title:'Fuerza tren superior',sub:'Upper · 50 min',why:'Mejoras tu postura en carrera.',tags:['Gimnasio','Upper']},
+      {icon:'🏋️',title:'Full body funcional',sub:'Core · 45 min',why:'Core fuerte previene lesiones.',tags:['Gimnasio','Core']}
     ],
     natacion:[
-      {icon:'🏊',title:'Técnica en piscina',sub:'Eficiencia · 45 min',why:'La técnica en natación lo es todo. Foco en la brazada.',tags:['Natación','Técnica']},
-      {icon:'🏊',title:'Series en piscina',sub:'Resistencia · 50 min',why:'Series para mejorar tu resistencia en agua.',tags:['Natación','Series']}
+      {icon:'🏊',title:'Técnica en piscina',sub:'Eficiencia · 45 min',why:'La técnica lo es todo.',tags:['Natación','Técnica']},
+      {icon:'🏊',title:'Series en piscina',sub:'Resistencia · 50 min',why:'Mejoras tu resistencia en agua.',tags:['Natación','Series']}
     ],
     calistenia:[
-      {icon:'🤸',title:'Calistenia básica',sub:'Dominadas y fondos · 40 min',why:'Peso corporal funcional. Perfecto para complementar el cardio.',tags:['Calistenia','Básico']},
-      {icon:'🤸',title:'Core y movilidad',sub:'Estabilidad · 35 min',why:'Core fuerte previene lesiones y mejora el rendimiento.',tags:['Calistenia','Core']}
+      {icon:'🤸',title:'Calistenia básica',sub:'Dominadas y fondos · 40 min',why:'Fuerza funcional real.',tags:['Calistenia']},
+      {icon:'🤸',title:'Core y movilidad',sub:'Estabilidad · 35 min',why:'Core fuerte, menos lesiones.',tags:['Calistenia','Core']}
     ],
     triatlon:[
-      {icon:'🥇',title:'Brick bici-running',sub:'Transición · 60 min',why:'El brick entrena a tu cuerpo a cambiar de disciplina.',tags:['Triatlón','Brick']},
-      {icon:'🥇',title:'Nado técnico',sub:'Piscina · 40 min',why:'Eficiencia en el agua para el segmento de natación.',tags:['Triatlón','Natación']}
+      {icon:'🥇',title:'Brick bici-running',sub:'Transición · 60 min',why:'Entrenas el cambio de disciplina.',tags:['Triatlón','Brick']},
+      {icon:'🥇',title:'Nado técnico',sub:'Piscina · 40 min',why:'Eficiencia en el agua.',tags:['Triatlón','Natación']}
     ],
     trail:[
-      {icon:'🏔️',title:'Trail Z2',sub:'Montaña suave · 60 min',why:'Rodaje en montaña a ritmo aeróbico. Foco en la técnica de bajada.',tags:['Trail','Z2','Montaña']},
-      {icon:'🏔️',title:'Series de cuestas',sub:'Desnivel · 50 min',why:'Las cuestas construyen fuerza específica para el trail.',tags:['Trail','Cuestas','Fuerza']}
+      {icon:'🏔️',title:'Trail Z2',sub:'Montaña suave · 60 min',why:'Base aeróbica en montaña.',tags:['Trail','Z2']},
+      {icon:'🏔️',title:'Series de cuestas',sub:'Desnivel · 50 min',why:'Fuerza específica para trail.',tags:['Trail','Cuestas']}
     ]
   };
 
@@ -246,22 +263,21 @@
   let dragSrcIdx=null;
   let currentTimeMin=45;
   let currentEmail=emailParam||'';
+  let isReajusting=false;
 
-  // INIT
   if(user){ initDashboard(user); }
   else {
     document.getElementById('main-content').innerHTML=`
       <div class="no-plan">
         <div class="no-plan-icon">🏃</div>
         <div class="no-plan-title">Aún no tienes un plan</div>
-        <div class="no-plan-sub">Cuéntame tus objetivos y crearé tu plan personalizado en 2 minutos.</div>
+        <div class="no-plan-sub">Cuéntame tus objetivos y crearé tu plan personalizado.</div>
         <button class="btn-start" onclick="window.location.href='onboarding.html'">Crear mi plan →</button>
       </div>`;
   }
 
-  async function initDashboard(user) {
-    // Si tenim email, intenta carregar pla guardat
-    if(currentEmail) {
+  async function initDashboard(user){
+    if(currentEmail){
       document.getElementById('nav-avatar').textContent=currentEmail[0].toUpperCase();
       document.getElementById('greeting-name').textContent='Hola, '+currentEmail.split('@')[0]+' 👋';
       try {
@@ -276,38 +292,30 @@
         }
       } catch(e){ console.log('No saved plan'); }
     }
-    // Genera pla nou amb IA
     await buildPlan(user);
   }
 
-  async function buildPlan(user) {
+  async function buildPlan(user){
     document.getElementById('main-content').innerHTML=`
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1.25rem;gap:1rem">
         <div style="width:48px;height:48px;border:3px solid #E8E6DF;border-top-color:#163A28;border-radius:50%;animation:spin 0.8s linear infinite"></div>
         <p style="font-size:0.9rem;color:#888780;text-align:center">Tu coach está generando<br>el plan de esta semana...</p>
       </div>
       <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`;
-
     try {
       const response=await fetch('/api/coach',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          sports:user.sports,dias:user.dias,descanso:user.descanso,
-          nivel:user.nivel,fcmax:user.fcmax,volum:user.volum,
-          objetivo:user.objetivo,carrera:user.carrera,
-          distancia:user.distancia,desnivel:user.desnivel
-        })
+        body:JSON.stringify({sports:user.sports,dias:user.dias,descanso:user.descanso,nivel:user.nivel,fcmax:user.fcmax,volum:user.volum,objetivo:user.objetivo,carrera:user.carrera,distancia:user.distancia,desnivel:user.desnivel})
       });
       const data=await response.json();
       if(data.setmana){
         planDays=data.setmana;
         if(data.resum) window._coachResum=data.resum;
         renderAll();
-        // Guarda automàticament si tenim email
         if(currentEmail) await savePlanToSupabase();
-        else setTimeout(()=>openEmailModal(),2000); // Proposa guardar després de 2s
-      } else { throw new Error('Format incorrecte'); }
+        else setTimeout(()=>openEmailModal(),2000);
+      } else throw new Error('Format incorrecte');
     } catch(error){
       console.error('Error IA:',error);
       buildPlanStatic(user);
@@ -327,44 +335,73 @@
     });
   }
 
+  // REAJUST IA — el cor del producte
+  async function reajustarPla(descripcioCanvi, loadingMsg='El coach está reajustando tu plan...'){
+    if(isReajusting) return;
+    isReajusting=true;
+    document.getElementById('loading-text').innerHTML=loadingMsg;
+    document.getElementById('loading-overlay').classList.add('show');
+
+    try {
+      const response=await fetch('/api/reajust',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          planActual:planDays,
+          canvi:descripcioCanvi,
+          userData:user
+        })
+      });
+      const data=await response.json();
+      if(data.setmana){
+        planDays=data.setmana;
+        if(data.resum) window._coachResum=data.resum;
+        if(data.missatge){
+          document.getElementById('reajust-text').textContent=data.missatge;
+          document.getElementById('reajust-banner').classList.add('show');
+          setTimeout(()=>document.getElementById('reajust-banner').classList.remove('show'),5000);
+        }
+        renderAll();
+        if(currentEmail) await savePlanToSupabase();
+      }
+    } catch(error){
+      console.error('Reajust error:',error);
+      showToast('Error reajustando. Cambio aplicado sin IA.');
+      renderAll();
+    } finally {
+      isReajusting=false;
+      document.getElementById('loading-overlay').classList.remove('show');
+    }
+  }
+
   async function savePlanToSupabase(){
     if(!currentEmail||planDays.length===0) return;
     try {
       await fetch('/api/save-plan',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          email:currentEmail,
-          userData:user,
-          sessions:planDays,
-          resum:window._coachResum||''
-        })
+        body:JSON.stringify({email:currentEmail,userData:user,sessions:planDays,resum:window._coachResum||''})
       });
-      showToast('Plan guardado ✓');
     } catch(e){ console.log('Could not save:',e); }
   }
 
-  function openEmailModal(){
-    document.getElementById('modal-email').classList.add('open');
-  }
+  function openEmailModal(){ document.getElementById('modal-email').classList.add('open'); }
 
   async function saveWithEmail(){
     const email=document.getElementById('email-input').value.trim();
-    if(!email||!email.includes('@')){
-      showToast('Introduce un email válido');
-      return;
-    }
+    if(!email||!email.includes('@')){ showToast('Introduce un email válido'); return; }
     currentEmail=email;
     closeModal('modal-email');
     await savePlanToSupabase();
     document.getElementById('nav-avatar').textContent=email[0].toUpperCase();
     document.getElementById('greeting-name').textContent='Hola, '+email.split('@')[0]+' 👋';
+    showToast('Plan guardado ✓');
   }
 
   function renderAll(){
     const todaySession=planDays.find(d=>d.day===todayName)||planDays.find(d=>!d.rest)||planDays[0];
     const trainDays=planDays.filter(d=>!d.rest);
-    const totalMin=trainDays.length*50;
+    const totalMin=trainDays.reduce((acc,d)=>acc+(d.duracio_min||50),0);
     const h=Math.floor(totalMin/60);
     const m=totalMin%60;
     const fc=user?.fcmax||185;
@@ -375,18 +412,11 @@
     if(user?.carrera&&user?.fecha){
       const diff=Math.ceil((new Date(user.fecha)-new Date())/(1000*60*60*24));
       if(diff>0){
-        raceHTML=`
-          <div class="race-card">
-            <div class="race-icon">🏁</div>
-            <div>
-              <div class="race-title">${user.carrera}</div>
-              <div class="race-sub">${user.distancia}${user.desnivel>0?' · +'+user.desnivel+'m D+':''}</div>
-            </div>
-            <div style="text-align:right;margin-left:auto">
-              <div class="race-days">${diff}</div>
-              <div class="race-days-lbl">días</div>
-            </div>
-          </div>`;
+        raceHTML=`<div class="race-card">
+          <div class="race-icon">🏁</div>
+          <div><div class="race-title">${user.carrera}</div><div class="race-sub">${user.distancia}${user.desnivel>0?' · +'+user.desnivel+'m D+':''}</div></div>
+          <div style="text-align:right;margin-left:auto"><div class="race-days">${diff}</div><div class="race-days-lbl">días</div></div>
+        </div>`;
       }
     }
 
@@ -401,9 +431,7 @@
         </div>
         <div class="today-title">${todaySession.skipped?'Descanso inesperado':todaySession.title}</div>
         <div class="today-sub">${todaySession.skipped?'Reorganizado automáticamente':todaySession.sub}</div>
-        <div class="today-tags">
-          ${(todaySession.tags||[]).map(t=>`<span class="today-tag">${t}</span>`).join('')}
-        </div>
+        <div class="today-tags">${(todaySession.tags||[]).map(t=>`<span class="today-tag">${t}</span>`).join('')}</div>
         <div class="today-why">"${todaySession.why||'Descansa bien — mañana volvemos fuerte.'}"</div>
         ${window._coachResum?`<div class="coach-resum">${window._coachResum}</div>`:''}
         <div class="today-actions">
@@ -432,7 +460,8 @@
 
   function renderPlanItem(d,i){
     const isToday=d.day===todayName;
-    const cls=isToday?'today-item':d.rest?'rest-item':'';
+    const isChanged=d.canviat===true;
+    const cls=isToday?'today-item':d.rest?'rest-item':isChanged?'changed':'';
     return `
       <div class="plan-item ${cls}" id="item-${i}"
         draggable="true"
@@ -477,25 +506,22 @@
   }
   function dragLeave(idx){const el=document.getElementById('item-'+idx);if(el)el.classList.remove('drag-over');}
   function dragEnd(){document.querySelectorAll('.plan-item').forEach(el=>{el.classList.remove('dragging');el.classList.remove('drag-over');});dragSrcIdx=null;}
-  function drop(e,idx){
+
+  async function drop(e,idx){
     e.preventDefault();
     document.querySelectorAll('.plan-item').forEach(el=>el.classList.remove('drag-over'));
     if(dragSrcIdx===null||dragSrcIdx===idx){dragSrcIdx=null;return;}
     const src=planDays[dragSrcIdx],dst=planDays[idx];
     if(src.rest){dragSrcIdx=null;return;}
+    const srcDay=src.day,dstDay=dst.day;
+    let descripcio='';
     if(dst.rest){
-      const srcDay=src.day,dstDay=dst.day;
-      planDays[idx]={...src,day:dstDay};
-      planDays[dragSrcIdx]={day:srcDay,rest:true,icon:'💤',title:'Descanso',sub:'Día movido',tags:[],why:'',skipped:false};
-      showToast('Sesión movida a '+dstDay+' ✓');
+      descripcio=`L'usuari ha mogut "${src.title}" del ${srcDay} al ${dstDay} (que era descans). El ${srcDay} ara és descans.`;
     } else {
-      const srcDay=src.day,dstDay=dst.day;
-      planDays[dragSrcIdx]={...dst,day:srcDay};
-      planDays[idx]={...src,day:dstDay};
-      showToast('Sesiones intercambiadas ✓');
+      descripcio=`L'usuari ha intercanviat "${src.title}" (${srcDay}) amb "${dst.title}" (${dstDay}).`;
     }
     dragSrcIdx=null;
-    renderAll();
+    await reajustarPla(descripcio, 'Reorganizando la semana...');
   }
 
   function openSessionModal(idx){
@@ -524,24 +550,20 @@
     document.getElementById('confirm-session-btn').disabled=false;
   }
 
-  function confirmSession(){
+  async function confirmSession(){
     if(editingDayIdx===null||!selectedNewSession) return;
-    const day=planDays[editingDayIdx].day;
-    if(selectedNewSession.sport==='rest'){
-      planDays[editingDayIdx]={day,rest:true,icon:'💤',title:'Descanso',sub:'Día libre añadido',tags:[],why:'',skipped:false};
-    } else {
-      planDays[editingDayIdx]={...selectedNewSession,day,rest:false,skipped:false};
-    }
+    const current=planDays[editingDayIdx];
+    const day=current.day;
     closeModal('modal-session');
-    renderAll();
-    showToast('Sesión actualizada ✓');
+    const descripcio=`L'usuari ha canviat "${current.title}" del ${day} per "${selectedNewSession.title}". Reajusta la setmana sencera per equilibrar la càrrega.`;
+    await reajustarPla(descripcio, 'Ajustando el plan...');
   }
 
-  function toggleRest(idx){
+  async function toggleRest(idx){
     const day=planDays[idx].day;
-    planDays[idx]={day,rest:true,icon:'💤',title:'Descanso',sub:'Día libre añadido',tags:[],why:'',skipped:true};
-    rebalancePlan();renderAll();
-    showToast('Día de descanso. Plan reajustado ✓');
+    const session=planDays[idx].title;
+    const descripcio=`L'usuari ha marcat el ${day} com a descans (era "${session}"). Redistribueix la càrrega als altres dies disponibles.`;
+    await reajustarPla(descripcio, 'Redistribuyendo la carga...');
   }
 
   function restoreDay(idx){
@@ -551,41 +573,33 @@
     const used=planDays.filter(d=>!d.rest).map(d=>d.title);
     const pick=allS.find(s=>!used.includes(s.title))||allS[0];
     planDays[idx]={...pick,day:planDays[idx].day,rest:false,skipped:false};
-    renderAll();showToast('Entreno añadido ✓');
+    const descripcio=`S'ha afegit "${pick.title}" al ${planDays[idx].day}. Reajusta la setmana.`;
+    reajustarPla(descripcio, 'Ajustando...');
   }
 
-  function rebalancePlan(){
-    const trainDays=planDays.filter(d=>!d.rest);
-    const total=user?.dias||3;
-    if(trainDays.length<total){
-      const restDays=planDays.map((d,i)=>({...d,i})).filter(d=>d.rest&&d.day!==user?.descanso);
-      if(restDays.length>0){
-        const sports=user?.sports||['running'];
-        let allS=[];
-        sports.forEach(s=>(allSessionsDB[s]||[]).forEach(x=>allS.push({...x,sport:s})));
-        const used=planDays.filter(d=>!d.rest).map(d=>d.title);
-        const pick=allS.find(s=>!used.includes(s.title))||allS[0];
-        const ri=restDays[restDays.length-1].i;
-        planDays[ri]={...pick,day:planDays[ri].day,rest:false,skipped:false};
-      }
-    }
+  function openTimeModal(){ document.getElementById('modal-time').classList.add('open'); }
+
+  async function skipToday(){
+    const todaySession=planDays.find(d=>d.day===todayName);
+    closeModal('modal-time');
+    const descripcio=`L'usuari NO pot entrenar avui (${todayName}). Era "${todaySession?.title||'sesión'}". Redistribueix aquesta càrrega als dies restants de la setmana de manera intel·ligent.`;
+    await reajustarPla(descripcio, 'Sin problema, reorganizando...');
   }
 
-  function openTimeModal(){document.getElementById('modal-time').classList.add('open');}
-  function skipToday(){
-    const idx=planDays.findIndex(d=>d.day===todayName);
-    if(idx>=0){planDays[idx].skipped=true;planDays[idx].why='Descansa bien — mañana volvemos fuerte.';}
-    closeModal('modal-time');renderAll();
-    showToast('Sin problema. Lo redistribuimos 💪');
+  async function confirmTime(){
+    const todaySession=planDays.find(d=>d.day===todayName);
+    closeModal('modal-time');
+    const descripcio=`L'usuari ha ajustat la sessió d'avui (${todayName} - "${todaySession?.title||'sesión'}") a ${currentTimeMin} minuts en comptes de ${todaySession?.duracio_min||45} minuts. Redistribueix els ${Math.max(0,(todaySession?.duracio_min||45)-currentTimeMin)} minuts restants als dies amb menys càrrega.`;
+    await reajustarPla(descripcio, 'Redistribuyendo el tiempo...');
   }
-  function confirmTime(){closeModal('modal-time');showToast('Sesión ajustada a '+currentTimeMin+' min ✓');}
+
   function selectTime(el,min){
     document.querySelectorAll('.time-opt').forEach(o=>o.classList.remove('sel'));
     el.classList.add('sel');
     document.getElementById('sl').value=min;
     updateSlider(min);
   }
-  const timeMsgs={10:'10 min es poco pero cuenta.',20:'20 min en Z2. Mismo beneficio, menos volumen.',30:'30 min sólido. Lo recuperamos otro día.',45:'El plan original. Perfecto.',60:'Más tiempo. Añadimos calidad al final.',90:'90 min hoy. Reducimos carga mañana.'};
+  const timeMsgs={10:'10 min es poco pero cuenta.',20:'20 min en Z2. Mismo beneficio, menos volumen.',30:'30 min sólido.',45:'El plan original.',60:'Más tiempo. Añadimos calidad.',90:'90 min. Reducimos mañana.'};
   function updateSlider(v){
     currentTimeMin=parseInt(v);
     document.getElementById('slv').textContent=v+' min';
