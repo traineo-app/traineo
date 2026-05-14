@@ -16,16 +16,14 @@
     .greeting { padding: 0 1.25rem 1rem; }
     .greeting-sub { font-size: 0.75rem; color: #888780; margin-bottom: 2px; }
     .greeting-name { font-size: 1.3rem; font-weight: 500; color: #111110; letter-spacing: -0.3px; }
-    .today { margin: 0 1.25rem 1rem; background: #163A28; border-radius: 18px; padding: 1.25rem; }
+    .today { margin: 0 1.25rem 1rem; background: #163A28; border-radius: 18px; padding: 1.25rem; cursor: pointer; }
     .today-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
     .today-label { font-size: 0.7rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.1em; }
     .today-badge { background: rgba(255,255,255,0.12); color: #fff; font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 20px; }
-    .today-title { font-size: 1.6rem; font-weight: 500; color: #fff; letter-spacing: -0.4px; margin-bottom: 0.25rem; }
-    .today-sub { font-size: 0.85rem; color: rgba(255,255,255,0.55); margin-bottom: 1rem; }
-    .today-tags { display: flex; gap: 0.4rem; margin-bottom: 1rem; flex-wrap: wrap; }
-    .today-tag { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 20px; }
-    .today-why { background: rgba(255,255,255,0.06); border-radius: 8px; padding: 0.75rem; font-size: 0.8rem; color: rgba(255,255,255,0.45); font-style: italic; line-height: 1.5; margin-bottom: 1rem; }
-    .coach-resum { font-size: 0.75rem; color: rgba(255,255,255,0.35); margin-top: 0.5rem; font-style: normal; padding: 0 0.25rem; }
+    .today-title { font-size: 1.6rem; font-weight: 500; color: #fff; letter-spacing: -0.4px; margin-bottom: 0.75rem; }
+    .today-bullets { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+    .today-bullet { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+    .today-bullet-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.35); flex-shrink: 0; }
     .today-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
     .btn-white { background: #fff; color: #163A28; border: none; border-radius: 8px; padding: 0.7rem; font-size: 0.85rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.3rem; }
     .btn-ghost { background: rgba(255,255,255,0.1); color: #fff; border: none; border-radius: 8px; padding: 0.7rem; font-size: 0.85rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.3rem; }
@@ -33,9 +31,9 @@
     .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
     .section-title { font-size: 0.9rem; font-weight: 500; color: #111110; }
     .plan-list { display: flex; flex-direction: column; gap: 6px; }
-    .plan-item { background: #fff; border: 0.5px solid #E8E6DF; border-radius: 12px; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.75rem; transition: all 0.15s; position: relative; }
+    .plan-item { background: #fff; border: 0.5px solid #E8E6DF; border-radius: 12px; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.75rem; transition: all 0.15s; cursor: pointer; }
     .plan-item.today-item { border: 1.5px solid #163A28; background: #F1FAF5; }
-    .plan-item.rest-item { background: #F1EFE8; border-color: #F1EFE8; }
+    .plan-item.rest-item { background: #F1EFE8; border-color: #F1EFE8; cursor: default; }
     .plan-item.dragging { opacity: 0.4; }
     .plan-item.drag-over { border: 1.5px dashed #163A28; background: #EBF5EF; transform: scale(1.01); }
     .plan-item.changed { border: 1.5px solid #4A9E6B; background: #F1FAF5; animation: highlight 2s ease-out forwards; }
@@ -51,7 +49,7 @@
     .plan-item-actions { display: flex; gap: 4px; flex-shrink: 0; }
     .action-btn { width: 28px; height: 28px; border-radius: 7px; border: 0.5px solid #E8E6DF; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transition: all 0.15s; }
     .action-btn:hover { background: #F1FAF5; border-color: #163A28; }
-    .drag-handle { cursor: grab; color: #C8C6BF; font-size: 0.9rem; padding: 0 2px; flex-shrink: 0; user-select: none; }
+    .drag-handle { cursor: grab; color: #C8C6BF; font-size: 0.9rem; padding: 0 2px; flex-shrink: 0; user-select: none; line-height: 1; }
     .drag-handle:active { cursor: grabbing; }
     .stats-card { margin: 0 1.25rem 1rem; background: #fff; border: 0.5px solid #E8E6DF; border-radius: 12px; padding: 1rem; }
     .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem; }
@@ -335,22 +333,16 @@
     });
   }
 
-  // REAJUST IA — el cor del producte
   async function reajustarPla(descripcioCanvi, loadingMsg='El coach está reajustando tu plan...'){
     if(isReajusting) return;
     isReajusting=true;
     document.getElementById('loading-text').innerHTML=loadingMsg;
     document.getElementById('loading-overlay').classList.add('show');
-
     try {
       const response=await fetch('/api/reajust',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          planActual:planDays,
-          canvi:descripcioCanvi,
-          userData:user
-        })
+        body:JSON.stringify({planActual:planDays,canvi:descripcioCanvi,userData:user})
       });
       const data=await response.json();
       if(data.setmana){
@@ -366,7 +358,7 @@
       }
     } catch(error){
       console.error('Reajust error:',error);
-      showToast('Error reajustando. Cambio aplicado sin IA.');
+      showToast('Error reajustando.');
       renderAll();
     } finally {
       isReajusting=false;
@@ -399,6 +391,7 @@
   }
 
   function renderAll(){
+    const todayIdx2=planDays.findIndex(d=>d.day===todayName);
     const todaySession=planDays.find(d=>d.day===todayName)||planDays.find(d=>!d.rest)||planDays[0];
     const trainDays=planDays.filter(d=>!d.rest);
     const totalMin=trainDays.reduce((acc,d)=>acc+(d.duracio_min||50),0);
@@ -407,6 +400,7 @@
     const fc=user?.fcmax||185;
     const z2min=Math.round(fc*0.60);
     const z2max=Math.round(fc*0.70);
+    const todayRealIdx=planDays.findIndex(d=>d.day===todayName);
 
     let raceHTML='';
     if(user?.carrera&&user?.fecha){
@@ -422,21 +416,27 @@
 
     const savedBadge=currentEmail?`<span class="saved-badge">✓ guardado</span>`:'';
 
+    // Bullets de la sessió d'avui
+    const b1=todaySession.duracio_min?todaySession.duracio_min+' min':(todaySession.sub||'').split('·')[1]?.trim()||'45 min';
+    const b2=(todaySession.tags||[])[0]||'';
+    const b3=todaySession.why||'';
+
     document.getElementById('main-content').innerHTML=`
       ${raceHTML}
-      <div class="today">
+      <div class="today" onclick="openSessio(${todayRealIdx})">
         <div class="today-meta">
           <span class="today-label">Hoy · ${todayName}</span>
           <span class="today-badge">Semana 1 · Base</span>
         </div>
         <div class="today-title">${todaySession.skipped?'Descanso inesperado':todaySession.title}</div>
-        <div class="today-sub">${todaySession.skipped?'Reorganizado automáticamente':todaySession.sub}</div>
-        <div class="today-tags">${(todaySession.tags||[]).map(t=>`<span class="today-tag">${t}</span>`).join('')}</div>
-        <div class="today-why">"${todaySession.why||'Descansa bien — mañana volvemos fuerte.'}"</div>
-        ${window._coachResum?`<div class="coach-resum">${window._coachResum}</div>`:''}
-        <div class="today-actions">
+        <div class="today-bullets">
+          <div class="today-bullet"><div class="today-bullet-dot"></div>⏱ ${b1}</div>
+          ${b2?`<div class="today-bullet"><div class="today-bullet-dot"></div>🏷 ${b2}</div>`:''}
+          ${b3?`<div class="today-bullet"><div class="today-bullet-dot"></div>${b3}</div>`:''}
+        </div>
+        <div class="today-actions" onclick="event.stopPropagation()">
           <button class="btn-white" onclick="openTimeModal()">⏱ Cambiar tiempo</button>
-          <button class="btn-ghost">▶ Empezar</button>
+          <button class="btn-ghost" onclick="openSessio(${todayRealIdx})">▶ Empezar</button>
         </div>
       </div>
       <div class="week-section">
@@ -464,22 +464,22 @@
     const cls=isToday?'today-item':d.rest?'rest-item':isChanged?'changed':'';
     return `
       <div class="plan-item ${cls}" id="item-${i}"
-        draggable="true"
+        draggable="${!d.rest}"
         ondragstart="dragStart(event,${i})"
         ondragover="dragOver(event,${i})"
         ondrop="drop(event,${i})"
         ondragleave="dragLeave(${i})"
         ondragend="dragEnd()"
         onclick="openSessio(${i})">
-        ${!d.rest?`<div class="drag-handle" onclick="event.stopPropagation()">⠿</div>`:`<div style="width:20px"></div>`}
         <div class="plan-day-badge">${d.day}</div>
         <span class="plan-item-icon">${d.icon}</span>
         <div class="plan-item-info">
-          <div class="plan-item-title">${d.title}</div>
+          <div class="plan-item-title">${d.title||'Sesión'}</div>
           ${d.sub?`<div class="plan-item-sub">${d.sub}</div>`:''}
         </div>
         ${!d.rest?`
           <div class="plan-item-actions" onclick="event.stopPropagation()">
+            <div class="drag-handle" ondragstart="dragStart(event,${i})" onclick="event.stopPropagation()">⠿</div>
             <button class="action-btn" onclick="openSessionModal(${i})" title="Cambiar sesión">✎</button>
             <button class="action-btn" onclick="toggleRest(${i})" title="Descanso">💤</button>
           </div>
@@ -522,7 +522,7 @@
       descripcio=`L'usuari ha intercanviat "${src.title}" (${srcDay}) amb "${dst.title}" (${dstDay}).`;
     }
     dragSrcIdx=null;
-    await reajustarPla(descripcio, 'Reorganizando la semana...');
+    await reajustarPla(descripcio,'Reorganizando la semana...');
   }
 
   function openSessionModal(idx){
@@ -554,17 +554,16 @@
   async function confirmSession(){
     if(editingDayIdx===null||!selectedNewSession) return;
     const current=planDays[editingDayIdx];
-    const day=current.day;
     closeModal('modal-session');
-    const descripcio=`L'usuari ha canviat "${current.title}" del ${day} per "${selectedNewSession.title}". Reajusta la setmana sencera per equilibrar la càrrega.`;
-    await reajustarPla(descripcio, 'Ajustando el plan...');
+    const descripcio=`L'usuari ha canviat "${current.title}" del ${current.day} per "${selectedNewSession.title}". Reajusta la setmana.`;
+    await reajustarPla(descripcio,'Ajustando el plan...');
   }
 
   async function toggleRest(idx){
     const day=planDays[idx].day;
     const session=planDays[idx].title;
-    const descripcio=`L'usuari ha marcat el ${day} com a descans (era "${session}"). Redistribueix la càrrega als altres dies disponibles.`;
-    await reajustarPla(descripcio, 'Redistribuyendo la carga...');
+    const descripcio=`L'usuari ha marcat el ${day} com a descans (era "${session}"). Redistribueix la càrrega.`;
+    await reajustarPla(descripcio,'Redistribuyendo la carga...');
   }
 
   function restoreDay(idx){
@@ -574,8 +573,7 @@
     const used=planDays.filter(d=>!d.rest).map(d=>d.title);
     const pick=allS.find(s=>!used.includes(s.title))||allS[0];
     planDays[idx]={...pick,day:planDays[idx].day,rest:false,skipped:false};
-    const descripcio=`S'ha afegit "${pick.title}" al ${planDays[idx].day}. Reajusta la setmana.`;
-    reajustarPla(descripcio, 'Ajustando...');
+    reajustarPla(`S'ha afegit "${pick.title}" al ${planDays[idx].day}.`,'Ajustando...');
   }
 
   function openTimeModal(){ document.getElementById('modal-time').classList.add('open'); }
@@ -583,15 +581,15 @@
   async function skipToday(){
     const todaySession=planDays.find(d=>d.day===todayName);
     closeModal('modal-time');
-    const descripcio=`L'usuari NO pot entrenar avui (${todayName}). Era "${todaySession?.title||'sesión'}". Redistribueix aquesta càrrega als dies restants de la setmana de manera intel·ligent.`;
-    await reajustarPla(descripcio, 'Sin problema, reorganizando...');
+    const descripcio=`L'usuari NO pot entrenar avui (${todayName}). Era "${todaySession?.title||'sesión'}". Redistribueix la càrrega als dies restants.`;
+    await reajustarPla(descripcio,'Sin problema, reorganizando...');
   }
 
   async function confirmTime(){
     const todaySession=planDays.find(d=>d.day===todayName);
     closeModal('modal-time');
-    const descripcio=`L'usuari ha ajustat la sessió d'avui (${todayName} - "${todaySession?.title||'sesión'}") a ${currentTimeMin} minuts en comptes de ${todaySession?.duracio_min||45} minuts. Redistribueix els ${Math.max(0,(todaySession?.duracio_min||45)-currentTimeMin)} minuts restants als dies amb menys càrrega.`;
-    await reajustarPla(descripcio, 'Redistribuyendo el tiempo...');
+    const descripcio=`L'usuari ha ajustat la sessió d'avui a ${currentTimeMin} minuts. Redistribueix els minuts restants.`;
+    await reajustarPla(descripcio,'Redistribuyendo el tiempo...');
   }
 
   function selectTime(el,min){
@@ -612,8 +610,9 @@
   }
   function closeModal(id,e){if(!e||e.target===document.getElementById(id))document.getElementById(id).classList.remove('open');}
   function openSessio(idx){
+    if(idx<0||idx>=planDays.length) return;
     const d=planDays[idx];
-    if(d.rest) return;
+    if(!d||d.rest) return;
     const p=new URLSearchParams({
       title:d.title||'',
       sub:d.sub||'',
