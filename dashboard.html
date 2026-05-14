@@ -21,8 +21,8 @@
     .today-label{font-size:.7rem;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em}
     .today-badge{background:rgba(255,255,255,.12);color:#fff;font-size:.7rem;padding:.2rem .6rem;border-radius:20px}
     .today-title{font-size:1.6rem;font-weight:500;color:#fff;letter-spacing:-.4px;margin-bottom:.75rem}
-    .today-stats{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
-    .today-stat{background:rgba(255,255,255,.1);border-radius:20px;padding:.25rem .75rem;font-size:.78rem;color:rgba(255,255,255,.75);display:flex;align-items:center;gap:.3rem}
+    .today-bullets{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+    .today-bullet{font-size:.82rem;color:rgba(255,255,255,.65);line-height:1.4}m}
     .today-actions{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
     .btn-white{background:#fff;color:#163A28;border:none;border-radius:8px;padding:.7rem;font-size:.85rem;font-weight:500;font-family:'Outfit',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.3rem}
     .btn-ghost{background:rgba(255,255,255,.1);color:#fff;border:none;border-radius:8px;padding:.7rem;font-size:.85rem;font-weight:500;font-family:'Outfit',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.3rem}
@@ -411,8 +411,8 @@ async function saveWithEmail(){
 }
 
 function renderAll(){
-  const todaySession=planDays.find(d=>d.day===todayName&&!d.rest)||planDays.find(d=>!d.rest)||planDays[0]||{title:'Descanso',icon:'💤',tags:[],duracio_min:0,sub:'',why:''};
   const todayRealIdx=planDays.findIndex(d=>d.day===todayName);
+  const todaySession=todayRealIdx>=0?planDays[todayRealIdx]:(planDays.find(d=>!d.rest)||planDays[0]||{title:'Descanso',icon:'💤',tags:[],duracio_min:0,sub:'',why:''});
   const trainDays=planDays.filter(d=>!d.rest);
   const totalMin=trainDays.reduce((acc,d)=>acc+(d.duracio_min||50),0);
   const h=Math.floor(totalMin/60);
@@ -437,8 +437,9 @@ function renderAll(){
 
   // Stats de la sessió d'avui
   const durMin=todaySession.duracio_min||45;
-  const zona=(todaySession.tags||[]).find(t=>t.includes('Z'))||'Z2';
-  const focus=(todaySession.tags||[]).filter(t=>!t.includes('Z')&&!t.includes('~')).slice(0,1)[0]||'';
+  const zona=(todaySession.tags||[]).find(t=>t.startsWith('Z'))||'Z2';
+  const focus=(todaySession.tags||[]).filter(t=>!t.startsWith('Z')&&!t.includes('~')).slice(0,1)[0]||'';
+  const subParts=(todaySession.sub||'').split('·').map(s=>s.trim()).filter(Boolean);
 
   document.getElementById('main-content').innerHTML=`
     ${raceHTML}
@@ -448,10 +449,10 @@ function renderAll(){
         <span class="today-badge">Semana 1 · Base</span>
       </div>
       <div class="today-title">${todaySession.skipped?'Descanso inesperado':todaySession.title}</div>
-      <div class="today-stats">
-        <span class="today-stat">⏱ ${durMin} min</span>
-        <span class="today-stat">💚 ${zona}</span>
-        ${focus?`<span class="today-stat">🎯 ${focus}</span>`:''}
+      <div class="today-bullets">
+        <div class="today-bullet">⏱ ${durMin} min · ${zona}${focus?' · '+focus:''}</div>
+        ${todaySession.sub?`<div class="today-bullet">📍 ${todaySession.sub}</div>`:''}
+        ${todaySession.why?`<div class="today-bullet">💬 ${todaySession.why}</div>`:''}
       </div>
       <div class="today-actions" onclick="event.stopPropagation()">
         <button class="btn-white" onclick="openTimeModal()">⏱ Cambiar tiempo</button>
