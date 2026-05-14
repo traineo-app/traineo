@@ -128,7 +128,7 @@ const icon=decodeURIComponent(params.get('icon')||'🏃');
 const fcmax=parseInt(params.get('fcmax'))||185;
 const duracio=parseInt(params.get('duracio'))||45;
 
-const isGym=['Fuerza tren inferior','Fuerza tren superior','Full body funcional','Calistenia básica','Core y movilidad'].includes(title);
+const titleLower=title.toLowerCase(); const isGym=titleLower.includes('inferior')||titleLower.includes('superior')||titleLower.includes('full body')||titleLower.includes('calistenia')||titleLower.includes('core')||titleLower.includes('fuerza')||titleLower.includes('gimnas');
 const isCardio=!isGym;
 
 const zones=[
@@ -355,7 +355,7 @@ if(struct){
 }
 
 // EXERCICIS
-const exList=gymData[title];
+const exList=gymData[title]||gymData[Object.keys(gymData).find(k=>title.toLowerCase().includes(k.toLowerCase().split(' ')[1]||k))]||null;
 if(exList){
   document.getElementById('exercises-sec').innerHTML=`
     <div class="section">
