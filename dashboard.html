@@ -6,113 +6,111 @@
   <title>traineo — Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Outfit', sans-serif; background: #F1EFE8; min-height: 100vh; }
-    .app { max-width: 390px; margin: 0 auto; min-height: 100vh; background: #F8F7F4; padding-bottom: 3rem; }
-    .nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; }
-    .nav-logo { font-size: 1.2rem; font-weight: 400; color: #111110; letter-spacing: -0.3px; }
-    .nav-neo { color: #163A28; }
-    .nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: #163A28; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 500; cursor: pointer; }
-    .greeting { padding: 0 1.25rem 1rem; }
-    .greeting-sub { font-size: 0.75rem; color: #888780; margin-bottom: 2px; }
-    .greeting-name { font-size: 1.3rem; font-weight: 500; color: #111110; letter-spacing: -0.3px; }
-    .today { margin: 0 1.25rem 1rem; background: #163A28; border-radius: 18px; padding: 1.25rem; cursor: pointer; }
-    .today-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
-    .today-label { font-size: 0.7rem; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.1em; }
-    .today-badge { background: rgba(255,255,255,0.12); color: #fff; font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 20px; }
-    .today-title { font-size: 1.6rem; font-weight: 500; color: #fff; letter-spacing: -0.4px; margin-bottom: 0.75rem; }
-    .today-bullets { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
-    .today-bullet { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
-    .today-bullet-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.35); flex-shrink: 0; }
-    .today-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-    .btn-white { background: #fff; color: #163A28; border: none; border-radius: 8px; padding: 0.7rem; font-size: 0.85rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.3rem; }
-    .btn-ghost { background: rgba(255,255,255,0.1); color: #fff; border: none; border-radius: 8px; padding: 0.7rem; font-size: 0.85rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.3rem; }
-    .week-section { margin: 0 1.25rem 1rem; }
-    .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
-    .section-title { font-size: 0.9rem; font-weight: 500; color: #111110; }
-    .plan-list { display: flex; flex-direction: column; gap: 6px; }
-    .plan-item { background: #fff; border: 0.5px solid #E8E6DF; border-radius: 12px; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.75rem; transition: all 0.15s; cursor: pointer; }
-    .plan-item.today-item { border: 1.5px solid #163A28; background: #F1FAF5; }
-    .plan-item.rest-item { background: #F1EFE8; border-color: #F1EFE8; cursor: default; }
-    .plan-item.dragging { opacity: 0.4; }
-    .plan-item.drag-over { border: 1.5px dashed #163A28; background: #EBF5EF; transform: scale(1.01); }
-    .plan-item.changed { border: 1.5px solid #4A9E6B; background: #F1FAF5; animation: highlight 2s ease-out forwards; }
-    @keyframes highlight { 0%{background:#E8F4ED} 100%{background:#F1FAF5} }
-    .plan-day-badge { width: 28px; height: 28px; border-radius: 8px; background: #F1EFE8; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; color: #888780; flex-shrink: 0; }
-    .plan-item.today-item .plan-day-badge { background: #163A28; color: #fff; }
-    .plan-item-icon { font-size: 1.1rem; flex-shrink: 0; }
-    .plan-item-info { flex: 1; min-width: 0; }
-    .plan-item-title { font-size: 0.9rem; font-weight: 500; color: #111110; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .plan-item.today-item .plan-item-title { color: #163A28; }
-    .plan-item.rest-item .plan-item-title { color: #888780; font-weight: 400; }
-    .plan-item-sub { font-size: 0.75rem; color: #888780; margin-top: 1px; }
-    .plan-item-actions { display: flex; gap: 4px; flex-shrink: 0; }
-    .action-btn { width: 28px; height: 28px; border-radius: 7px; border: 0.5px solid #E8E6DF; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; transition: all 0.15s; }
-    .action-btn:hover { background: #F1FAF5; border-color: #163A28; }
-    .drag-handle { cursor: grab; color: #C8C6BF; font-size: 0.9rem; padding: 0 2px; flex-shrink: 0; user-select: none; line-height: 1; }
-    .drag-handle:active { cursor: grabbing; }
-    .stats-card { margin: 0 1.25rem 1rem; background: #fff; border: 0.5px solid #E8E6DF; border-radius: 12px; padding: 1rem; }
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem; }
-    .stat { text-align: center; }
-    .stat-val { font-size: 1.1rem; font-weight: 500; color: #111110; }
-    .stat-val.green { color: #163A28; }
-    .stat-lbl { font-size: 0.65rem; color: #888780; margin-top: 2px; }
-    .btn-reorganize { width: 100%; background: #163A28; color: #fff; border: none; border-radius: 8px; padding: 0.65rem; font-size: 0.85rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; }
-    .race-card { margin: 0 1.25rem 1rem; background: #111110; border-radius: 14px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 0.75rem; }
-    .race-icon { font-size: 1.5rem; flex-shrink: 0; }
-    .race-title { font-size: 0.9rem; font-weight: 500; color: #fff; margin-bottom: 2px; }
-    .race-sub { font-size: 0.75rem; color: rgba(255,255,255,0.45); }
-    .race-days { font-size: 1.2rem; font-weight: 500; color: #4A9E6B; margin-left: auto; flex-shrink: 0; }
-    .race-days-lbl { font-size: 0.65rem; color: rgba(255,255,255,0.4); text-align: right; }
-    .reajust-banner { margin: 0 1.25rem 1rem; background: #EBF5EF; border: 0.5px solid #4A9E6B; border-radius: 12px; padding: 0.75rem 1rem; display: none; align-items: center; gap: 0.75rem; }
-    .reajust-banner.show { display: flex; }
-    .reajust-dot { width: 8px; height: 8px; border-radius: 50%; background: #163A28; flex-shrink: 0; }
-    .reajust-text { font-size: 0.82rem; color: #163A28; line-height: 1.4; }
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: flex-end; justify-content: center; }
-    .modal-overlay.open { display: flex; }
-    .modal { background: #F8F7F4; border-radius: 20px 20px 0 0; padding: 1.5rem 1.25rem 2rem; width: 100%; max-width: 390px; max-height: 80vh; overflow-y: auto; }
-    .modal-handle { width: 36px; height: 4px; border-radius: 2px; background: #D3D1C7; margin: 0 auto 1.25rem; }
-    .modal-title { font-size: 1.1rem; font-weight: 500; color: #111110; margin-bottom: 0.25rem; letter-spacing: -0.2px; }
-    .modal-sub { font-size: 0.85rem; color: #888780; margin-bottom: 1.25rem; }
-    .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
-    .time-opt { border: 0.5px solid #D3D1C7; border-radius: 10px; padding: 0.9rem; text-align: center; cursor: pointer; background: #fff; transition: all 0.15s; }
-    .time-opt.sel { border: 1.5px solid #163A28; background: #F1FAF5; }
-    .time-opt-min { font-size: 1.3rem; font-weight: 500; color: #111110; }
-    .time-opt.sel .time-opt-min { color: #163A28; }
-    .time-opt-label { font-size: 0.7rem; color: #888780; margin-top: 2px; }
-    .slider-wrap { background: #F1EFE8; border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
-    .slider-label { font-size: 0.7rem; color: #888780; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; font-weight: 500; }
-    .slider-row { display: flex; align-items: center; gap: 0.75rem; }
-    .slider-row input { flex: 1; accent-color: #163A28; }
-    .slider-val { font-size: 0.9rem; font-weight: 500; color: #163A28; min-width: 40px; text-align: right; }
-    .ai-msg { background: #EBF5EF; border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: flex-start; }
-    .ai-dot { width: 6px; height: 6px; border-radius: 50%; background: #163A28; margin-top: 5px; flex-shrink: 0; }
-    .ai-text { font-size: 0.8rem; color: #163A28; line-height: 1.5; }
-    .btn-green { width: 100%; background: #163A28; color: #fff; border: none; border-radius: 10px; padding: 0.9rem; font-size: 0.95rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; margin-bottom: 0.5rem; }
-    .btn-cancel { width: 100%; background: none; border: none; color: #888780; font-size: 0.85rem; font-family: 'Outfit', sans-serif; cursor: pointer; padding: 0.5rem; }
-    .session-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
-    .session-opt { border: 0.5px solid #E8E6DF; border-radius: 10px; padding: 0.8rem 1rem; background: #fff; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; transition: all 0.15s; }
-    .session-opt:hover { border-color: #163A28; background: #F1FAF5; }
-    .session-opt.sel { border: 1.5px solid #163A28; background: #F1FAF5; }
-    .session-opt-icon { font-size: 1.2rem; flex-shrink: 0; }
-    .session-opt-title { font-size: 0.9rem; font-weight: 500; color: #111110; }
-    .session-opt.sel .session-opt-title { color: #163A28; }
-    .session-opt-sub { font-size: 0.75rem; color: #888780; }
-    .no-plan { margin: 2rem 1.25rem; background: #fff; border: 0.5px solid #E8E6DF; border-radius: 16px; padding: 1.5rem; text-align: center; }
-    .no-plan-icon { font-size: 2rem; margin-bottom: 0.75rem; }
-    .no-plan-title { font-size: 1rem; font-weight: 500; color: #111110; margin-bottom: 0.5rem; }
-    .no-plan-sub { font-size: 0.85rem; color: #888780; margin-bottom: 1rem; line-height: 1.5; }
-    .btn-start { background: #163A28; color: #fff; border: none; border-radius: 10px; padding: 0.75rem 1.5rem; font-size: 0.9rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; }
-    .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #111110; color: #fff; font-size: 0.85rem; font-weight: 500; padding: 0.65rem 1.25rem; border-radius: 20px; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
-    .toast.show { opacity: 1; }
-    .loading-overlay { position: fixed; inset: 0; background: rgba(248,247,244,0.9); z-index: 150; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; }
-    .loading-overlay.show { display: flex; }
-    .spinner { width: 40px; height: 40px; border: 3px solid #E8E6DF; border-top-color: #163A28; border-radius: 50%; animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-text { font-size: 0.9rem; color: #888780; text-align: center; }
-    .email-modal-input { width: 100%; padding: 0.75rem 1rem; border: 0.5px solid #E8E6DF; border-radius: 10px; font-size: 0.95rem; font-family: 'Outfit', sans-serif; color: #111110; background: #fff; outline: none; margin-bottom: 1rem; }
-    .email-modal-input:focus { border-color: #163A28; }
-    .saved-badge { display: inline-flex; align-items: center; gap: 4px; background: #E8F4ED; color: #163A28; font-size: 0.7rem; font-weight: 500; padding: 3px 8px; border-radius: 20px; margin-left: 8px; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Outfit',sans-serif;background:#F1EFE8;min-height:100vh}
+    .app{max-width:390px;margin:0 auto;min-height:100vh;background:#F8F7F4;padding-bottom:3rem}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem}
+    .nav-logo{font-size:1.2rem;font-weight:400;color:#111110;letter-spacing:-.3px}
+    .nav-neo{color:#163A28}
+    .nav-avatar{width:34px;height:34px;border-radius:50%;background:#163A28;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:500;cursor:pointer}
+    .greeting{padding:0 1.25rem 1rem}
+    .greeting-sub{font-size:.75rem;color:#888780;margin-bottom:2px}
+    .greeting-name{font-size:1.3rem;font-weight:500;color:#111110;letter-spacing:-.3px}
+    .today{margin:0 1.25rem 1rem;background:#163A28;border-radius:18px;padding:1.25rem;cursor:pointer}
+    .today-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+    .today-label{font-size:.7rem;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em}
+    .today-badge{background:rgba(255,255,255,.12);color:#fff;font-size:.7rem;padding:.2rem .6rem;border-radius:20px}
+    .today-title{font-size:1.6rem;font-weight:500;color:#fff;letter-spacing:-.4px;margin-bottom:.75rem}
+    .today-stats{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
+    .today-stat{background:rgba(255,255,255,.1);border-radius:20px;padding:.25rem .75rem;font-size:.78rem;color:rgba(255,255,255,.75);display:flex;align-items:center;gap:.3rem}
+    .today-actions{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+    .btn-white{background:#fff;color:#163A28;border:none;border-radius:8px;padding:.7rem;font-size:.85rem;font-weight:500;font-family:'Outfit',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.3rem}
+    .btn-ghost{background:rgba(255,255,255,.1);color:#fff;border:none;border-radius:8px;padding:.7rem;font-size:.85rem;font-weight:500;font-family:'Outfit',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.3rem}
+    .week-section{margin:0 1.25rem 1rem}
+    .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+    .section-title{font-size:.9rem;font-weight:500;color:#111110}
+    .plan-list{display:flex;flex-direction:column;gap:6px}
+    .plan-item{background:#fff;border:.5px solid #E8E6DF;border-radius:12px;padding:.85rem 1rem;display:flex;align-items:center;gap:.75rem;transition:all .15s;cursor:pointer}
+    .plan-item.today-item{border:1.5px solid #163A28;background:#F1FAF5}
+    .plan-item.rest-item{background:#F1EFE8;border-color:#F1EFE8;cursor:default}
+    .plan-item.dragging{opacity:.4}
+    .plan-item.drag-over{border:1.5px dashed #163A28;background:#EBF5EF;transform:scale(1.01)}
+    .plan-item.changed{border:1.5px solid #4A9E6B;background:#F1FAF5;animation:highlight 2s ease-out forwards}
+    @keyframes highlight{0%{background:#E8F4ED}100%{background:#F1FAF5}}
+    .plan-day-badge{width:28px;height:28px;border-radius:8px;background:#F1EFE8;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:600;color:#888780;flex-shrink:0}
+    .plan-item.today-item .plan-day-badge{background:#163A28;color:#fff}
+    .plan-item-icon{font-size:1.1rem;flex-shrink:0}
+    .plan-item-info{flex:1;min-width:0}
+    .plan-item-title{font-size:.9rem;font-weight:500;color:#111110;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .plan-item.today-item .plan-item-title{color:#163A28}
+    .plan-item.rest-item .plan-item-title{color:#888780;font-weight:400}
+    .plan-item-sub{font-size:.75rem;color:#888780;margin-top:1px}
+    .plan-item-actions{display:flex;gap:4px;flex-shrink:0}
+    .action-btn{width:28px;height:28px;border-radius:7px;border:.5px solid #E8E6DF;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:all .15s}
+    .action-btn:hover{background:#F1FAF5;border-color:#163A28}
+    .drag-handle{cursor:grab;color:#C8C6BF;font-size:.9rem;padding:0 2px;flex-shrink:0;user-select:none;line-height:1}
+    .stats-card{margin:0 1.25rem 1rem;background:#fff;border:.5px solid #E8E6DF;border-radius:12px;padding:1rem}
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.75rem}
+    .stat{text-align:center}
+    .stat-val{font-size:1.1rem;font-weight:500;color:#111110}
+    .stat-val.green{color:#163A28}
+    .stat-lbl{font-size:.65rem;color:#888780;margin-top:2px}
+    .btn-reorganize{width:100%;background:#163A28;color:#fff;border:none;border-radius:8px;padding:.65rem;font-size:.85rem;font-weight:500;font-family:'Outfit',sans-serif;cursor:pointer}
+    .race-card{margin:0 1.25rem 1rem;background:#111110;border-radius:14px;padding:1rem 1.25rem;display:flex;align-items:center;gap:.75rem}
+    .race-icon{font-size:1.5rem;flex-shrink:0}
+    .race-title{font-size:.9rem;font-weight:500;color:#fff;margin-bottom:2px}
+    .race-sub{font-size:.75rem;color:rgba(255,255,255,.45)}
+    .race-days{font-size:1.2rem;font-weight:500;color:#4A9E6B;margin-left:auto;flex-shrink:0}
+    .race-days-lbl{font-size:.65rem;color:rgba(255,255,255,.4);text-align:right}
+    .reajust-banner{margin:0 1.25rem 1rem;background:#EBF5EF;border:.5px solid #4A9E6B;border-radius:12px;padding:.75rem 1rem;display:none;align-items:center;gap:.75rem}
+    .reajust-banner.show{display:flex}
+    .reajust-dot{width:8px;height:8px;border-radius:50%;background:#163A28;flex-shrink:0}
+    .reajust-text{font-size:.82rem;color:#163A28;line-height:1.4}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-end;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal{background:#F8F7F4;border-radius:20px 20px 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:390px;max-height:80vh;overflow-y:auto}
+    .modal-handle{width:36px;height:4px;border-radius:2px;background:#D3D1C7;margin:0 auto 1.25rem}
+    .modal-title{font-size:1.1rem;font-weight:500;color:#111110;margin-bottom:.25rem;letter-spacing:-.2px}
+    .modal-sub{font-size:.85rem;color:#888780;margin-bottom:1.25rem}
+    .time-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem}
+    .time-opt{border:.5px solid #D3D1C7;border-radius:10px;padding:.9rem;text-align:center;cursor:pointer;background:#fff;transition:all .15s}
+    .time-opt.sel{border:1.5px solid #163A28;background:#F1FAF5}
+    .time-opt-min{font-size:1.3rem;font-weight:500;color:#111110}
+    .time-opt.sel .time-opt-min{color:#163A28}
+    .time-opt-label{font-size:.7rem;color:#888780;margin-top:2px}
+    .slider-wrap{background:#F1EFE8;border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem}
+    .slider-label{font-size:.7rem;color:#888780;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;font-weight:500}
+    .slider-row{display:flex;align-items:center;gap:.75rem}
+    .slider-row input{flex:1;accent-color:#163A28}
+    .slider-val{font-size:.9rem;font-weight:500;color:#163A28;min-width:40px;text-align:right}
+    .ai-msg{background:#EBF5EF;border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;display:flex;gap:.5rem;align-items:flex-start}
+    .ai-dot{width:6px;height:6px;border-radius:50%;background:#163A28;margin-top:5px;flex-shrink:0}
+    .ai-text{font-size:.8rem;color:#163A28;line-height:1.5}
+    .btn-green{width:100%;background:#163A28;color:#fff;border:none;border-radius:10px;padding:.9rem;font-size:.95rem;font-weight:500;font-family:'Outfit',sans-serif;cursor:pointer;margin-bottom:.5rem}
+    .btn-cancel{width:100%;background:none;border:none;color:#888780;font-size:.85rem;font-family:'Outfit',sans-serif;cursor:pointer;padding:.5rem}
+    .session-list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem}
+    .session-opt{border:.5px solid #E8E6DF;border-radius:10px;padding:.8rem 1rem;background:#fff;cursor:pointer;display:flex;align-items:center;gap:.75rem;transition:all .15s}
+    .session-opt:hover{border-color:#163A28;background:#F1FAF5}
+    .session-opt.sel{border:1.5px solid #163A28;background:#F1FAF5}
+    .session-opt-icon{font-size:1.2rem;flex-shrink:0}
+    .session-opt-title{font-size:.9rem;font-weight:500;color:#111110}
+    .session-opt.sel .session-opt-title{color:#163A28}
+    .session-opt-sub{font-size:.75rem;color:#888780}
+    .no-plan{margin:2rem 1.25rem;background:#fff;border:.5px solid #E8E6DF;border-radius:16px;padding:1.5rem;text-align:center}
+    .no-plan-icon{font-size:2rem;margin-bottom:.75rem}
+    .no-plan-title{font-size:1rem;font-weight:500;color:#111110;margin-bottom:.5rem}
+    .no-plan-sub{font-size:.85rem;color:#888780;margin-bottom:1rem;line-height:1.5}
+    .btn-start{background:#163A28;color:#fff;border:none;border-radius:10px;padding:.75rem 1.5rem;font-size:.9rem;font-weight:500;font-family:'Outfit',sans-serif;cursor:pointer}
+    .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#111110;color:#fff;font-size:.85rem;font-weight:500;padding:.65rem 1.25rem;border-radius:20px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+    .toast.show{opacity:1}
+    .loading-overlay{position:fixed;inset:0;background:rgba(248,247,244,.9);z-index:150;display:none;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
+    .loading-overlay.show{display:flex}
+    .spinner{width:40px;height:40px;border:3px solid #E8E6DF;border-top-color:#163A28;border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-text{font-size:.9rem;color:#888780;text-align:center}
+    .email-modal-input{width:100%;padding:.75rem 1rem;border:.5px solid #E8E6DF;border-radius:10px;font-size:.95rem;font-family:'Outfit',sans-serif;color:#111110;background:#fff;outline:none;margin-bottom:1rem}
+    .email-modal-input:focus{border-color:#163A28}
+    .saved-badge{display:inline-flex;align-items:center;gap:4px;background:#E8F4ED;color:#163A28;font-size:.7rem;font-weight:500;padding:3px 8px;border-radius:20px;margin-left:8px}
   </style>
 </head>
 <body>
@@ -127,7 +125,7 @@
       </svg>
       <span class="nav-logo">trai<span class="nav-neo">neo</span></span>
     </div>
-    <div class="nav-avatar" id="nav-avatar" onclick="openEmailModal()" title="Guardar plan">T</div>
+    <div class="nav-avatar" id="nav-avatar" onclick="openEmailModal()">T</div>
   </div>
   <div class="greeting">
     <div class="greeting-sub" id="greeting-date">Hoy</div>
@@ -142,7 +140,7 @@
 
 <div class="loading-overlay" id="loading-overlay">
   <div class="spinner"></div>
-  <div class="loading-text" id="loading-text">El coach está reajustando<br>tu plan...</div>
+  <div class="loading-text" id="loading-text">El coach está generando tu plan...</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -151,7 +149,7 @@
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Guarda tu plan</div>
-    <div class="modal-sub">Introduce tu email para guardar el plan y recuperarlo cuando vuelvas.</div>
+    <div class="modal-sub">Introduce tu email para recuperarlo cuando vuelvas.</div>
     <input type="email" class="email-modal-input" id="email-input" placeholder="hola@ejemplo.com">
     <button class="btn-green" onclick="saveWithEmail()">Guardar y continuar →</button>
     <button class="btn-cancel" onclick="closeModal('modal-email')">Ahora no</button>
@@ -194,455 +192,455 @@
 </div>
 
 <script>
-  const dayNames=['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
-  const months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  const today=new Date();
-  const todayIdx=today.getDay();
-  const todayName=dayNames[(todayIdx+6)%7];
-  document.getElementById('greeting-date').textContent=todayName+' · '+today.getDate()+' '+months[today.getMonth()];
+const dayNames=['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
+const months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const today=new Date();
+const todayIdx=today.getDay();
+const todayName=dayNames[(todayIdx+6)%7];
+document.getElementById('greeting-date').textContent=todayName+' · '+today.getDate()+' '+months[today.getMonth()];
 
-  const params=new URLSearchParams(window.location.search);
-  const sportsParam=params.get('sports');
-  const emailParam=params.get('email');
+const params=new URLSearchParams(window.location.search);
+const sportsParam=params.get('sports');
+const emailParam=params.get('email');
 
-  const user=sportsParam?{
-    sports:sportsParam.split(','),
-    dias:parseInt(params.get('dias'))||3,
-    descanso:decodeURIComponent(params.get('descanso')||'Ninguno'),
-    nivel:decodeURIComponent(params.get('nivel')||'Intermedio'),
-    fcmax:parseInt(params.get('fcmax'))||185,
-    volum:parseInt(params.get('volum'))||4,
-    objetivo:decodeURIComponent(params.get('objetivo')||''),
-    carrera:decodeURIComponent(params.get('carrera')||''),
-    distancia:decodeURIComponent(params.get('distancia')||''),
-    desnivel:parseInt(params.get('desnivel'))||0,
-    fecha:decodeURIComponent(params.get('fecha')||''),
-    email:emailParam||''
-  }:null;
+const user=sportsParam?{
+  sports:sportsParam.split(','),
+  dias:parseInt(params.get('dias'))||3,
+  descanso:decodeURIComponent(params.get('descanso')||'Ninguno'),
+  nivel:decodeURIComponent(params.get('nivel')||'Intermedio'),
+  fcmax:parseInt(params.get('fcmax'))||185,
+  volum:parseInt(params.get('volum'))||4,
+  objetivo:decodeURIComponent(params.get('objetivo')||''),
+  carrera:decodeURIComponent(params.get('carrera')||''),
+  distancia:decodeURIComponent(params.get('distancia')||''),
+  desnivel:parseInt(params.get('desnivel'))||0,
+  fecha:decodeURIComponent(params.get('fecha')||''),
+  email:emailParam||''
+}:null;
 
-  const allSessionsDB={
-    running:[
-      {icon:'🏃',title:'Rodaje Z2',sub:'Aeróbico base · 45 min',why:'Construyes base aeróbica.',tags:['Running','Z2','~6 km']},
-      {icon:'🏃',title:'Rodaje largo',sub:'Fondo · 60 min',why:'El fondo construye resistencia.',tags:['Running','Fondo','~8 km']},
-      {icon:'🏃',title:'Series de velocidad',sub:'Calidad · 40 min',why:'Mejoras tu umbral anaeróbico.',tags:['Running','Calidad']},
-      {icon:'🏃',title:'Rodaje de recuperación',sub:'Regenerativo · 30 min',why:'Activas la recuperación muscular.',tags:['Running','Recuperación']}
-    ],
-    ciclismo:[
-      {icon:'🚴',title:'Rodada Z2',sub:'Fondo en bici · 60 min',why:'Base aeróbica en bici.',tags:['Ciclismo','Z2']},
-      {icon:'🚴',title:'Series en bici',sub:'Potencia · 50 min',why:'Mejoras tu potencia en bici.',tags:['Ciclismo','Potencia']},
-      {icon:'🚴',title:'Ruta larga',sub:'Resistencia · 90 min',why:'Construyes resistencia de base.',tags:['Ciclismo','Fondo']}
-    ],
-    gimnasio:[
-      {icon:'🏋️',title:'Fuerza tren inferior',sub:'Piernas · 50 min',why:'La fuerza de piernas es clave.',tags:['Gimnasio','Piernas']},
-      {icon:'🏋️',title:'Fuerza tren superior',sub:'Upper · 50 min',why:'Mejoras tu postura en carrera.',tags:['Gimnasio','Upper']},
-      {icon:'🏋️',title:'Full body funcional',sub:'Core · 45 min',why:'Core fuerte previene lesiones.',tags:['Gimnasio','Core']}
-    ],
-    natacion:[
-      {icon:'🏊',title:'Técnica en piscina',sub:'Eficiencia · 45 min',why:'La técnica lo es todo.',tags:['Natación','Técnica']},
-      {icon:'🏊',title:'Series en piscina',sub:'Resistencia · 50 min',why:'Mejoras tu resistencia en agua.',tags:['Natación','Series']}
-    ],
-    calistenia:[
-      {icon:'🤸',title:'Calistenia básica',sub:'Dominadas y fondos · 40 min',why:'Fuerza funcional real.',tags:['Calistenia']},
-      {icon:'🤸',title:'Core y movilidad',sub:'Estabilidad · 35 min',why:'Core fuerte, menos lesiones.',tags:['Calistenia','Core']}
-    ],
-    triatlon:[
-      {icon:'🥇',title:'Brick bici-running',sub:'Transición · 60 min',why:'Entrenas el cambio de disciplina.',tags:['Triatlón','Brick']},
-      {icon:'🥇',title:'Nado técnico',sub:'Piscina · 40 min',why:'Eficiencia en el agua.',tags:['Triatlón','Natación']}
-    ],
-    trail:[
-      {icon:'🏔️',title:'Trail Z2',sub:'Montaña suave · 60 min',why:'Base aeróbica en montaña.',tags:['Trail','Z2']},
-      {icon:'🏔️',title:'Series de cuestas',sub:'Desnivel · 50 min',why:'Fuerza específica para trail.',tags:['Trail','Cuestas']}
-    ]
-  };
+const allSessionsDB={
+  running:[
+    {icon:'🏃',title:'Rodaje Z2',sub:'45 min · Z2',why:'Construyes base aeróbica.',tags:['Running','Z2','~6 km']},
+    {icon:'🏃',title:'Rodaje largo',sub:'60 min · Z2 suave',why:'El fondo construye resistencia.',tags:['Running','Fondo','~8 km']},
+    {icon:'🏃',title:'Series de velocidad',sub:'40 min · Z4',why:'Mejoras tu umbral.',tags:['Running','Calidad']},
+    {icon:'🏃',title:'Rodaje de recuperación',sub:'30 min · Z1',why:'Activas la recuperación.',tags:['Running','Recuperación']}
+  ],
+  ciclismo:[
+    {icon:'🚴',title:'Rodada Z2',sub:'60 min · Z2',why:'Base aeróbica en bici.',tags:['Ciclismo','Z2']},
+    {icon:'🚴',title:'Series en bici',sub:'50 min · Potencia',why:'Mejoras tu potencia.',tags:['Ciclismo','Potencia']},
+    {icon:'🚴',title:'Ruta larga',sub:'90 min · Z2',why:'Construyes resistencia.',tags:['Ciclismo','Fondo']}
+  ],
+  gimnasio:[
+    {icon:'🏋️',title:'Fuerza tren inferior',sub:'50 min · Fuerza',why:'La fuerza de piernas es clave.',tags:['Gimnasio','Piernas']},
+    {icon:'🏋️',title:'Fuerza tren superior',sub:'50 min · Fuerza',why:'Mejoras tu postura.',tags:['Gimnasio','Upper']},
+    {icon:'🏋️',title:'Full body funcional',sub:'45 min · Core',why:'Core fuerte previene lesiones.',tags:['Gimnasio','Core']}
+  ],
+  natacion:[
+    {icon:'🏊',title:'Técnica en piscina',sub:'45 min · Técnica',why:'La técnica lo es todo.',tags:['Natación','Técnica']},
+    {icon:'🏊',title:'Series en piscina',sub:'50 min · Resistencia',why:'Mejoras tu resistencia.',tags:['Natación','Series']}
+  ],
+  calistenia:[
+    {icon:'🤸',title:'Calistenia básica',sub:'40 min · Fuerza',why:'Fuerza funcional real.',tags:['Calistenia']},
+    {icon:'🤸',title:'Core y movilidad',sub:'35 min · Core',why:'Core fuerte, menos lesiones.',tags:['Calistenia','Core']}
+  ],
+  triatlon:[
+    {icon:'🥇',title:'Brick bici-running',sub:'60 min · Transición',why:'Entrenas el cambio de disciplina.',tags:['Triatlón','Brick']},
+    {icon:'🥇',title:'Nado técnico',sub:'40 min · Técnica',why:'Eficiencia en el agua.',tags:['Triatlón','Natación']}
+  ],
+  trail:[
+    {icon:'🏔️',title:'Trail Z2',sub:'60 min · Z2',why:'Base aeróbica en montaña.',tags:['Trail','Z2']},
+    {icon:'🏔️',title:'Series de cuestas',sub:'50 min · Fuerza',why:'Fuerza específica para trail.',tags:['Trail','Cuestas']}
+  ]
+};
 
-  let planDays=[];
-  let editingDayIdx=null;
-  let selectedNewSession=null;
-  let dragSrcIdx=null;
-  let currentTimeMin=45;
-  let currentEmail=emailParam||'';
-  let isReajusting=false;
+let planDays=[];
+let editingDayIdx=null;
+let selectedNewSession=null;
+let dragSrcIdx=null;
+let currentTimeMin=45;
+let currentEmail=emailParam||'';
+let isReajusting=false;
 
-  if(user){ initDashboard(user); }
-  else {
-    document.getElementById('main-content').innerHTML=`
-      <div class="no-plan">
-        <div class="no-plan-icon">🏃</div>
-        <div class="no-plan-title">Aún no tienes un plan</div>
-        <div class="no-plan-sub">Cuéntame tus objetivos y crearé tu plan personalizado.</div>
-        <button class="btn-start" onclick="window.location.href='onboarding.html'">Crear mi plan →</button>
-      </div>`;
-  }
+if(user){ initDashboard(user); }
+else {
+  document.getElementById('main-content').innerHTML=`
+    <div class="no-plan">
+      <div class="no-plan-icon">🏃</div>
+      <div class="no-plan-title">Aún no tienes un plan</div>
+      <div class="no-plan-sub">Cuéntame tus objetivos y crearé tu plan personalizado.</div>
+      <button class="btn-start" onclick="window.location.href='onboarding.html'">Crear mi plan →</button>
+    </div>`;
+}
 
-  async function initDashboard(user){
-    if(currentEmail){
-      document.getElementById('nav-avatar').textContent=currentEmail[0].toUpperCase();
-      document.getElementById('greeting-name').textContent='Hola, '+currentEmail.split('@')[0]+' 👋';
-      try {
-        const res=await fetch('/api/get-plan?email='+encodeURIComponent(currentEmail));
-        const data=await res.json();
-        if(data.plan&&data.plan.sessions&&data.plan.sessions.length>0){
-          planDays=data.plan.sessions;
-          window._coachResum=data.plan.resum||'';
-          showToast('Plan cargado ✓');
-          renderAll();
-          return;
-        }
-      } catch(e){ console.log('No saved plan'); }
-    }
-    await buildPlan(user);
-  }
+// Normalitza les dades que ve de la IA (pot tenir camps amb noms diferents)
+function normalizePlan(sessions){
+  return sessions.map((d,i)=>({
+    ...d,
+    day: d.day||d.dia||d.Day||dayNames[i]||dayNames[0],
+    title: d.title||d.titulo||d.name||d.Title||'Sesión',
+    sub: d.sub||d.description||d.descripcion||'',
+    why: d.why||d.porque||d.razon||'',
+    tags: d.tags||d.etiquetas||[],
+    icon: d.icon||d.icono||'🏃',
+    rest: d.rest||d.descanso===true||d.title==='Descanso'||d.titulo==='Descanso'||false,
+    duracio_min: d.duracio_min||d.duracion||d.duration||d.minuts||45,
+    canviat: d.canviat||false,
+    skipped: d.skipped||false
+  }));
+}
 
-  async function buildPlan(user){
-    document.getElementById('main-content').innerHTML=`
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1.25rem;gap:1rem">
-        <div style="width:48px;height:48px;border:3px solid #E8E6DF;border-top-color:#163A28;border-radius:50%;animation:spin 0.8s linear infinite"></div>
-        <p style="font-size:0.9rem;color:#888780;text-align:center">Tu coach está generando<br>el plan de esta semana...</p>
-      </div>
-      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`;
+async function initDashboard(user){
+  if(currentEmail){
+    document.getElementById('nav-avatar').textContent=currentEmail[0].toUpperCase();
+    document.getElementById('greeting-name').textContent='Hola, '+currentEmail.split('@')[0]+' 👋';
     try {
-      const response=await fetch('/api/coach',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({sports:user.sports,dias:user.dias,descanso:user.descanso,nivel:user.nivel,fcmax:user.fcmax,volum:user.volum,objetivo:user.objetivo,carrera:user.carrera,distancia:user.distancia,desnivel:user.desnivel})
-      });
-      const data=await response.json();
-      if(data.setmana){
-       planDays=data.setmana.map((d,i)=>({
-  ...d,
-  day:d.day||d.dia||dayNames[i]||dayNames[0],
-  title:d.title||d.titulo||d.name||'Sesión',
-  duracio_min:d.duracio_min||d.duracion||d.duration||45
-}));
-        if(data.resum) window._coachResum=data.resum;
+      const res=await fetch('/api/get-plan?email='+encodeURIComponent(currentEmail));
+      const data=await res.json();
+      if(data.plan&&data.plan.sessions&&data.plan.sessions.length>0){
+        planDays=normalizePlan(data.plan.sessions);
+        window._coachResum=data.plan.resum||'';
+        showToast('Plan cargado ✓');
         renderAll();
-        if(currentEmail) await savePlanToSupabase();
-        else setTimeout(()=>openEmailModal(),2000);
-      } else throw new Error('Format incorrecte');
-    } catch(error){
-      console.error('Error IA:',error);
-      buildPlanStatic(user);
-      renderAll();
-    }
-  }
-
-  function buildPlanStatic(user){
-    const sports=user.sports,dias=user.dias,descanso=user.descanso;
-    let allS=[];
-    sports.forEach(s=>(allSessionsDB[s]||[]).forEach(x=>allS.push({...x,sport:s})));
-    let idx=0;
-    planDays=dayNames.map(d=>{
-      if(d===descanso) return{day:d,rest:true,icon:'💤',title:'Descanso',sub:'Recuperación activa',tags:[],why:'',skipped:false};
-      if(idx<dias){const s=allS[idx%allS.length];idx++;return{day:d,rest:false,...s,skipped:false};}
-      return{day:d,rest:true,icon:'💤',title:'Descanso',sub:'',tags:[],why:'',skipped:false};
-    });
-  }
-
-  async function reajustarPla(descripcioCanvi, loadingMsg='El coach está reajustando tu plan...'){
-    if(isReajusting) return;
-    isReajusting=true;
-    document.getElementById('loading-text').innerHTML=loadingMsg;
-    document.getElementById('loading-overlay').classList.add('show');
-    try {
-      const response=await fetch('/api/reajust',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({planActual:planDays,canvi:descripcioCanvi,userData:user})
-      });
-      const data=await response.json();
-      if(data.setmana){
-        planDays=data.setmana.map((d,i)=>({
-  ...d,
-  day:d.day||d.dia||dayNames[i]||dayNames[0],
-  title:d.title||d.titulo||d.name||'Sesión',
-  duracio_min:d.duracio_min||d.duracion||d.duration||45
-}));
-        if(data.resum) window._coachResum=data.resum;
-        renderAll();
-        if(currentEmail) await savePlanToSupabase();
-        else setTimeout(()=>openEmailModal(),2000);
-      } else throw new Error('Format incorrecte');
-    } catch(error){
-      console.error('Error IA:',error);
-      buildPlanStatic(user);
-      renderAll();
-        renderAll();
-        if(currentEmail) await savePlanToSupabase();
+        return;
       }
-    } catch(error){
-      console.error('Reajust error:',error);
-      showToast('Error reajustando.');
-      renderAll();
-    } finally {
-      isReajusting=false;
-      document.getElementById('loading-overlay').classList.remove('show');
-    }
+    } catch(e){ console.log('No saved plan'); }
   }
+  await buildPlan(user);
+}
 
-  async function savePlanToSupabase(){
-    if(!currentEmail||planDays.length===0) return;
-    try {
-      await fetch('/api/save-plan',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({email:currentEmail,userData:user,sessions:planDays,resum:window._coachResum||''})
-      });
-    } catch(e){ console.log('Could not save:',e); }
-  }
-
-  function openEmailModal(){ document.getElementById('modal-email').classList.add('open'); }
-
-  async function saveWithEmail(){
-    const email=document.getElementById('email-input').value.trim();
-    if(!email||!email.includes('@')){ showToast('Introduce un email válido'); return; }
-    currentEmail=email;
-    closeModal('modal-email');
-    await savePlanToSupabase();
-    document.getElementById('nav-avatar').textContent=email[0].toUpperCase();
-    document.getElementById('greeting-name').textContent='Hola, '+email.split('@')[0]+' 👋';
-    showToast('Plan guardado ✓');
-  }
-
-  function renderAll(){
-    const todayIdx2=planDays.findIndex(d=>d.day===todayName);
-    const todaySession=planDays.find(d=>d.day===todayName)||planDays.find(d=>!d.rest)||planDays[0];
-    const trainDays=planDays.filter(d=>!d.rest);
-    const totalMin=trainDays.reduce((acc,d)=>acc+(d.duracio_min||50),0);
-    const h=Math.floor(totalMin/60);
-    const m=totalMin%60;
-    const fc=user?.fcmax||185;
-    const z2min=Math.round(fc*0.60);
-    const z2max=Math.round(fc*0.70);
-    const todayRealIdx=planDays.findIndex(d=>d.day===todayName);
-
-    let raceHTML='';
-    if(user?.carrera&&user?.fecha){
-      const diff=Math.ceil((new Date(user.fecha)-new Date())/(1000*60*60*24));
-      if(diff>0){
-        raceHTML=`<div class="race-card">
-          <div class="race-icon">🏁</div>
-          <div><div class="race-title">${user.carrera}</div><div class="race-sub">${user.distancia}${user.desnivel>0?' · +'+user.desnivel+'m D+':''}</div></div>
-          <div style="text-align:right;margin-left:auto"><div class="race-days">${diff}</div><div class="race-days-lbl">días</div></div>
-        </div>`;
-      }
-    }
-
-    const savedBadge=currentEmail?`<span class="saved-badge">✓ guardado</span>`:'';
-
-    // Bullets de la sessió d'avui
-    const b1=todaySession.duracio_min?todaySession.duracio_min+' min':(todaySession.sub||'').split('·')[1]?.trim()||'45 min';
-    const b2=(todaySession.tags||[])[0]||'';
-    const b3=todaySession.why||'';
-
-    document.getElementById('main-content').innerHTML=`
-      ${raceHTML}
-      <div class="today" onclick="openSessio(${todayRealIdx})">
-        <div class="today-meta">
-          <span class="today-label">Hoy · ${todayName}</span>
-          <span class="today-badge">Semana 1 · Base</span>
-        </div>
-        <div class="today-title">${todaySession.skipped?'Descanso inesperado':todaySession.title}</div>
-        <div class="today-bullets">
-          <div class="today-bullet"><div class="today-bullet-dot"></div>⏱ ${b1}</div>
-          ${b2?`<div class="today-bullet"><div class="today-bullet-dot"></div>🏷 ${b2}</div>`:''}
-          ${b3?`<div class="today-bullet"><div class="today-bullet-dot"></div>${b3}</div>`:''}
-        </div>
-        <div class="today-actions" onclick="event.stopPropagation()">
-          <button class="btn-white" onclick="openTimeModal()">⏱ Cambiar tiempo</button>
-          <button class="btn-ghost" onclick="openSessio(${todayRealIdx})">▶ Empezar</button>
-        </div>
-      </div>
-      <div class="week-section">
-        <div class="section-head">
-          <span class="section-title">Esta semana ${savedBadge}</span>
-          <span style="font-size:0.72rem;color:#888780">⠿ arrastra · ✎ cambia</span>
-        </div>
-        <div class="plan-list" id="plan-list">
-          ${planDays.map((d,i)=>renderPlanItem(d,i)).join('')}
-        </div>
-      </div>
-      <div class="stats-card">
-        <div class="stats-grid">
-          <div class="stat"><div class="stat-val">${h}h${m>0?' '+m+'m':''}</div><div class="stat-lbl">Carga total</div></div>
-          <div class="stat"><div class="stat-val green">${trainDays.length}</div><div class="stat-lbl">Sesiones</div></div>
-          <div class="stat"><div class="stat-val">${z2min}-${z2max}</div><div class="stat-lbl">Z2 bpm</div></div>
-        </div>
-        <button class="btn-reorganize" onclick="window.location.href='onboarding.html'">↺ Reconfigurar plan</button>
-      </div>`;
-  }
-
-  function renderPlanItem(d,i){
-    const isToday=d.day===todayName;
-    const isChanged=d.canviat===true;
-    const cls=isToday?'today-item':d.rest?'rest-item':isChanged?'changed':'';
-    return `
-      <div class="plan-item ${cls}" id="item-${i}"
-        draggable="${!d.rest}"
-        ondragstart="dragStart(event,${i})"
-        ondragover="dragOver(event,${i})"
-        ondrop="drop(event,${i})"
-        ondragleave="dragLeave(${i})"
-        ondragend="dragEnd()"
-        onclick="openSessio(${i})">
-        <div class="plan-day-badge">${d.day}</div>
-        <span class="plan-item-icon">${d.icon}</span>
-        <div class="plan-item-info">
-          <div class="plan-item-title">${d.title||'Sesión'}</div>
-          ${d.sub?`<div class="plan-item-sub">${d.sub}</div>`:''}
-        </div>
-        ${!d.rest?`
-          <div class="plan-item-actions" onclick="event.stopPropagation()">
-            <div class="drag-handle" ondragstart="dragStart(event,${i})" onclick="event.stopPropagation()">⠿</div>
-            <button class="action-btn" onclick="openSessionModal(${i})" title="Cambiar sesión">✎</button>
-            <button class="action-btn" onclick="toggleRest(${i})" title="Descanso">💤</button>
-          </div>
-        `:`
-          <div class="plan-item-actions" onclick="event.stopPropagation()">
-            <button class="action-btn" onclick="restoreDay(${i})" title="Añadir entreno">+</button>
-          </div>
-        `}
-      </div>`;
-  }
-
-  function dragStart(e,idx){
-    dragSrcIdx=idx;
-    e.dataTransfer.effectAllowed='move';
-    setTimeout(()=>{const el=document.getElementById('item-'+idx);if(el)el.classList.add('dragging');},0);
-  }
-  function dragOver(e,idx){
-    e.preventDefault();
-    if(dragSrcIdx===null||dragSrcIdx===idx) return;
-    if(planDays[dragSrcIdx].rest) return;
-    e.dataTransfer.dropEffect='move';
-    document.querySelectorAll('.plan-item').forEach(el=>el.classList.remove('drag-over'));
-    const el=document.getElementById('item-'+idx);
-    if(el) el.classList.add('drag-over');
-  }
-  function dragLeave(idx){const el=document.getElementById('item-'+idx);if(el)el.classList.remove('drag-over');}
-  function dragEnd(){document.querySelectorAll('.plan-item').forEach(el=>{el.classList.remove('dragging');el.classList.remove('drag-over');});dragSrcIdx=null;}
-
-  async function drop(e,idx){
-    e.preventDefault();
-    document.querySelectorAll('.plan-item').forEach(el=>el.classList.remove('drag-over'));
-    if(dragSrcIdx===null||dragSrcIdx===idx){dragSrcIdx=null;return;}
-    const src=planDays[dragSrcIdx],dst=planDays[idx];
-    if(src.rest){dragSrcIdx=null;return;}
-    const srcDay=src.day,dstDay=dst.day;
-    let descripcio='';
-    if(dst.rest){
-      descripcio=`L'usuari ha mogut "${src.title}" del ${srcDay} al ${dstDay} (que era descans). El ${srcDay} ara és descans.`;
-    } else {
-      descripcio=`L'usuari ha intercanviat "${src.title}" (${srcDay}) amb "${dst.title}" (${dstDay}).`;
-    }
-    dragSrcIdx=null;
-    await reajustarPla(descripcio,'Reorganizando la semana...');
-  }
-
-  function openSessionModal(idx){
-    editingDayIdx=idx;selectedNewSession=null;
-    const current=planDays[idx];
-    document.getElementById('session-modal-title').textContent='Cambiar · '+current.day;
-    document.getElementById('session-modal-sub').textContent='Ahora: '+current.title+'. Elige otro entreno.';
-    document.getElementById('confirm-session-btn').disabled=true;
-    const sports=user?.sports||['running'];
-    let options=[];
-    sports.forEach(s=>(allSessionsDB[s]||[]).forEach(x=>{if(x.title!==current.title)options.push({...x,sport:s});}));
-    options.push({icon:'💤',title:'Descanso',sub:'Recuperación activa',tags:[],why:'',sport:'rest'});
-    document.getElementById('session-list').innerHTML=options.map((o,i)=>`
-      <div class="session-opt" onclick="selSession(this,${i})">
-        <span class="session-opt-icon">${o.icon}</span>
-        <div><div class="session-opt-title">${o.title}</div><div class="session-opt-sub">${o.sub||''}</div></div>
-      </div>`).join('');
-    window._sessionOptions=options;
-    document.getElementById('modal-session').classList.add('open');
-  }
-
-  function selSession(el,idx){
-    document.querySelectorAll('.session-opt').forEach(o=>o.classList.remove('sel'));
-    el.classList.add('sel');
-    selectedNewSession=window._sessionOptions[idx];
-    document.getElementById('confirm-session-btn').disabled=false;
-  }
-
-  async function confirmSession(){
-    if(editingDayIdx===null||!selectedNewSession) return;
-    const current=planDays[editingDayIdx];
-    closeModal('modal-session');
-    const descripcio=`L'usuari ha canviat "${current.title}" del ${current.day} per "${selectedNewSession.title}". Reajusta la setmana.`;
-    await reajustarPla(descripcio,'Ajustando el plan...');
-  }
-
-  async function toggleRest(idx){
-    const day=planDays[idx].day;
-    const session=planDays[idx].title;
-    const descripcio=`L'usuari ha marcat el ${day} com a descans (era "${session}"). Redistribueix la càrrega.`;
-    await reajustarPla(descripcio,'Redistribuyendo la carga...');
-  }
-
-  function restoreDay(idx){
-    const sports=user?.sports||['running'];
-    let allS=[];
-    sports.forEach(s=>(allSessionsDB[s]||[]).forEach(x=>allS.push({...x,sport:s})));
-    const used=planDays.filter(d=>!d.rest).map(d=>d.title);
-    const pick=allS.find(s=>!used.includes(s.title))||allS[0];
-    planDays[idx]={...pick,day:planDays[idx].day,rest:false,skipped:false};
-    reajustarPla(`S'ha afegit "${pick.title}" al ${planDays[idx].day}.`,'Ajustando...');
-  }
-
-  function openTimeModal(){ document.getElementById('modal-time').classList.add('open'); }
-
-  async function skipToday(){
-    const todaySession=planDays.find(d=>d.day===todayName);
-    closeModal('modal-time');
-    const descripcio=`L'usuari NO pot entrenar avui (${todayName}). Era "${todaySession?.title||'sesión'}". Redistribueix la càrrega als dies restants.`;
-    await reajustarPla(descripcio,'Sin problema, reorganizando...');
-  }
-
-  async function confirmTime(){
-    const todaySession=planDays.find(d=>d.day===todayName);
-    closeModal('modal-time');
-    const descripcio=`L'usuari ha ajustat la sessió d'avui a ${currentTimeMin} minuts. Redistribueix els minuts restants.`;
-    await reajustarPla(descripcio,'Redistribuyendo el tiempo...');
-  }
-
-  function selectTime(el,min){
-    document.querySelectorAll('.time-opt').forEach(o=>o.classList.remove('sel'));
-    el.classList.add('sel');
-    document.getElementById('sl').value=min;
-    updateSlider(min);
-  }
-  const timeMsgs={10:'10 min es poco pero cuenta.',20:'20 min en Z2. Mismo beneficio, menos volumen.',30:'30 min sólido.',45:'El plan original.',60:'Más tiempo. Añadimos calidad.',90:'90 min. Reducimos mañana.'};
-  function updateSlider(v){
-    currentTimeMin=parseInt(v);
-    document.getElementById('slv').textContent=v+' min';
-    document.getElementById('confirm-time-btn').textContent='Ajustar a '+v+' min →';
-    const k=Math.round(v/10)*10;
-    document.getElementById('ai-modal-text').textContent=timeMsgs[k]||timeMsgs[20];
-    document.querySelectorAll('.time-opt').forEach(o=>o.classList.remove('sel'));
-    [20,30,45,60].forEach((m,i)=>{if(parseInt(v)===m)document.querySelectorAll('.time-opt')[i].classList.add('sel');});
-  }
-  function closeModal(id,e){if(!e||e.target===document.getElementById(id))document.getElementById(id).classList.remove('open');}
-  function openSessio(idx){
-    if(idx<0||idx>=planDays.length) return;
-    const d=planDays[idx];
-    if(!d||d.rest) return;
-    const p=new URLSearchParams({
-      title:d.title||'',
-      sub:d.sub||'',
-      why:d.why||'',
-      tags:(d.tags||[]).join(','),
-      icon:d.icon||'🏃',
-      fcmax:user?.fcmax||185,
-      nivel:user?.nivel||'Intermedio',
-      duracio:d.duracio_min||45
+async function buildPlan(user){
+  document.getElementById('main-content').innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1.25rem;gap:1rem">
+      <div style="width:48px;height:48px;border:3px solid #E8E6DF;border-top-color:#163A28;border-radius:50%;animation:spin .8s linear infinite"></div>
+      <p style="font-size:.9rem;color:#888780;text-align:center">Tu coach está generando<br>el plan de esta semana...</p>
+    </div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`;
+  try {
+    const response=await fetch('/api/coach',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        sports:user.sports,dias:user.dias,descanso:user.descanso,
+        nivel:user.nivel,fcmax:user.fcmax,volum:user.volum,
+        objetivo:user.objetivo,carrera:user.carrera,
+        distancia:user.distancia,desnivel:user.desnivel
+      })
     });
-    window.location.href='sessio.html?'+p.toString();
+    const data=await response.json();
+    if(data.setmana){
+      planDays=normalizePlan(data.setmana);
+      if(data.resum) window._coachResum=data.resum;
+      renderAll();
+      if(currentEmail) await savePlanToSupabase();
+      else setTimeout(()=>openEmailModal(),2000);
+    } else throw new Error('Format incorrecte');
+  } catch(error){
+    console.error('Error IA:',error);
+    buildPlanStatic(user);
+    renderAll();
   }
-  function showToast(msg){
-    const t=document.getElementById('toast');
-    t.textContent=msg;t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function buildPlanStatic(user){
+  const sports=user.sports,dias=user.dias,descanso=user.descanso;
+  let allS=[];
+  sports.forEach(s=>(allSessionsDB[s]||[]).forEach(x=>allS.push({...x})));
+  let idx=0;
+  planDays=dayNames.map(d=>{
+    if(d===descanso) return{day:d,rest:true,icon:'💤',title:'Descanso',sub:'Recuperación activa',tags:[],why:'',skipped:false,duracio_min:0};
+    if(idx<dias){const s=allS[idx%allS.length];idx++;return{...s,day:d,rest:false,skipped:false};}
+    return{day:d,rest:true,icon:'💤',title:'Descanso',sub:'',tags:[],why:'',skipped:false,duracio_min:0};
+  });
+}
+
+async function reajustarPla(descripcioCanvi,loadingMsg='El coach está reajustando tu plan...'){
+  if(isReajusting) return;
+  isReajusting=true;
+  document.getElementById('loading-text').innerHTML=loadingMsg;
+  document.getElementById('loading-overlay').classList.add('show');
+  try {
+    const response=await fetch('/api/reajust',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({planActual:planDays,canvi:descripcioCanvi,userData:user})
+    });
+    const data=await response.json();
+    if(data.setmana){
+      planDays=normalizePlan(data.setmana);
+      if(data.resum) window._coachResum=data.resum;
+      if(data.missatge){
+        document.getElementById('reajust-text').textContent=data.missatge;
+        document.getElementById('reajust-banner').classList.add('show');
+        setTimeout(()=>document.getElementById('reajust-banner').classList.remove('show'),5000);
+      }
+      renderAll();
+      if(currentEmail) await savePlanToSupabase();
+    }
+  } catch(error){
+    console.error('Reajust error:',error);
+    showToast('Error reajustando.');
+    renderAll();
+  } finally {
+    isReajusting=false;
+    document.getElementById('loading-overlay').classList.remove('show');
   }
+}
+
+async function savePlanToSupabase(){
+  if(!currentEmail||planDays.length===0) return;
+  try {
+    await fetch('/api/save-plan',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:currentEmail,userData:user,sessions:planDays,resum:window._coachResum||''})
+    });
+  } catch(e){ console.log('Could not save:',e); }
+}
+
+function openEmailModal(){ document.getElementById('modal-email').classList.add('open'); }
+
+async function saveWithEmail(){
+  const email=document.getElementById('email-input').value.trim();
+  if(!email||!email.includes('@')){ showToast('Introduce un email válido'); return; }
+  currentEmail=email;
+  closeModal('modal-email');
+  await savePlanToSupabase();
+  document.getElementById('nav-avatar').textContent=email[0].toUpperCase();
+  document.getElementById('greeting-name').textContent='Hola, '+email.split('@')[0]+' 👋';
+  showToast('Plan guardado ✓');
+}
+
+function renderAll(){
+  const todaySession=planDays.find(d=>d.day===todayName&&!d.rest)||planDays.find(d=>!d.rest)||planDays[0]||{title:'Descanso',icon:'💤',tags:[],duracio_min:0,sub:'',why:''};
+  const todayRealIdx=planDays.findIndex(d=>d.day===todayName);
+  const trainDays=planDays.filter(d=>!d.rest);
+  const totalMin=trainDays.reduce((acc,d)=>acc+(d.duracio_min||50),0);
+  const h=Math.floor(totalMin/60);
+  const m=totalMin%60;
+  const fc=user?.fcmax||185;
+  const z2min=Math.round(fc*.60);
+  const z2max=Math.round(fc*.70);
+
+  let raceHTML='';
+  if(user?.carrera&&user?.fecha){
+    const diff=Math.ceil((new Date(user.fecha)-new Date())/(1000*60*60*24));
+    if(diff>0){
+      raceHTML=`<div class="race-card">
+        <div class="race-icon">🏁</div>
+        <div><div class="race-title">${user.carrera}</div><div class="race-sub">${user.distancia}${user.desnivel>0?' · +'+user.desnivel+'m D+':''}</div></div>
+        <div style="text-align:right;margin-left:auto"><div class="race-days">${diff}</div><div class="race-days-lbl">días</div></div>
+      </div>`;
+    }
+  }
+
+  const savedBadge=currentEmail?`<span class="saved-badge">✓ guardado</span>`:'';
+
+  // Stats de la sessió d'avui
+  const durMin=todaySession.duracio_min||45;
+  const zona=(todaySession.tags||[]).find(t=>t.includes('Z'))||'Z2';
+  const focus=(todaySession.tags||[]).filter(t=>!t.includes('Z')&&!t.includes('~')).slice(0,1)[0]||'';
+
+  document.getElementById('main-content').innerHTML=`
+    ${raceHTML}
+    <div class="today" onclick="openSessio(${todayRealIdx})">
+      <div class="today-meta">
+        <span class="today-label">Hoy · ${todayName}</span>
+        <span class="today-badge">Semana 1 · Base</span>
+      </div>
+      <div class="today-title">${todaySession.skipped?'Descanso inesperado':todaySession.title}</div>
+      <div class="today-stats">
+        <span class="today-stat">⏱ ${durMin} min</span>
+        <span class="today-stat">💚 ${zona}</span>
+        ${focus?`<span class="today-stat">🎯 ${focus}</span>`:''}
+      </div>
+      <div class="today-actions" onclick="event.stopPropagation()">
+        <button class="btn-white" onclick="openTimeModal()">⏱ Cambiar tiempo</button>
+        <button class="btn-ghost" onclick="openSessio(${todayRealIdx})">▶ Empezar</button>
+      </div>
+    </div>
+    <div class="week-section">
+      <div class="section-head">
+        <span class="section-title">Esta semana ${savedBadge}</span>
+        <span style="font-size:.72rem;color:#888780">⠿ arrastra · ✎ cambia</span>
+      </div>
+      <div class="plan-list" id="plan-list">
+        ${planDays.map((d,i)=>renderPlanItem(d,i)).join('')}
+      </div>
+    </div>
+    <div class="stats-card">
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-val">${h}h${m>0?' '+m+'m':''}</div><div class="stat-lbl">Carga total</div></div>
+        <div class="stat"><div class="stat-val green">${trainDays.length}</div><div class="stat-lbl">Sesiones</div></div>
+        <div class="stat"><div class="stat-val">${z2min}-${z2max}</div><div class="stat-lbl">Z2 bpm</div></div>
+      </div>
+      <button class="btn-reorganize" onclick="window.location.href='onboarding.html'">↺ Reconfigurar plan</button>
+    </div>`;
+}
+
+function renderPlanItem(d,i){
+  const isToday=d.day===todayName;
+  const isChanged=d.canviat===true;
+  const cls=isToday?'today-item':d.rest?'rest-item':isChanged?'changed':'';
+  return `
+    <div class="plan-item ${cls}" id="item-${i}"
+      draggable="${!d.rest}"
+      ondragstart="dragStart(event,${i})"
+      ondragover="dragOver(event,${i})"
+      ondrop="drop(event,${i})"
+      ondragleave="dragLeave(${i})"
+      ondragend="dragEnd()"
+      onclick="openSessio(${i})">
+      <div class="plan-day-badge">${d.day}</div>
+      <span class="plan-item-icon">${d.icon||'🏃'}</span>
+      <div class="plan-item-info">
+        <div class="plan-item-title">${d.title||'Sesión'}</div>
+        ${d.sub?`<div class="plan-item-sub">${d.sub}</div>`:''}
+      </div>
+      ${!d.rest?`
+        <div class="plan-item-actions" onclick="event.stopPropagation()">
+          <div class="drag-handle" onclick="event.stopPropagation()">⠿</div>
+          <button class="action-btn" onclick="openSessionModal(${i})">✎</button>
+          <button class="action-btn" onclick="toggleRest(${i})">💤</button>
+        </div>
+      `:`
+        <div class="plan-item-actions" onclick="event.stopPropagation()">
+          <button class="action-btn" onclick="restoreDay(${i})">+</button>
+        </div>
+      `}
+    </div>`;
+}
+
+function dragStart(e,idx){
+  dragSrcIdx=idx;
+  e.dataTransfer.effectAllowed='move';
+  setTimeout(()=>{const el=document.getElementById('item-'+idx);if(el)el.classList.add('dragging');},0);
+}
+function dragOver(e,idx){
+  e.preventDefault();
+  if(dragSrcIdx===null||dragSrcIdx===idx) return;
+  if(planDays[dragSrcIdx].rest) return;
+  e.dataTransfer.dropEffect='move';
+  document.querySelectorAll('.plan-item').forEach(el=>el.classList.remove('drag-over'));
+  const el=document.getElementById('item-'+idx);
+  if(el) el.classList.add('drag-over');
+}
+function dragLeave(idx){const el=document.getElementById('item-'+idx);if(el)el.classList.remove('drag-over');}
+function dragEnd(){document.querySelectorAll('.plan-item').forEach(el=>{el.classList.remove('dragging');el.classList.remove('drag-over');});dragSrcIdx=null;}
+
+async function drop(e,idx){
+  e.preventDefault();
+  document.querySelectorAll('.plan-item').forEach(el=>el.classList.remove('drag-over'));
+  if(dragSrcIdx===null||dragSrcIdx===idx){dragSrcIdx=null;return;}
+  const src=planDays[dragSrcIdx],dst=planDays[idx];
+  if(src.rest){dragSrcIdx=null;return;}
+  const srcDay=src.day,dstDay=dst.day;
+  let desc=dst.rest
+    ?`Mogut "${src.title}" del ${srcDay} al ${dstDay}. ${srcDay} ara és descans.`
+    :`Intercanviat "${src.title}" (${srcDay}) amb "${dst.title}" (${dstDay}).`;
+  dragSrcIdx=null;
+  await reajustarPla(desc,'Reorganizando la semana...');
+}
+
+function openSessionModal(idx){
+  editingDayIdx=idx;selectedNewSession=null;
+  const current=planDays[idx];
+  document.getElementById('session-modal-title').textContent='Cambiar · '+current.day;
+  document.getElementById('session-modal-sub').textContent='Ahora: '+current.title+'. Elige otro entreno.';
+  document.getElementById('confirm-session-btn').disabled=true;
+  const sports=user?.sports||['running'];
+  let options=[];
+  sports.forEach(s=>(allSessionsDB[s]||[]).forEach(x=>{if(x.title!==current.title)options.push({...x,sport:s});}));
+  options.push({icon:'💤',title:'Descanso',sub:'Recuperación activa',tags:[],why:'',sport:'rest'});
+  document.getElementById('session-list').innerHTML=options.map((o,i)=>`
+    <div class="session-opt" onclick="selSession(this,${i})">
+      <span class="session-opt-icon">${o.icon}</span>
+      <div><div class="session-opt-title">${o.title}</div><div class="session-opt-sub">${o.sub||''}</div></div>
+    </div>`).join('');
+  window._sessionOptions=options;
+  document.getElementById('modal-session').classList.add('open');
+}
+
+function selSession(el,idx){
+  document.querySelectorAll('.session-opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedNewSession=window._sessionOptions[idx];
+  document.getElementById('confirm-session-btn').disabled=false;
+}
+
+async function confirmSession(){
+  if(editingDayIdx===null||!selectedNewSession) return;
+  const current=planDays[editingDayIdx];
+  closeModal('modal-session');
+  await reajustarPla(`Canviat "${current.title}" del ${current.day} per "${selectedNewSession.title}".`,'Ajustando el plan...');
+}
+
+async function toggleRest(idx){
+  const d=planDays[idx];
+  await reajustarPla(`Marcat ${d.day} com a descans (era "${d.title}"). Redistribueix la càrrega.`,'Redistribuyendo la carga...');
+}
+
+function restoreDay(idx){
+  const sports=user?.sports||['running'];
+  let allS=[];
+  sports.forEach(s=>(allSessionsDB[s]||[]).forEach(x=>allS.push({...x})));
+  const used=planDays.filter(d=>!d.rest).map(d=>d.title);
+  const pick=allS.find(s=>!used.includes(s.title))||allS[0];
+  planDays[idx]={...pick,day:planDays[idx].day,rest:false,skipped:false};
+  reajustarPla(`Afegit "${pick.title}" al ${planDays[idx].day}.`,'Ajustando...');
+}
+
+function openTimeModal(){ document.getElementById('modal-time').classList.add('open'); }
+
+async function skipToday(){
+  const s=planDays.find(d=>d.day===todayName);
+  closeModal('modal-time');
+  await reajustarPla(`Usuari NO pot entrenar avui (${todayName}). Era "${s?.title||'sesión'}". Redistribueix.`,'Sin problema, reorganizando...');
+}
+
+async function confirmTime(){
+  const s=planDays.find(d=>d.day===todayName);
+  closeModal('modal-time');
+  await reajustarPla(`Sessió d'avui ajustada a ${currentTimeMin} min (eren ${s?.duracio_min||45}). Redistribueix els minuts restants.`,'Redistribuyendo el tiempo...');
+}
+
+function selectTime(el,min){
+  document.querySelectorAll('.time-opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('sl').value=min;
+  updateSlider(min);
+}
+const timeMsgs={10:'10 min es poco pero cuenta.',20:'20 min en Z2. Mismo beneficio, menos volumen.',30:'30 min sólido.',45:'El plan original.',60:'Más tiempo. Añadimos calidad.',90:'90 min. Reducimos mañana.'};
+function updateSlider(v){
+  currentTimeMin=parseInt(v);
+  document.getElementById('slv').textContent=v+' min';
+  document.getElementById('confirm-time-btn').textContent='Ajustar a '+v+' min →';
+  const k=Math.round(v/10)*10;
+  document.getElementById('ai-modal-text').textContent=timeMsgs[k]||timeMsgs[20];
+  document.querySelectorAll('.time-opt').forEach(o=>o.classList.remove('sel'));
+  [20,30,45,60].forEach((m,i)=>{if(parseInt(v)===m)document.querySelectorAll('.time-opt')[i].classList.add('sel');});
+}
+function closeModal(id,e){if(!e||e.target===document.getElementById(id))document.getElementById(id).classList.remove('open');}
+function openSessio(idx){
+  if(idx<0||idx>=planDays.length) return;
+  const d=planDays[idx];
+  if(!d||d.rest) return;
+  const p=new URLSearchParams({
+    title:d.title||'',
+    sub:d.sub||'',
+    why:d.why||'',
+    tags:(d.tags||[]).join(','),
+    icon:d.icon||'🏃',
+    fcmax:user?.fcmax||185,
+    nivel:user?.nivel||'Intermedio',
+    duracio:d.duracio_min||45
+  });
+  window.location.href='sessio.html?'+p.toString();
+}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
 </script>
 </body>
 </html>
