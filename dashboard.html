@@ -469,8 +469,9 @@
         ondragover="dragOver(event,${i})"
         ondrop="drop(event,${i})"
         ondragleave="dragLeave(${i})"
-        ondragend="dragEnd()">
-        ${!d.rest?`<div class="drag-handle">⠿</div>`:`<div style="width:20px"></div>`}
+        ondragend="dragEnd()"
+        onclick="openSessio(${i})">
+        ${!d.rest?`<div class="drag-handle" onclick="event.stopPropagation()">⠿</div>`:`<div style="width:20px"></div>`}
         <div class="plan-day-badge">${d.day}</div>
         <span class="plan-item-icon">${d.icon}</span>
         <div class="plan-item-info">
@@ -478,12 +479,12 @@
           ${d.sub?`<div class="plan-item-sub">${d.sub}</div>`:''}
         </div>
         ${!d.rest?`
-          <div class="plan-item-actions">
+          <div class="plan-item-actions" onclick="event.stopPropagation()">
             <button class="action-btn" onclick="openSessionModal(${i})" title="Cambiar sesión">✎</button>
             <button class="action-btn" onclick="toggleRest(${i})" title="Descanso">💤</button>
           </div>
         `:`
-          <div class="plan-item-actions">
+          <div class="plan-item-actions" onclick="event.stopPropagation()">
             <button class="action-btn" onclick="restoreDay(${i})" title="Añadir entreno">+</button>
           </div>
         `}
