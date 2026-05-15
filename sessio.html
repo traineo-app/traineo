@@ -258,6 +258,42 @@ function findGym(t){
 }
 
 const struct=isCardio?findStruct(title):null;
+// Renderitza sempre alguna cosa
+setTimeout(()=>{
+  if(!document.getElementById('structure-sec').innerHTML&&
+     !document.getElementById('exercises-sec').innerHTML){
+    document.getElementById('structure-sec').innerHTML=`
+      <div class="section">
+        <div class="section-title">Sesión</div>
+        <div class="blocks">
+          <div class="block">
+            <div class="block-dot" style="background:#60B8F0"></div>
+            <div class="block-info">
+              <div class="block-title">Calentamiento</div>
+              <div class="block-sub">10 min suave</div>
+            </div>
+            <div class="block-time">10 min</div>
+          </div>
+          <div class="block">
+            <div class="block-dot" style="background:#4EA84A"></div>
+            <div class="block-info">
+              <div class="block-title">${title}</div>
+              <div class="block-sub">${sub}</div>
+            </div>
+            <div class="block-time">${duracio-15} min</div>
+          </div>
+          <div class="block">
+            <div class="block-dot" style="background:#60B8F0"></div>
+            <div class="block-info">
+              <div class="block-title">Vuelta a la calma</div>
+              <div class="block-sub">5 min suave</div>
+            </div>
+            <div class="block-time">5 min</div>
+          </div>
+        </div>
+      </div>`;
+  }
+},100);
 const exList=isGym?findGym(title):null;
 
 // HERO
