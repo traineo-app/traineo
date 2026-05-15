@@ -22,7 +22,7 @@
     .today-badge{background:rgba(255,255,255,.12);color:#fff;font-size:.7rem;padding:.2rem .6rem;border-radius:20px}
     .today-title{font-size:1.6rem;font-weight:500;color:#fff;letter-spacing:-.4px;margin-bottom:.75rem}
     .today-bullets{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
-    .today-bullet{font-size:.82rem;color:rgba(255,255,255,.65);line-height:1.4}m}
+    .today-bullet{font-size:.82rem;color:rgba(255,255,255,.65);line-height:1.4}
     .today-actions{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
     .btn-white{background:#fff;color:#163A28;border:none;border-radius:8px;padding:.7rem;font-size:.85rem;font-weight:500;font-family:'Outfit',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.3rem}
     .btn-ghost{background:rgba(255,255,255,.1);color:#fff;border:none;border-radius:8px;padding:.7rem;font-size:.85rem;font-weight:500;font-family:'Outfit',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.3rem}
@@ -342,7 +342,7 @@ async function buildPlan(user){
 }
 
 function buildPlanStatic(user){
-  const sports=user.sports,dias=user.dias,descanso=user.descanso;
+  const sports=expandSports(user.sports),dias=user.dias,descanso=user.descanso;
   let allS=[];
   sports.forEach(s=>(allSessionsDB[s]||[]).forEach(x=>allS.push({...x})));
   let idx=0;
@@ -543,8 +543,8 @@ async function drop(e,idx){
 }
 function expandSports(sports){
   var expanded=[];
-  sports.forEach(function(s){
-    if(s==='triatlon') expanded.push('running','ciclismo','natacion');
+  (sports||['running']).forEach(function(s){
+    if(s==='triatlon') expanded.push('running','ciclismo','natacion','triatlon');
     else if(s==='duatlon') expanded.push('running','ciclismo');
     else expanded.push(s);
   });
@@ -589,7 +589,7 @@ async function toggleRest(idx){
 }
 
 function restoreDay(idx){
-  const sports=user?.sports||['running'];
+  const sports=expandSports(user?.sports||['running']);
   let allS=[];
   sports.forEach(s=>(allSessionsDB[s]||[]).forEach(x=>allS.push({...x})));
   const used=planDays.filter(d=>!d.rest).map(d=>d.title);
