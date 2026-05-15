@@ -541,14 +541,22 @@ async function drop(e,idx){
   dragSrcIdx=null;
   await reajustarPla(desc,'Reorganizando la semana...');
 }
-
+function expandSports(sports){
+  var expanded=[];
+  sports.forEach(function(s){
+    if(s==='triatlon') expanded.push('running','ciclismo','natacion');
+    else if(s==='duatlon') expanded.push('running','ciclismo');
+    else expanded.push(s);
+  });
+  return expanded.filter(function(s,i){return expanded.indexOf(s)===i;});
+}
 function openSessionModal(idx){
   editingDayIdx=idx;selectedNewSession=null;
   const current=planDays[idx];
   document.getElementById('session-modal-title').textContent='Cambiar · '+current.day;
   document.getElementById('session-modal-sub').textContent='Ahora: '+current.title+'. Elige otro entreno.';
   document.getElementById('confirm-session-btn').disabled=true;
-  const sports=user?.sports||['running'];
+  const sports=expandSports(user?.sports||['running']);
   let options=[];
   sports.forEach(s=>(allSessionsDB[s]||[]).forEach(x=>{if(x.title!==current.title)options.push({...x,sport:s});}));
   options.push({icon:'💤',title:'Descanso',sub:'Recuperación activa',tags:[],why:'',sport:'rest'});
