@@ -9,53 +9,43 @@ export default async function handler(req, res) {
   const z2min = Math.round(fc * 0.60);
   const z2max = Math.round(fc * 0.70);
 
-  const systemPrompt = `Ets un coach esportiu expert en running, ciclisme, triatló i força.
-La teva feina és reajustar plans d'entrenament de manera intel·ligent quan l'atleta fa canvis.
+  // Versió simplificada del pla per estalviar tokens
+  const planSimple = planActual.map(d => ({
+    dia: d.day,
+    title: d.title,
+    rest: d.rest || false,
+    min: d.duracio_min || 45,
+    tags: d.tags || []
+  }));
 
-Regles irrenunciables:
-- Mai força de cames el dia anterior a un rodatge llarg
-- Mai dos dies d'alta intensitat seguits  
-- 80% del volum en Z2, 20% en qualitat
-- Si es redueix temps un dia, redistribueix els minuts als dies amb menys càrrega
-- Si es marca un dia com a descans, la càrrega va al dia amb menys volum de la setmana
-- Explica sempre en una frase curta per què has fet cada canvi important
-- Respon SEMPRE en castellà`;
+  const systemPrompt = `Eres un coach experto. Reajustas planes de entrenamiento de forma rápida y precisa.
 
-  const userMessage = `Pla actual de la setmana:
-${JSON.stringify(planActual, null, 2)}
+REGLAS:
+- Nunca fuerza piernas el día antes de rodaje largo
+- Nunca dos días alta intensidad seguidos
+- 80% Z2, 20% calidad
+- Si reduces tiempo un día, redistribuye a otros
+- Si marcas descanso, la carga va al día con menos volumen
+- Responde SIEMPRE en castellano
+- Sé conciso en "why" (máx 1 frase corta)`;
 
-Canvi que ha fet l'atleta:
-${canvi}
+  const userMessage = `Plan actual:
+${JSON.stringify(planSimple)}
 
-Dades de l'atleta:
-- FC màxima: ${fc} bpm
-- Z2: ${z2min}-${z2max} bpm  
-- Dies disponibles: ${userData?.dias || 3}
-- Disciplines: ${(userData?.sports || ['running']).join(', ')}
-- Nivell: ${userData?.nivel || 'intermedi'}
+Cambio del atleta: ${canvi}
 
-Reajusta el pla sencer tenint en compte el canvi. Redistribueix la càrrega de manera intel·ligent.
+Datos: FC max ${fc}, Z2 ${z2min}-${z2max}, ${userData?.dias || 3} días, ${(userData?.sports || ['running']).join('+')}, nivel ${userData?.nivel || 'intermedio'}
 
-Respon ÚNICAMENT amb JSON vàlid sense cap text addicional:
+Reajusta el plan. Responde SOLO con JSON válido sin texto adicional:
 {
   "setmana": [
-    {
-      "dia": "Lu",
-      "rest": false,
-      "icon": "🏃",
-      "title": "Rodaje Z2",
-      "sub": "45 min · 132-148 bpm",
-      "why": "Sin cambios",
-      "tags": ["Running", "Z2"],
-      "duracio_min": 45,
-      "canviat": false
-    }
+    {"dia":"Lu","rest":false,"icon":"🏃","title":"...","sub":"45 min · Z2","why":"...","tags":["Running","Z2"],"duracio_min":45,"canviat":false}
   ],
-  "missatge": "Frase curta explicant el reajust principal",
-  "resum": "Resum del coach del pla reajustat"
+  "missatge": "Frase corta sobre el reajuste",
+  "resum": "Resumen breve"
 }
 
-Important: posa "canviat": true als dies que has modificat perquè l'usuari els vegi ressaltats.`;
+Marca "canviat":true solo en días modificados.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -66,8 +56,8 @@ Important: posa "canviat": true als dies que has modificat perquè l'usuari els 
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2000,
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1500,
         system: systemPrompt,
         messages: [{ role: 'user', content: userMessage }]
       })
