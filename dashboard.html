@@ -64,6 +64,9 @@
     .race-days-lbl{font-size:.65rem;color:rgba(255,255,255,.4);text-align:right}
     .reajust-banner{margin:0 1.25rem 1rem;background:#EBF5EF;border:.5px solid #4A9E6B;border-radius:12px;padding:.75rem 1rem;display:none;align-items:center;gap:.75rem}
     .reajust-banner.show{display:flex}
+    .reajust-banner.working{background:#FEF6E5;border-color:#F0C84A}
+    .reajust-banner.working .reajust-dot{display:none}
+    .working-spinner{display:inline-block;width:12px;height:12px;border:2px solid #F0C84A;border-top-color:#163A28;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle;flex-shrink:0}
     .reajust-dot{width:8px;height:8px;border-radius:50%;background:#163A28;flex-shrink:0}
     .reajust-text{font-size:.82rem;color:#163A28;line-height:1.4}
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-end;justify-content:center}
@@ -353,11 +356,13 @@ function buildPlanStatic(user){
   });
 }
 
-async function reajustarPla(descripcioCanvi,loadingMsg='El coach está reajustando tu plan...'){
-  if(isReajusting) return;
-  isReajusting=true;
-  document.getElementById('loading-text').innerHTML=loadingMsg;
-  document.getElementById('loading-overlay').classList.add('show');
+let reajustRequestId=0;
+
+async function reajustarDiferit(descripcioCanvi,loadingMsg='Coach ajustando...'){
+  const requestId=++reajustRequestId;
+  const banner=document.getElementById('reajust-banner');
+  banner.classList.add('show','working');
+  document.getElementById('reajust-text').innerHTML='<span class="working-spinner"></span>'+loadingMsg;
   try {
     const response=await fetch('/api/reajust',{
       method:'POST',
@@ -365,25 +370,30 @@ async function reajustarPla(descripcioCanvi,loadingMsg='El coach está reajustan
       body:JSON.stringify({planActual:planDays,canvi:descripcioCanvi,userData:user})
     });
     const data=await response.json();
+    if(requestId!==reajustRequestId) return;
     if(data.setmana){
       planDays=normalizePlan(data.setmana);
       if(data.resum) window._coachResum=data.resum;
-      if(data.missatge){
-        document.getElementById('reajust-text').textContent=data.missatge;
-        document.getElementById('reajust-banner').classList.add('show');
-        setTimeout(()=>document.getElementById('reajust-banner').classList.remove('show'),5000);
-      }
       renderAll();
       if(currentEmail) await savePlanToSupabase();
+      banner.classList.remove('working');
+      document.getElementById('reajust-text').textContent=data.missatge||'Plan ajustado ✓';
+      setTimeout(()=>{if(requestId===reajustRequestId) banner.classList.remove('show');},3500);
+    } else {
+      banner.classList.remove('working','show');
     }
   } catch(error){
     console.error('Reajust error:',error);
-    showToast('Error reajustando.');
-    renderAll();
-  } finally {
-    isReajusting=false;
-    document.getElementById('loading-overlay').classList.remove('show');
+    if(requestId===reajustRequestId){
+      banner.classList.remove('working');
+      document.getElementById('reajust-text').textContent='Tu cambio se ha guardado. Coach no disponible.';
+      setTimeout(()=>banner.classList.remove('show'),3000);
+    }
   }
+}
+
+async function reajustarPla(descripcioCanvi,loadingMsg){
+  return reajustarDiferit(descripcioCanvi,loadingMsg);
 }
 
 async function savePlanToSupabase(){
@@ -532,15 +542,25 @@ async function drop(e,idx){
   e.preventDefault();
   document.querySelectorAll('.plan-item').forEach(el=>el.classList.remove('drag-over'));
   if(dragSrcIdx===null||dragSrcIdx===idx){dragSrcIdx=null;return;}
-  const src=planDays[dragSrcIdx],dst=planDays[idx];
+  const srcIdx=dragSrcIdx;
+  const src=planDays[srcIdx],dst=planDays[idx];
   if(src.rest){dragSrcIdx=null;return;}
   const srcDay=src.day,dstDay=dst.day;
-  let desc=dst.rest
-    ?`Mogut "${src.title}" del ${srcDay} al ${dstDay}. ${srcDay} ara és descans.`
-    :`Intercanviat "${src.title}" (${srcDay}) amb "${dst.title}" (${dstDay}).`;
+  let desc;
+  if(dst.rest){
+    desc=`Mogut "${src.title}" del ${srcDay} al ${dstDay}. ${srcDay} ara és descans.`;
+    planDays[idx]={...src,day:dstDay,canviat:true};
+    planDays[srcIdx]={day:srcDay,rest:true,icon:'💤',title:'Descanso',sub:'Recuperación activa',tags:[],why:'',skipped:false,duracio_min:0};
+  } else {
+    desc=`Intercanviat "${src.title}" (${srcDay}) amb "${dst.title}" (${dstDay}).`;
+    planDays[idx]={...src,day:dstDay,canviat:true};
+    planDays[srcIdx]={...dst,day:srcDay,canviat:true};
+  }
   dragSrcIdx=null;
-  await reajustarPla(desc,'Reorganizando la semana...');
+  renderAll();
+  reajustarDiferit(desc,'Coach reorganizando la semana...');
 }
+
 function expandSports(sports){
   var expanded=[];
   (sports||['running']).forEach(function(s){
@@ -579,13 +599,23 @@ function selSession(el,idx){
 async function confirmSession(){
   if(editingDayIdx===null||!selectedNewSession) return;
   const current=planDays[editingDayIdx];
+  const desc=`Canviat "${current.title}" del ${current.day} per "${selectedNewSession.title}".`;
   closeModal('modal-session');
-  await reajustarPla(`Canviat "${current.title}" del ${current.day} per "${selectedNewSession.title}".`,'Ajustando el plan...');
+  if(selectedNewSession.title==='Descanso'){
+    planDays[editingDayIdx]={day:current.day,rest:true,icon:'💤',title:'Descanso',sub:'Recuperación activa',tags:[],why:'',skipped:false,duracio_min:0};
+  } else {
+    planDays[editingDayIdx]={...selectedNewSession,day:current.day,rest:false,skipped:false,duracio_min:selectedNewSession.duracio_min||45,canviat:true};
+  }
+  renderAll();
+  reajustarDiferit(desc,'Coach ajustando el plan...');
 }
 
 async function toggleRest(idx){
   const d=planDays[idx];
-  await reajustarPla(`Marcat ${d.day} com a descans (era "${d.title}"). Redistribueix la càrrega.`,'Redistribuyendo la carga...');
+  const desc=`Marcat ${d.day} com a descans (era "${d.title}"). Redistribueix la càrrega.`;
+  planDays[idx]={day:d.day,rest:true,icon:'💤',title:'Descanso',sub:'Recuperación activa',tags:[],why:'',skipped:false,duracio_min:0};
+  renderAll();
+  reajustarDiferit(desc,'Coach redistribuyendo la carga...');
 }
 
 function restoreDay(idx){
@@ -594,22 +624,35 @@ function restoreDay(idx){
   sports.forEach(s=>(allSessionsDB[s]||[]).forEach(x=>allS.push({...x})));
   const used=planDays.filter(d=>!d.rest).map(d=>d.title);
   const pick=allS.find(s=>!used.includes(s.title))||allS[0];
-  planDays[idx]={...pick,day:planDays[idx].day,rest:false,skipped:false};
-  reajustarPla(`Afegit "${pick.title}" al ${planDays[idx].day}.`,'Ajustando...');
+  const dayName=planDays[idx].day;
+  planDays[idx]={...pick,day:dayName,rest:false,skipped:false,duracio_min:45,canviat:true};
+  renderAll();
+  reajustarDiferit(`Afegit "${pick.title}" al ${dayName}.`,'Coach ajustando...');
 }
 
 function openTimeModal(){ document.getElementById('modal-time').classList.add('open'); }
 
 async function skipToday(){
-  const s=planDays.find(d=>d.day===todayName);
+  const todayIdx=planDays.findIndex(d=>d.day===todayName);
+  if(todayIdx<0){closeModal('modal-time');return;}
+  const s=planDays[todayIdx];
+  const desc=`Usuari NO pot entrenar avui (${todayName}). Era "${s?.title||'sesión'}". Redistribueix la setmana.`;
   closeModal('modal-time');
-  await reajustarPla(`Usuari NO pot entrenar avui (${todayName}). Era "${s?.title||'sesión'}". Redistribueix.`,'Sin problema, reorganizando...');
+  planDays[todayIdx]={day:s.day,rest:true,icon:'💤',title:'Descanso inesperado',sub:'No pude entrenar hoy',tags:[],why:'',skipped:true,duracio_min:0};
+  renderAll();
+  reajustarDiferit(desc,'Coach reorganizando...');
 }
 
 async function confirmTime(){
-  const s=planDays.find(d=>d.day===todayName);
+  const todayIdx=planDays.findIndex(d=>d.day===todayName);
+  if(todayIdx<0){closeModal('modal-time');return;}
+  const s=planDays[todayIdx];
+  const oldDur=s?.duracio_min||45;
+  const desc=`Sessió d'avui ajustada a ${currentTimeMin} min (eren ${oldDur}). Redistribueix els minuts restants en altres dies si cal.`;
   closeModal('modal-time');
-  await reajustarPla(`Sessió d'avui ajustada a ${currentTimeMin} min (eren ${s?.duracio_min||45}). Redistribueix els minuts restants.`,'Redistribuyendo el tiempo...');
+  planDays[todayIdx]={...s,duracio_min:currentTimeMin,canviat:true};
+  renderAll();
+  reajustarDiferit(desc,'Coach redistribuyendo el tiempo...');
 }
 
 function selectTime(el,min){
