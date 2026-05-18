@@ -466,7 +466,8 @@ function renderAll(){
         '<div class="stat"><div class="stat-val green">'+trainDays.length+'</div><div class="stat-lbl">Sesiones</div></div>'+
         '<div class="stat"><div class="stat-val">'+z2min+'-'+z2max+'</div><div class="stat-lbl">Z2 bpm</div></div>'+
       '</div>'+
-      '<button class="btn-reorganize" onclick="window.location.href=\'onboarding.html\'">↺ Reconfigurar plan</button>'+
+      '<button class="btn-reorganize" onclick="window.location.href=\'plan.html\'+window.location.search" style="margin-bottom:.5rem">📅 Ver plan completo →</button>'+
+      '<button class="btn-reorganize" onclick="window.location.href=\'onboarding.html\'" style="background:#fff;color:#163A28;border:.5px solid #E8E6DF">↺ Reconfigurar plan</button>'+
     '</div>';
 
   // Re-render banner if state exists
