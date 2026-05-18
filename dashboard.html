@@ -450,6 +450,11 @@ function renderAll(){
         '<button class="btn-ghost" onclick="openSessio('+todayRealIdx+')">▶ Empezar</button>'+
       '</div>'+
     '</div>'+
+    '<div onclick="window.location.href=\'plan.html\'+window.location.search" style="margin:0 1.25rem 1rem;background:#fff;border:.5px solid #E8E6DF;border-radius:12px;padding:.9rem 1.25rem;display:flex;align-items:center;gap:.75rem;cursor:pointer">'+
+      '<div style="width:36px;height:36px;border-radius:10px;background:#F1FAF5;border:1px solid #163A28;display:flex;align-items:center;justify-content:center;font-size:1rem">📅</div>'+
+      '<div style="flex:1"><div style="font-size:.9rem;font-weight:500;color:#111110">Ver plan completo</div><div style="font-size:.75rem;color:#888780;margin-top:1px">Periodización y semanas</div></div>'+
+      '<div style="color:#163A28;font-size:1.1rem;font-weight:500">→</div>'+
+    '</div>'+
     '<div class="week-section">'+
       '<div id="reajust-banner-slot"></div>'+
       '<div class="section-head">'+
@@ -466,8 +471,7 @@ function renderAll(){
         '<div class="stat"><div class="stat-val green">'+trainDays.length+'</div><div class="stat-lbl">Sesiones</div></div>'+
         '<div class="stat"><div class="stat-val">'+z2min+'-'+z2max+'</div><div class="stat-lbl">Z2 bpm</div></div>'+
       '</div>'+
-      '<button class="btn-reorganize" onclick="window.location.href=\'plan.html\'+window.location.search" style="margin-bottom:.5rem">📅 Ver plan completo →</button>'+
-      '<button class="btn-reorganize" onclick="window.location.href=\'onboarding.html\'" style="background:#fff;color:#163A28;border:.5px solid #E8E6DF">↺ Reconfigurar plan</button>'+
+     '<button class="btn-reorganize" onclick="window.location.href=\'onboarding.html\'">↺ Reconfigurar plan</button>'+
     '</div>';
 
   // Re-render banner if state exists
