@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>traineo — Plan completo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Outfit',sans-serif;background:#F1EFE8;min-height:100vh}
+    .app{max-width:390px;margin:0 auto;min-height:100vh;background:#F8F7F4;padding-bottom:3rem}
+    .nav{display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem}
+    .btn-back{background:#fff;border:.5px solid #E8E6DF;color:#163A28;width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center}
+    .nav-title{font-size:1.1rem;font-weight:500;color:#111110}
+    .race-card{margin:0 1.25rem 1rem;background:#111110;border-radius:14px;padding:1rem 1.25rem;display:flex;align-items:center;gap:.75rem}
+    .race-icon{font-size:1.5rem}
+    .race-title{font-size:.9rem;font-weight:500;color:#fff}
+    .race-sub{font-size:.75rem;color:rgba(255,255,255,.45);margin-top:2px}
+    .race-days{font-size:1.2rem;font-weight:500;color:#4A9E6B;margin-left:auto}
+    .race-days-lbl{font-size:.65rem;color:rgba(255,255,255,.4);text-align:right}
+    .config-card{margin:0 1.25rem 1rem;background:#fff;border:.5px solid #E8E6DF;border-radius:14px;padding:1rem}
+    .config-label{font-size:.72rem;color:#888780;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem}
+    .config-row{display:flex;align-items:center;gap:.75rem}
+    .config-row input{flex:1;accent-color:#163A28}
+    .config-val{font-size:.95rem;font-weight:500;color:#163A28;min-width:65px;text-align:right}
+    .chart-card{margin:0 1.25rem 1rem;background:#fff;border:.5px solid #E8E6DF;border-radius:14px;padding:1.25rem 1rem 1rem}
+    .chart-title{font-size:.72rem;color:#888780;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem;padding:0 .25rem}
+    .chart-legend{display:flex;gap:1rem;font-size:.7rem;color:#888780;justify-content:center;margin-top:.75rem}
+    .legend-item{display:flex;align-items:center;gap:.35rem}
+    .legend-dot{width:8px;height:8px;border-radius:2px}
+    .weeks-section{margin:0 1.25rem 1rem}
+    .section-title{font-size:.9rem;font-weight:500;color:#111110;margin-bottom:.75rem}
+    .phase-group{margin-bottom:1.25rem}
+    .phase-label{font-size:.7rem;font-weight:600;color:#888780;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem;padding:0 .25rem}
+    .week-item{background:#fff;border:.5px solid #E8E6DF;border-radius:12px;margin-bottom:6px;overflow:hidden}
+    .week-item.current{border:1.5px solid #163A28;background:#F1FAF5}
+    .week-item.race{border:1.5px solid #E04040;background:#FEE}
+    .week-header{padding:.85rem 1rem;display:flex;align-items:center;gap:.75rem;cursor:pointer}
+    .week-num{width:32px;height:32px;border-radius:8px;background:#F1EFE8;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:600;color:#888780;flex-shrink:0}
+    .week-item.current .week-num{background:#163A28;color:#fff}
+    .week-item.race .week-num{background:#E04040;color:#fff}
+    .week-info{flex:1;min-width:0}
+    .week-title{font-size:.9rem;font-weight:500;color:#111110}
+    .week-sub{font-size:.75rem;color:#888780;margin-top:1px}
+    .week-stats{font-size:.85rem;font-weight:500;color:#163A28;flex-shrink:0;text-align:right}
+    .week-stats-lbl{font-size:.65rem;color:#888780;margin-top:1px;text-align:right}
+    .week-detail{display:none;padding:0 1rem 1rem;border-top:.5px solid #F1EFE8}
+    .week-item.open .week-detail{display:block}
+    .week-focus{font-size:.85rem;color:#163A28;background:#EBF5EF;border-radius:8px;padding:.6rem .75rem;margin-top:.75rem;line-height:1.4}
+    .week-sessions{display:flex;flex-direction:column;gap:4px;margin-top:.75rem}
+    .week-session{font-size:.82rem;color:#555;padding:.4rem .65rem;background:#F8F7F4;border-radius:6px;display:flex;align-items:center;gap:.5rem}
+    .week-session-dot{width:5px;height:5px;border-radius:50%;background:#888780;flex-shrink:0}
+    .btn-open-week{width:100%;background:#163A28;color:#fff;border:none;border-radius:8px;padding:.6rem;font-size:.82rem;font-weight:500;font-family:'Outfit',sans-serif;cursor:pointer;margin-top:.75rem}
+    .summary-card{margin:0 1.25rem 1rem;background:#163A28;border-radius:14px;padding:1.25rem}
+    .summary-label{font-size:.7rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem}
+    .summary-text{font-size:.9rem;color:#fff;line-height:1.5}
+    .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1.25rem;gap:1rem}
+    .spinner{width:48px;height:48px;border:3px solid #E8E6DF;border-top-color:#163A28;border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-text{font-size:.9rem;color:#888780;text-align:center}
+    .chevron{font-size:.7rem;color:#C8C6BF;transition:transform .2s}
+    .week-item.open .chevron{transform:rotate(90deg)}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <button class="btn-back" onclick="window.location.href='dashboard.html'+window.location.search">←</button>
+    <div class="nav-title">Plan completo</div>
+  </div>
+
+  <div id="content">
+    <div class="loading">
+      <div class="spinner"></div>
+      <p class="loading-text">Generando tu plan completo...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const params=new URLSearchParams(window.location.search);
+const emailParam=params.get('email');
+
+const user={
+  sports:(params.get('sports')||'running').split(','),
+  dias:parseInt(params.get('dias'))||3,
+  nivel:decodeURIComponent(params.get('nivel')||'intermedio'),
+  fcmax:parseInt(params.get('fcmax'))||185,
+  volum:parseInt(params.get('volum'))||4,
+  objetivo:decodeURIComponent(params.get('objetivo')||''),
+  carrera:decodeURIComponent(params.get('carrera')||''),
+  distancia:decodeURIComponent(params.get('distancia')||''),
+  fecha:decodeURIComponent(params.get('fecha')||'')
+};
+
+const hasRace=user.carrera&&user.fecha;
+let configWeeks=8;
+let planData=null;
+
+async function loadPlan(){
+  try {
+    const body={
+      userData:user,
+      raceDate:hasRace?user.fecha:null,
+      raceName:hasRace?user.carrera:null,
+      totalWeeks:configWeeks
+    };
+    const res=await fetch('/api/plan-completo',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    const data=await res.json();
+    if(data.weeks){
+      planData=data;
+      renderPlan();
+    } else {
+      throw new Error('Sin datos');
+    }
+  } catch(e){
+    console.error(e);
+    document.getElementById('content').innerHTML='<div class="loading"><p class="loading-text">No se ha podido generar el plan. Inténtalo de nuevo.</p></div>';
+  }
+}
+
+function renderPlan(){
+  const weeks=planData.weeks;
+  const maxHours=Math.max(...weeks.map(w=>w.totalHours));
+  const maxLoad=Math.max(...weeks.map(w=>w.load));
+  const currentWeek=1;
+  const raceWeek=hasRace?weeks.length:null;
+
+  // RACE CARD or CONFIG CARD
+  let topCard='';
+  if(hasRace){
+    const diff=Math.ceil((new Date(user.fecha)-new Date())/(1000*60*60*24));
+    topCard='<div class="race-card"><div class="race-icon">🏁</div><div><div class="race-title">'+user.carrera+'</div><div class="race-sub">'+user.distancia+' · '+weeks.length+' semanas</div></div><div style="text-align:right;margin-left:auto"><div class="race-days">'+diff+'</div><div class="race-days-lbl">días</div></div></div>';
+  } else {
+    topCard='<div class="config-card"><div class="config-label">Duración del plan</div><div class="config-row"><input type="range" min="4" max="16" value="'+configWeeks+'" id="weeks-slider" oninput="updateWeeks(this.value)"><span class="config-val" id="weeks-val">'+configWeeks+' sem</span></div></div>';
+  }
+
+  // GRAPH
+  const chartW=320;
+  const chartH=140;
+  const padding=20;
+  const barWidth=(chartW-padding*2)/weeks.length-2;
+  const barAreaH=chartH-30;
+
+  let bars='';
+  let linePoints=[];
+  weeks.forEach((w,i)=>{
+    const x=padding+i*((chartW-padding*2)/weeks.length)+1;
+    const barH=(w.totalHours/maxHours)*barAreaH;
+    const y=chartH-20-barH;
+    const isCurrent=i===currentWeek-1;
+    const isRace=raceWeek&&i===raceWeek-1;
+    const color=isRace?'#E04040':isCurrent?'#163A28':'#4A9E6B';
+    bars+='<rect x="'+x+'" y="'+y+'" width="'+barWidth+'" height="'+barH+'" rx="2" fill="'+color+'" opacity="'+(isCurrent||isRace?'1':'.75')+'"/>';
+    bars+='<text x="'+(x+barWidth/2)+'" y="'+(chartH-6)+'" text-anchor="middle" font-size="9" fill="#888780" font-family="Outfit">S'+w.weekNum+'</text>';
+    const lineX=x+barWidth/2;
+    const lineY=chartH-20-(w.load/maxLoad)*barAreaH;
+    linePoints.push(lineX+','+lineY);
+  });
+
+  const linePath='M '+linePoints.join(' L ');
+
+  const graphHTML='<div class="chart-card"><div class="chart-title">Periodización · '+weeks.length+' semanas</div>'+
+    '<svg viewBox="0 0 '+chartW+' '+chartH+'" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">'+
+    bars+
+    '<path d="'+linePath+'" stroke="#F08C30" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round" opacity=".85"/>'+
+    linePoints.map(p=>{const[x,y]=p.split(',');return '<circle cx="'+x+'" cy="'+y+'" r="2.5" fill="#F08C30"/>';}).join('')+
+    '</svg>'+
+    '<div class="chart-legend">'+
+      '<div class="legend-item"><div class="legend-dot" style="background:#4A9E6B"></div>Horas</div>'+
+      '<div class="legend-item"><div class="legend-dot" style="background:#F08C30;border-radius:50%"></div>Carga</div>'+
+      (hasRace?'<div class="legend-item"><div class="legend-dot" style="background:#E04040"></div>Carrera</div>':'')+
+    '</div>'+
+  '</div>';
+
+  // SUMMARY
+  const summaryHTML='<div class="summary-card"><div class="summary-label">Resumen del coach</div><div class="summary-text">'+(planData.resumen||'')+'</div></div>';
+
+  // WEEKS GROUPED BY PHASE
+  const phases={};
+  weeks.forEach((w,i)=>{
+    const phaseKey=w.phase.split(' ')[0];
+    if(!phases[phaseKey]) phases[phaseKey]=[];
+    phases[phaseKey].push({...w,idx:i});
+  });
+
+  let weeksHTML='<div class="weeks-section"><div class="section-title">Semanas</div>';
+  Object.entries(phases).forEach(([phaseName,phaseWeeks])=>{
+    weeksHTML+='<div class="phase-group"><div class="phase-label">'+phaseName.toUpperCase()+'</div>';
+    phaseWeeks.forEach(w=>{
+      const isCurrent=w.weekNum===currentWeek;
+      const isRace=raceWeek&&w.weekNum===raceWeek;
+      const cls=isRace?'race':isCurrent?'current':'';
+      weeksHTML+='<div class="week-item '+cls+'" id="week-'+w.weekNum+'">'+
+        '<div class="week-header" onclick="toggleWeek('+w.weekNum+')">'+
+          '<div class="week-num">S'+w.weekNum+'</div>'+
+          '<div class="week-info">'+
+            '<div class="week-title">'+w.phase+(isCurrent?' · Esta semana':'')+(isRace?' · 🏁 Carrera':'')+'</div>'+
+            '<div class="week-sub">'+w.totalHours+'h · carga '+w.load+'</div>'+
+          '</div>'+
+          '<div class="chevron">▶</div>'+
+        '</div>'+
+        '<div class="week-detail">'+
+          '<div class="week-focus">'+(w.focus||'')+'</div>'+
+          '<div class="week-sessions">'+
+            (w.sessions||[]).map(s=>'<div class="week-session"><div class="week-session-dot"></div>'+s+'</div>').join('')+
+          '</div>'+
+          (isCurrent?'<button class="btn-open-week" onclick="window.location.href=\'dashboard.html\'+window.location.search">Abrir semana →</button>':'')+
+        '</div>'+
+      '</div>';
+    });
+    weeksHTML+='</div>';
+  });
+  weeksHTML+='</div>';
+
+  document.getElementById('content').innerHTML=topCard+graphHTML+summaryHTML+weeksHTML;
+}
+
+function toggleWeek(num){
+  const el=document.getElementById('week-'+num);
+  if(el) el.classList.toggle('open');
+}
+
+function updateWeeks(v){
+  configWeeks=parseInt(v);
+  document.getElementById('weeks-val').textContent=v+' sem';
+  clearTimeout(window._weeksTimer);
+  window._weeksTimer=setTimeout(()=>{
+    document.getElementById('content').innerHTML='<div class="loading"><div class="spinner"></div><p class="loading-text">Regenerando plan de '+configWeeks+' semanas...</p></div>';
+    loadPlan();
+  },800);
+}
+
+loadPlan();
+</script>
+</body>
+</html>
