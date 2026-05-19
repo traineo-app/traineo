@@ -338,6 +338,70 @@ let coachBannerState=null;
 let touchSrcIdx=null;
 let touchOverIdx=null;
 
+function calculatePaces(u){
+  const levelPaces={'principiante':420,'intermedio':360,'avanzado':300,'élite':255,'avanzat':300,'intermedi':360};
+  const levelSpeeds={'principiante':22,'intermedio':27,'avanzado':32,'élite':36,'avanzat':32,'intermedi':27};
+  const nivel=(u?.nivel||'intermedio').toLowerCase();
+  let runZ2=u?.pacez2||levelPaces[nivel]||360;
+  if(u?.race5k) runZ2=Math.round((u.race5k/5)/0.85);
+  else if(u?.race10k) runZ2=Math.round((u.race10k/10)/0.88);
+  const cycZ2=u?.ftp?Math.round(u.ftp/8.5):(levelSpeeds[nivel]||27);
+  return {
+    running:{z1:runZ2+60,z2:runZ2,z3:Math.round(runZ2*0.90),z4:Math.round(runZ2*0.83),z5:Math.round(runZ2*0.78)},
+    cycling:{z1:cycZ2-4,z2:cycZ2,z3:cycZ2+4,z4:cycZ2+8,z5:cycZ2+12}
+  };
+}
+
+function formatPace(sec){
+  const m=Math.floor(sec/60);
+  const s=sec%60;
+  return m+':'+(s<10?'0':'')+s;
+}
+
+function estimateRunKm(minutes,paceSecPerKm){
+  return Math.round((minutes*60/paceSecPerKm)*10)/10;
+}
+
+function estimateCycKm(minutes,kmh){
+  return Math.round((minutes*kmh/60)*10)/10;
+}
+
+function getZoneFromTags(tags){
+  const t=(tags||[]).find(x=>x.startsWith('Z'));
+  if(!t) return 'z2';
+  return t.toLowerCase().substring(0,2);
+}
+
+function getSportType(d){
+  const t=(d.title||'').toLowerCase();
+  const tags=(d.tags||[]).join(' ').toLowerCase();
+  if(t.includes('bici')||t.includes('cicl')||t.includes('rodada')||t.includes('ruta')||tags.includes('ciclismo')||tags.includes('bici')) return 'cycling';
+  if(t.includes('nado')||t.includes('piscina')||t.includes('natación')||tags.includes('natación')) return 'swim';
+  if(t.includes('fuerza')||t.includes('gimnas')||t.includes('full body')||t.includes('core')||t.includes('calistenia')||tags.includes('gimnasio')) return 'gym';
+  return 'running';
+}
+
+function getSessionMetrics(d,user){
+  const sport=getSportType(d);
+  if(sport==='gym'||sport==='swim') return null;
+  const paces=calculatePaces(user);
+  const zone=getZoneFromTags(d.tags);
+  const min=d.duracio_min||45;
+  // Restem 5-10 min de calentament/vuelta calma pel càlcul real
+  const effectiveMin=Math.max(min-10,Math.round(min*0.75));
+  if(sport==='running'){
+    const pace=paces.running[zone]||paces.running.z2;
+    const km=estimateRunKm(effectiveMin,pace);
+    return {km:km,pace:formatPace(pace),sport:'running'};
+  }
+  if(sport==='cycling'){
+    const kmh=paces.cycling[zone]||paces.cycling.z2;
+    const km=estimateCycKm(effectiveMin,kmh);
+    return {km:km,kmh:kmh,sport:'cycling'};
+  }
+  return null;
+}
+  
 function expandSports(sports){
   var expanded=[];
   (sports||['running']).forEach(function(s){
@@ -520,6 +584,14 @@ function renderAll(){
   const durMin=todaySession.duracio_min||45;
   const zona=(todaySession.tags||[]).find(t=>t.startsWith('Z'))||'Z2';
   const focus=(todaySession.tags||[]).filter(t=>!t.startsWith('Z')&&!t.includes('~')).slice(0,1)[0]||'';
+  const todayMetrics=todaySession.rest?null:getSessionMetrics(todaySession,user);
+  let todayMetricsText=durMin+' min · '+zona;
+  if(todayMetrics){
+    if(todayMetrics.sport==='running') todayMetricsText=durMin+' min · '+todayMetrics.km+' km · '+todayMetrics.pace+'/km';
+    else if(todayMetrics.sport==='cycling') todayMetricsText=durMin+' min · '+todayMetrics.km+' km · '+zona;
+  } else {
+    todayMetricsText=durMin+' min · '+zona+(focus?' · '+focus:'');
+  }
 
   document.getElementById('main-content').innerHTML=
     raceHTML+
@@ -527,7 +599,7 @@ function renderAll(){
       '<div class="today-meta"><span class="today-label">Hoy · '+todayName+'</span><span class="today-badge">Semana 1 · Base</span></div>'+
       '<div class="today-title">'+(todaySession.skipped?'Descanso inesperado':todaySession.title)+'</div>'+
       '<div class="today-bullets">'+
-        '<div class="today-bullet">⏱ '+durMin+' min · '+zona+(focus?' · '+focus:'')+'</div>'+
+        '<div class="today-bullet">⏱ '+todayMetricsText+'</div>'+
         (todaySession.sub?'<div class="today-bullet">📍 '+todaySession.sub+'</div>':'')+
         (todaySession.why?'<div class="today-bullet">💬 '+todaySession.why+'</div>':'')+
       '</div>'+
@@ -593,10 +665,21 @@ const cls=isCompleted?completedClass:isToday?'today-item':d.rest?'rest-item':isC
     ' onclick="openSessio('+i+')">'+
     '<div class="plan-day-badge">'+d.day+'</div>'+
     '<span class="plan-item-icon">'+(d.icon||'🏃')+'</span>'+
-    '<div class="plan-item-info">'+
+   '<div class="plan-item-info">'+
       '<div class="plan-item-title">'+(d.title||'Sesión')+'</div>'+
-      (d.sub?'<div class="plan-item-sub">'+d.sub+'</div>':'')+
-    '</div>'+
+      (function(){
+        if(d.rest) return d.sub?'<div class="plan-item-sub">'+d.sub+'</div>':'';
+        const metrics=getSessionMetrics(d,user);
+        let subText='';
+        if(metrics){
+          if(metrics.sport==='running') subText=(d.duracio_min||45)+' min · '+metrics.km+' km · '+metrics.pace+'/km';
+          else if(metrics.sport==='cycling') subText=(d.duracio_min||45)+' min · '+metrics.km+' km';
+        } else {
+          subText=d.sub||((d.duracio_min||45)+' min');
+        }
+        return '<div class="plan-item-sub">'+subText+'</div>';
+       })()+
+     '</div>'+
     (!d.rest?
       '<div class="plan-item-actions" onclick="event.stopPropagation()">'+
         '<div class="drag-handle" onclick="event.stopPropagation()" ontouchstart="handleTouchStart(event,'+i+')">⠿</div>'+
