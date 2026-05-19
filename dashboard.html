@@ -453,6 +453,21 @@ function getSessionMetrics(d,user){
   const paces=calculatePaces(user);
   const zone=getZoneFromTags(d.tags);
   const min=d.duracio_min||45;
+  if(sport==='running'||sport==='trail'){
+    const pace=paces.running[zone]||paces.running.z2;
+    const km=Math.round((min*60/pace)*10)/10;
+    return {km:km,pace:formatPace(pace),sport:sport,elev:0};
+  }
+  if(sport==='cycling'){
+    const kmh=paces.cycling[zone]||paces.cycling.z2;
+    const km=Math.round((min*kmh/60)*10)/10;
+    return {km:km,kmh:kmh,sport:sport,elev:0};
+  }
+  return null;
+}
+  const paces=calculatePaces(user);
+  const zone=getZoneFromTags(d.tags);
+  const min=d.duracio_min||45;
   const effectiveMin=Math.max(min-10,Math.round(min*0.75));
   if(sport==='running'||sport==='trail'){
     const pace=paces.running[zone]||paces.running.z2;
@@ -566,6 +581,13 @@ async function reajustarDiferit(descripcioCanvi,loadingMsg){
   loadingMsg=loadingMsg||'Coach reorganizando la semana...';
   const requestId=++reajustRequestId;
   showCoachBanner(true,loadingMsg);
+  
+  // Guarda els dies immutables ABANS de cridar la IA
+  const immutableSnapshot=planDays.map((d,i)=>{
+    if(d.canviat===true||d.completed===true) return {idx:i,day:JSON.parse(JSON.stringify(d))};
+    return null;
+  }).filter(x=>x!==null);
+  
   try {
     const response=await fetch('/api/reajust',{
       method:'POST',
@@ -575,7 +597,14 @@ async function reajustarDiferit(descripcioCanvi,loadingMsg){
     const data=await response.json();
     if(requestId!==reajustRequestId) return;
     if(data.setmana){
-      planDays=normalizePlan(data.setmana);
+      let aiPlan=normalizePlan(data.setmana);
+      // FORÇA els dies immutables (encara que la IA els hagi tocat)
+      immutableSnapshot.forEach(function(item){
+        if(item.idx<aiPlan.length){
+          aiPlan[item.idx]=item.day;
+        }
+      });
+      planDays=aiPlan;
       if(data.resum) window._coachResum=data.resum;
       renderAll();
       showCoachBanner(false,data.missatge||'Plan ajustado ✓');
@@ -951,12 +980,8 @@ function openAdjustModal(idx){
   adjustValues.speed=adjustingSession.custom?.speed||defaultSpeed;
   adjustValues.elev=adjustingSession.custom?.elev||defaultElev;
   
-  const elevFactor=sport==='trail'?ELEV_RUN:(sport==='cycling'?ELEV_BIKE:0);
-  const elevExtra=adjustValues.elev*elevFactor;
-  const flatTimeSec=Math.max(60,(time*60)-elevExtra);
-  
-  if(sport==='running'||sport==='trail') adjustValues.km=Math.max(0.5,Math.round((flatTimeSec/adjustValues.pace)*10)/10);
-  else if(sport==='cycling') adjustValues.km=Math.max(0.5,Math.round((flatTimeSec*adjustValues.speed/3600)*10)/10);
+  if(sport==='running'||sport==='trail') adjustValues.km=Math.max(0.5,Math.round((time*60/adjustValues.pace)*10)/10);
+  else if(sport==='cycling') adjustValues.km=Math.max(0.5,Math.round((time*adjustValues.speed/60)*10)/10);
   else adjustValues.km=0;
   
   updateAdjustDOM(sport,showFields);
@@ -987,33 +1012,35 @@ function updateAdjustDOM(sport,showFields){
 function adjustFrom(source){
   if(!adjustingSession) return;
   const sport=getSportType(adjustingSession);
-  const elevFactor=sport==='trail'?ELEV_RUN:(sport==='cycling'?ELEV_BIKE:0);
   
   if(source==='time'){
     adjustValues.time=parseInt(document.getElementById('adj-time').value);
-    const elevExtra=adjustValues.elev*elevFactor;
-    const flatSec=Math.max(60,adjustValues.time*60-elevExtra);
-    if(sport==='running'||sport==='trail') adjustValues.km=Math.max(0.5,Math.round((flatSec/adjustValues.pace)*10)/10);
-    else if(sport==='cycling') adjustValues.km=Math.max(0.5,Math.round((flatSec*adjustValues.speed/3600)*10)/10);
+    if(sport==='running'||sport==='trail') adjustValues.km=Math.max(0.5,Math.round((adjustValues.time*60/adjustValues.pace)*10)/10);
+    else if(sport==='cycling') adjustValues.km=Math.max(0.5,Math.round((adjustValues.time*adjustValues.speed/60)*10)/10);
   } else if(source==='km'){
     adjustValues.km=parseFloat(document.getElementById('adj-km').value);
-    const elevExtra=adjustValues.elev*elevFactor;
-    if(sport==='running'||sport==='trail') adjustValues.time=Math.round((adjustValues.km*adjustValues.pace+elevExtra)/60);
-    else if(sport==='cycling') adjustValues.time=Math.round((adjustValues.km*3600/adjustValues.speed+elevExtra)/60);
+    if(sport==='running'||sport==='trail') adjustValues.time=Math.round(adjustValues.km*adjustValues.pace/60);
+    else if(sport==='cycling') adjustValues.time=Math.round(adjustValues.km*60/adjustValues.speed);
   } else if(source==='pace'){
     adjustValues.pace=parseInt(document.getElementById('adj-pace').value);
-    const elevExtra=adjustValues.elev*elevFactor;
-    adjustValues.time=Math.round((adjustValues.km*adjustValues.pace+elevExtra)/60);
+    adjustValues.time=Math.round(adjustValues.km*adjustValues.pace/60);
   } else if(source==='speed'){
     adjustValues.speed=parseFloat(document.getElementById('adj-speed').value);
-    const elevExtra=adjustValues.elev*elevFactor;
-    adjustValues.time=Math.round((adjustValues.km*3600/adjustValues.speed+elevExtra)/60);
+    adjustValues.time=Math.round(adjustValues.km*60/adjustValues.speed);
   } else if(source==='elev'){
     adjustValues.elev=parseInt(document.getElementById('adj-elev').value);
-    const elevExtra=adjustValues.elev*elevFactor;
-    if(sport==='trail') adjustValues.time=Math.round((adjustValues.km*adjustValues.pace+elevExtra)/60);
-    else if(sport==='cycling') adjustValues.time=Math.round((adjustValues.km*3600/adjustValues.speed+elevExtra)/60);
+    // El desnivel és informatiu, no afecta el temps
   }
+  
+  const showFields={time:true,km:sport==='running'||sport==='trail'||sport==='cycling',pace:sport==='running'||sport==='trail',speed:sport==='cycling',elev:sport==='trail'||sport==='cycling'};
+  updateAdjustDOM(sport,showFields);
+  
+  const orig=adjustingSession?.duracio_min||45;
+  let msg='El plan se reajustará para mantener tu progresión semanal.';
+  if(adjustValues.time<orig*0.7) msg='Sesión más corta. El coach añadirá minutos en otros días.';
+  else if(adjustValues.time>orig*1.3) msg='Sesión más larga. El coach reducirá la carga en otros días.';
+  document.getElementById('adjust-ai-text').textContent=msg;
+}
   
   const showFields={time:true,km:sport==='running'||sport==='trail'||sport==='cycling',pace:sport==='running'||sport==='trail',speed:sport==='cycling',elev:sport==='trail'||sport==='cycling'};
   updateAdjustDOM(sport,showFields);
