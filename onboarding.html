@@ -415,28 +415,27 @@ function checkBtnS5b(){
 }
 
 function buildStepOrder(){
-  stepOrder=['s1','s2'];
+  stepOrder=['s1'];
   const isCarrera=userData.objetivo==='carrera';
   const sports=userData.sports||[];
   const hasCardio=sports.some(function(s){return ['running','ciclismo','trail','natacion','triatlon'].includes(s);});
   const isGymOnly=sports.length>0&&sports.every(function(s){return ['gimnasio','calistenia'].includes(s);});
 
   if(isCarrera){
-    stepOrder.push('s4'); // carrera info
-    stepOrder.push('s5'); // disciplines
-    stepOrder.push('s3'); // uploads
-    stepOrder.push('s6'); // cardio calibration
+    // Carrera: personal → carrera info → disciplines complementàries → uploads → calibració
+    stepOrder.push('s2','s4','s5','s3','s6');
   } else {
-    stepOrder.push('s5'); // disciplines EARLY
+    // Forma/peso/vuelta: ESPORTS PRIMER, després la resta
+    stepOrder.push('s5'); // Esports (sense "practicas algún deporte más?")
+    stepOrder.push('s2'); // Personal data
     if(isGymOnly){
-      stepOrder.push('s5b'); // muscle focus, skip cardio entirely
+      stepOrder.push('s5b'); // Muscle focus
     } else {
-      stepOrder.push('s3'); // uploads
-      if(hasCardio||sports.length===0) stepOrder.push('s6'); // cardio calibration only if needed
+      stepOrder.push('s3'); // Uploads
+      if(hasCardio||sports.length===0) stepOrder.push('s6'); // Calibració cardio
     }
   }
-  stepOrder.push('s7');
-  stepOrder.push('s8');
+  stepOrder.push('s7','s8');
 }
 
 function updateProgress(){
@@ -479,26 +478,32 @@ function validateStep2(){
 
 function setupS5(){
   const disc=userData.carreraDisciplina;
-  const discMap={'triatlon':['running','ciclismo','natacion'],'duatlon':['running','ciclismo'],'running':['running'],'trail':['trail'],'ciclismo':['ciclismo'],'natacion':['natacion']};
-  if(disc&&disc!=='otro'){
-    const toSel=discMap[disc]||[disc];
-    document.querySelectorAll('#s5 .grid-opt').forEach(el=>{
-      const sp=el.getAttribute('onclick').match(/'([^']+)'/)[1];
-      if(toSel.includes(sp)){
-        el.classList.add('sel');
-        if(!userData.sports.includes(sp)) userData.sports.push(sp);
+  const isCarrera=userData.objetivo==='carrera';
+
+  if(isCarrera){
+    // Ja té disciplina de cursa → pregunta esports complementaris
+    const discMap={'triatlon':['running','ciclismo','natacion'],'duatlon':['running','ciclismo'],'running':['running'],'trail':['trail'],'ciclismo':['ciclismo'],'natacion':['natacion']};
+    if(disc&&disc!=='otro'){
+      const toSel=discMap[disc]||[disc];
+      document.querySelectorAll('#s5 .grid-opt').forEach(el=>{
+        const sp=el.getAttribute('onclick').match(/'([^']+)'/)[1];
+        if(toSel.includes(sp)){el.classList.add('sel');if(!userData.sports.includes(sp)) userData.sports.push(sp);}
+      });
+      if(disc==='triatlon'){
+        document.getElementById('s5-title').textContent='¿Algún deporte más para complementar?';
+        document.getElementById('s5-sub').textContent='Running, bici y natación ya están incluidos.';
+      } else if(disc==='duatlon'){
+        document.getElementById('s5-title').textContent='¿Algún deporte más para complementar?';
+        document.getElementById('s5-sub').textContent='Running y bici ya están incluidos.';
+      } else {
+        document.getElementById('s5-title').textContent='¿Entrenas algo más para complementar?';
+        document.getElementById('s5-sub').textContent=disc.charAt(0).toUpperCase()+disc.slice(1)+' es tu disciplina principal. Añade complementos si quieres.';
       }
-    });
-    if(disc==='triatlon'){
-      document.getElementById('s5-title').textContent='¿Algún deporte más para complementar?';
-      document.getElementById('s5-sub').textContent='Running, bici y natación ya están incluidos. Añade fuerza u otros si quieres.';
-    } else if(disc==='duatlon'){
-      document.getElementById('s5-title').textContent='¿Algún deporte más para complementar?';
-      document.getElementById('s5-sub').textContent='Running y bici ya están incluidos. Añade complementos si quieres.';
-    } else {
-      document.getElementById('s5-title').textContent='¿Practicas algún deporte más?';
-      document.getElementById('s5-sub').textContent='La '+disc+' es tu disciplina principal. Añade complementos si quieres.';
     }
+  } else {
+    // No és carrera → pregunta principal, sense preselecció
+    document.getElementById('s5-title').textContent='¿Qué deportes practicas?';
+    document.getElementById('s5-sub').textContent='Elige todo lo que practiques o quieras incluir en tu plan.';
   }
 }
 
