@@ -127,6 +127,11 @@
   .stats-prev-val{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:#111110;line-height:.95;letter-spacing:.5px}
   .stats-prev-val.green{color:#163A28}
   .stats-prev-lbl{font-size:.58rem;color:#888780;text-transform:uppercase;letter-spacing:.1em;margin-top:3px;font-weight:600}
+  .nivel-card{border:.5px solid #E8E6DF;border-radius:10px;padding:.75rem .85rem;background:#fff;cursor:pointer;text-align:left;font-family:'Inter',sans-serif;transition:all .15s;width:100%;display:block}
+  .nivel-card.sel{border:1.5px solid #163A28;background:#F1FAF5}
+  .nivel-card-title{font-size:.9rem;font-weight:600;color:#111110;letter-spacing:-.1px}
+  .nivel-card.sel .nivel-card-title{color:#163A28}
+  .nivel-card-sub{font-size:.72rem;color:#888780;margin-top:2px;font-weight:500;line-height:1.4}
 </style>
 </head>
 <body>
@@ -520,83 +525,69 @@ function removeStrava(){stravaFile=null;userData.stravaName='';userData.stravaSt
 function renderCalibration(){
   const st=userData.stressTestData||{};
   const sv=userData.stravaStats||{};
+  const hr=sv.heartRate||{};
   const fields=[];
 
-  // FCmax — prioridad: PDF > edad estimada > slider
+  // FCmax — prioridad: PDF > Strava max HR (real en entreno) > 220 − edad
   const fcmaxFromPDF=st.fcmax;
+  const fcmaxFromStravaHR=hr.maxEver;
   const fcmaxFromAge=userData.edat?Math.max(150,Math.min(210,220-userData.edat)):null;
-  const fcmaxInitial=fcmaxFromPDF||fcmaxFromAge||185;
+  const fcmaxInitial=fcmaxFromPDF||fcmaxFromStravaHR||fcmaxFromAge||185;
   userData.calibrated.fcmax=fcmaxInitial;
-  fields.push({
-    id:'cal-fcmax',name:'Frecuencia cardíaca máxima',unit:'bpm',
-    value:fcmaxInitial,min:140,max:220,step:1,
-    source:fcmaxFromPDF?'detected':(fcmaxFromAge?'estimated':'manual'),
-    sourceLabel:fcmaxFromPDF?'Detectado · prueba esfuerzo':(fcmaxFromAge?'Estimado · 220 − edad':'Manual'),
-    help:fcmaxFromPDF?'Detectado de tu prueba de esfuerzo. Edita si crees que no es correcto.':'Estimado. Si conoces tu FCmax real, ajústalo.'
-  });
+  
+  let fcSrc='manual',fcLabel='Manual',fcHelp='Ajusta tu FCmax si la conoces.';
+  if(fcmaxFromPDF){fcSrc='detected';fcLabel='Detectado · prueba esfuerzo';fcHelp='FCmax medida en laboratorio. Edita si crees que es incorrecta.';}
+  else if(fcmaxFromStravaHR){fcSrc='detected';fcLabel='Detectado · Strava (FC máxima entrenando)';fcHelp='FC máxima registrada en tus entrenos. Puede ser ligeramente inferior a la FCmax real si nunca has llegado al máximo absoluto.';}
+  else if(fcmaxFromAge){fcSrc='estimated';fcLabel='Estimado · 220 − edad';fcHelp='Estimación a partir de tu edad. Súbete a un test máximo o ajústala si conoces tu FCmax real.';}
+  
+  fields.push({id:'cal-fcmax',name:'Frecuencia cardíaca máxima',unit:'bpm',value:fcmaxInitial,min:140,max:220,step:1,source:fcSrc,sourceLabel:fcLabel,help:fcHelp});
 
-  // Z2 pace (solo running/trail relevante)
+  // Z2 pace running
   const hasRun=userData.sports.includes('running')||userData.sports.includes('trail')||userData.carreraDisciplina==='running'||userData.carreraDisciplina==='trail'||userData.carreraDisciplina==='triatlon'||userData.carreraDisciplina==='duatlon';
   if(hasRun){
     const z2FromPDF=st.ritme_z2;
-    const best5K=sv.running?.best5K_sec;
-    const z2FromStrava=best5K?Math.round(best5K*1.18):null;
-    const levelPaces={'inicio':420,'intermedio':360,'avanzado':300,'vuelta':390};
+    const z2FromStravaHR=hr.z2?.paceFromHR_sec;
+    const z2FromBest5K=sv.running?.best5K_sec?Math.round(sv.running.best5K_sec*1.18):null;
+    const levelPaces={'principiante':420,'intermedio':360,'avanzado':300};
     const z2FromLevel=levelPaces[userData.nivel]||360;
-    const z2Initial=z2FromPDF||z2FromStrava||z2FromLevel;
+    const z2Initial=z2FromPDF||z2FromStravaHR||z2FromBest5K||z2FromLevel;
     userData.calibrated.pacez2=z2Initial;
-    fields.push({
-      id:'cal-pacez2',name:'Ritmo Z2 (running)',unit:'/km',
-      value:z2Initial,min:180,max:600,step:5,format:'pace',
-      source:z2FromPDF?'detected':(z2FromStrava?'detected':'estimated'),
-      sourceLabel:z2FromPDF?'Detectado · prueba esfuerzo':(z2FromStrava?'Estimado · Strava 5K · 1.18':'Estimado · nivel'),
-      help:z2FromPDF?'Detectado del rango Z2 de tu prueba. Si te parece raro, edítalo.':(z2FromStrava?'Calculado a partir de tu mejor 5K en Strava.':'Sin datos: estimado por nivel.')
-    });
+    
+    let z2Src='estimated',z2Label='Estimado · nivel',z2Help='Sin datos: estimado por nivel.';
+    if(z2FromPDF){z2Src='detected';z2Label='Detectado · prueba esfuerzo';z2Help='Z2 detectada de tu prueba. Si te parece raro, ajústalo.';}
+    else if(z2FromStravaHR){z2Src='detected';z2Label='Detectado · Strava ('+hr.z2.runsCount+' rodajes Z2)';z2Help='Calculado a partir de tus entrenos reales con FC en zona aeróbica ('+hr.z2.avgHR+' bpm promedio).';}
+    else if(z2FromBest5K){z2Src='estimated';z2Label='Estimado · Strava 5K best';z2Help='Estimación a partir de tu mejor 5K (5K × 1.18).';}
+    
+    fields.push({id:'cal-pacez2',name:'Ritmo Z2 (running)',unit:'/km',value:z2Initial,min:180,max:600,step:5,format:'pace',source:z2Src,sourceLabel:z2Label,help:z2Help});
   }
 
   // FTP (solo si bici + PDF lo tiene)
   const hasBici=userData.sports.includes('ciclismo')||userData.carreraDisciplina==='ciclismo'||userData.carreraDisciplina==='triatlon'||userData.carreraDisciplina==='duatlon';
   if(hasBici&&st.ftp){
     userData.calibrated.ftp=st.ftp;
-    fields.push({
-      id:'cal-ftp',name:'FTP (ciclismo)',unit:'W',
-      value:st.ftp,min:100,max:500,step:5,
-      source:'detected',sourceLabel:'Detectado · prueba esfuerzo',
-      help:'Tu FTP detectado del test.'
-    });
+    fields.push({id:'cal-ftp',name:'FTP (ciclismo)',unit:'W',value:st.ftp,min:100,max:500,step:5,source:'detected',sourceLabel:'Detectado · prueba esfuerzo',help:'Tu FTP medida en el test.'});
   }
 
-  // Nivel — si Strava lo sugiere por volumen, autodetecta
+  // Nivel — sugerido por Strava si hay datos
   let nivelSugerido='intermedio';
   if(sv.avgWeeklyHours){
     if(sv.avgWeeklyHours>=8) nivelSugerido='avanzado';
     else if(sv.avgWeeklyHours>=4) nivelSugerido='intermedio';
-    else nivelSugerido='inicio';
+    else nivelSugerido='principiante';
   }
+  // Migrar 'inicio' (legacy) a 'principiante'
+  if(userData.nivel==='inicio'||userData.nivel==='vuelta') userData.nivel='principiante';
   userData.nivel=userData.nivel||nivelSugerido;
   userData.calibrated.nivel=userData.nivel;
 
-  // Volumen — si Strava, usa última 4 sem
+  // Volumen
   const volFromStrava=sv.last4Weeks?.weeklyAvgHours;
   userData.volum=volFromStrava||userData.volum||4;
   userData.calibrated.volum=userData.volum;
-  fields.push({
-    id:'cal-volum',name:'Volumen semanal',unit:'h/sem',
-    value:userData.volum,min:1,max:20,step:0.5,
-    source:volFromStrava?'detected':'manual',
-    sourceLabel:volFromStrava?'Detectado · Strava 4 sem':'Manual',
-    help:volFromStrava?'Tu volumen real de las últimas 4 semanas en Strava.':'Indica las horas que entrenas semanalmente ahora.'
-  });
+  fields.push({id:'cal-volum',name:'Volumen semanal',unit:'h/sem',value:userData.volum,min:1,max:20,step:0.5,source:volFromStrava?'detected':'manual',sourceLabel:volFromStrava?'Detectado · Strava 4 sem':'Manual',help:volFromStrava?'Volumen real de tus últimas 4 semanas en Strava.':'Horas que entrenas semanalmente ahora.'});
 
-  // Nivel selector (siempre visible para confirmar)
-  fields.push({
-    id:'cal-nivel',name:'Nivel actual',unit:'',
-    value:userData.nivel,
-    source:sv.avgWeeklyHours?'detected':'manual',
-    sourceLabel:sv.avgWeeklyHours?'Sugerido · Strava':'Manual',
-    help:sv.avgWeeklyHours?'Sugerido a partir de tu volumen real. Confirma o cambia.':'Elige tu nivel actual.',
-    type:'level'
-  });
+  // Nivel selector
+  fields.push({id:'cal-nivel',name:'Nivel actual',unit:'',value:userData.nivel,source:sv.avgWeeklyHours?'detected':'manual',sourceLabel:sv.avgWeeklyHours?'Sugerido · Strava ('+sv.avgWeeklyHours+'h/sem)':'Manual',help:sv.avgWeeklyHours?'Sugerido por tu volumen real. Confirma o cambia.':'Elige tu nivel actual con honestidad.',type:'level'});
 
   document.getElementById('cal-fields').innerHTML=fields.map(f=>renderCalField(f)).join('');
   updateZonesFromFC();
@@ -604,10 +595,20 @@ function renderCalibration(){
 
 function renderCalField(f){
   if(f.type==='level'){
+    const niveles=[
+      {id:'principiante',title:'Principiante',sub:'Menos de 6 meses entrenando regularmente'},
+      {id:'intermedio',title:'Intermedio',sub:'1-3 años entrenando · eventos ocasionales'},
+      {id:'avanzado',title:'Avanzado',sub:'3+ años · compito regularmente'}
+    ];
     return '<div class="cal-field '+(f.source==='detected'?'detected':'')+'">'+
       '<div class="cal-row"><span class="cal-name">'+f.name+'</span><span class="cal-source '+f.source+'">'+f.sourceLabel+'</span></div>'+
-      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.3rem;margin-top:.5rem">'+
-        ['inicio','intermedio','avanzado','vuelta'].map(n=>'<button onclick="selCalNivel(\''+n+'\')" class="gender-opt '+(userData.nivel===n?'sel':'')+'" data-nivel="'+n+'" style="margin:0">'+n.charAt(0).toUpperCase()+n.slice(1)+'</button>').join('')+
+      '<div style="display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem">'+
+        niveles.map(function(n){
+          return '<button onclick="selCalNivel(\''+n.id+'\')" class="nivel-card '+(userData.nivel===n.id?'sel':'')+'" data-nivel="'+n.id+'">'+
+            '<div class="nivel-card-title">'+n.title+'</div>'+
+            '<div class="nivel-card-sub">'+n.sub+'</div>'+
+          '</button>';
+        }).join('')+
       '</div>'+
       '<div class="cal-help">'+f.help+'</div>'+
     '</div>';
