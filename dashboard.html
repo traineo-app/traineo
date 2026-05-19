@@ -561,6 +561,7 @@ async function buildPlan(user){
         stravaStats: (function(){ try{ return JSON.parse(sessionStorage.getItem('traineo_strava_stats')||'null'); }catch(e){ return null; } })(),
         stressTestData: (function(){ try{ return JSON.parse(sessionStorage.getItem('traineo_stress_test_data')||'null'); }catch(e){ return null; } })()
       })
+    });
     const data=await response.json();
     if(data.setmana){
       planDays=normalizePlan(data.setmana);
