@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>traineo — Configura tu plan</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Inter',-apple-system,sans-serif;background:#F1EFE8;min-height:100vh;color:#111110}
@@ -592,7 +593,7 @@ function handleStressTestUpload(input){
   reader.readAsDataURL(file);
 }
 
-function handleStravaUpload(input){
+async function handleStravaUpload(input){
   const file=input.files[0];
   if(!file) return;
   if(!file.name.toLowerCase().endsWith('.zip')){
@@ -600,17 +601,66 @@ function handleStravaUpload(input){
     input.value='';
     return;
   }
-  if(file.size>200*1024*1024){
-    alert('Archivo demasiado grande (máx 200MB)');
-    input.value='';
-    return;
-  }
-  stravaFile=file;
-  userData.stravaName=file.name;
-  userData.stravaSize=file.size;
+  
   const mb=Math.round(file.size/(1024*1024)*10)/10;
-  document.getElementById('strava-info').innerHTML='✓ '+file.name+' · '+mb+' MB · Procesaremos tu histórico al generar el plan';
+  document.getElementById('strava-info').innerHTML='⏳ Extrayendo activities.csv del ZIP ('+mb+' MB)...';
   document.getElementById('strava-card').classList.add('uploaded');
+  
+  try {
+    if(typeof JSZip==='undefined'){
+      alert('JSZip no cargado. Recarga la página.');
+      removeStrava();return;
+    }
+    const zip=await JSZip.loadAsync(file);
+    let csvFile=null,csvName='';
+    zip.forEach(function(path,f){
+      if(path.endsWith('activities.csv')&&!f.dir){csvFile=f;csvName=path;}
+    });
+    if(!csvFile){
+      alert('No se encontró activities.csv dentro del ZIP. ¿Has subido la exportación correcta de Strava?');
+      removeStrava();return;
+    }
+    const csvText=await csvFile.async('string');
+    const sizeKB=Math.round(csvText.length/1024);
+    document.getElementById('strava-info').innerHTML='⏳ Analizando '+sizeKB+' KB de actividades...';
+    
+    const res=await fetch('/api/parse-strava',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({csvText:csvText,fileName:file.name})
+    });
+    if(!res.ok){
+      const err=await res.json();
+      alert('Error: '+(err.error||'No se pudo procesar'));
+      removeStrava();return;
+    }
+    const result=await res.json();
+    stravaFile=file;
+    userData.stravaName=file.name;
+    userData.stravaStats=result.data;
+    
+    const d=result.data;
+    let preview='✓ <strong>'+d.totalActivities+' actividades</strong> · '+d.avgWeeklyHours+'h/sem promedio';
+    if(d.running?.best5K_pace) preview+=' · 5K en '+d.running.best5K_pace;
+    if(d.running?.best10K_pace) preview+=' · 10K en '+d.running.best10K_pace;
+    document.getElementById('strava-info').innerHTML=preview;
+    try{sessionStorage.setItem('traineo_strava_stats',JSON.stringify(result.data));}catch(e){}
+  } catch(e){
+    console.error('Strava processing error:',e);
+    alert('Error procesando el ZIP: '+e.message);
+    removeStrava();
+  }
+}
+
+function removeStrava(){
+  stravaFile=null;
+  userData.stravaName='';
+  userData.stravaStats=null;
+  const input=document.getElementById('strava-input');
+  if(input) input.value='';
+  const info=document.getElementById('strava-info');
+  if(info) info.innerHTML='';
+  document.getElementById('strava-card').classList.remove('uploaded');
 }
 
 function generatePreview(){
