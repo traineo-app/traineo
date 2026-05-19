@@ -137,7 +137,7 @@ export default async function handler(req, res) {
       // If avg training HR > 75% of observed max → likely haven't hit true FCmax
       // Estimate: avg training HR ÷ 0.78 (assuming avg training is ~Z3, ~78% FCmax)
       if (avgPctOfObserved > 0.73) {
-        fcmaxEstimate = Math.round(avgHRall / 0.78);
+        fcmaxEstimate = Math.round(avgHRall / 0.74);
       } else {
         fcmaxEstimate = maxHRever_run;
       }
