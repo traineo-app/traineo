@@ -534,8 +534,33 @@ async function buildPlan(user){
     const response=await fetch('/api/coach',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({sports:user.sports,dias:user.dias,descanso:user.descanso,nivel:user.nivel,fcmax:user.fcmax,volum:user.volum,objetivo:user.objetivo,carrera:user.carrera,distancia:user.distancia,desnivel:user.desnivel})
-    });
+      body: JSON.stringify({
+        sports: user.sports,
+        dias: user.dias,
+        descanso: user.descanso,
+        nivel: user.nivel,
+        fcmax: user.fcmax,
+        volum: user.volum,
+        objetivo: user.objetivo,
+        carrera: user.carrera,
+        distancia: user.distancia,
+        desnivel: user.desnivel,
+        fecha: user.fecha,
+        edat: user.edat || null,
+        alcada: user.alcada || null,
+        pes: user.pes || null,
+        fcrep: user.fcrep || null,
+        genere: user.genere || null,
+        pacez2: user.pacez2 || null,
+        race5k: user.race5k || null,
+        race10k: user.race10k || null,
+        ftp: user.ftp || null,
+        musculos: params.get('musculos') ? params.get('musculos').split(',') : [],
+        obj_gym: params.get('obj_gym') || null,
+        equipamiento: params.get('equip') || null,
+        stravaStats: (function(){ try{ return JSON.parse(sessionStorage.getItem('traineo_strava_stats')||'null'); }catch(e){ return null; } })(),
+        stressTestData: (function(){ try{ return JSON.parse(sessionStorage.getItem('traineo_stress_test_data')||'null'); }catch(e){ return null; } })()
+      })
     const data=await response.json();
     if(data.setmana){
       planDays=normalizePlan(data.setmana);
