@@ -1,16 +1,14 @@
-import formidable from 'formidable';
-import fs from 'fs';
-import JSZip from 'jszip';
 import Papa from 'papaparse';
 
 export const config = {
-  api: { bodyParser: false }
+  api: { bodyParser: { sizeLimit: '10mb' } }
 };
 
 const SPORT_MAP = {
   'Run': 'running', 'Trail Run': 'trail', 'Ride': 'ciclismo',
   'Mountain Bike Ride': 'ciclismo', 'Gravel Ride': 'ciclismo',
-  'Virtual Ride': 'ciclismo', 'Swim': 'natacion',
+  'Virtual Ride': 'ciclismo', 'E-Bike Ride': 'ciclismo',
+  'Swim': 'natacion', 'Open Water Swim': 'natacion',
   'Weight Training': 'gimnasio', 'Workout': 'gimnasio', 'Yoga': 'gimnasio',
   'Hike': 'trail', 'Walk': 'walking'
 };
@@ -25,25 +23,9 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const form = formidable({ maxFileSize: 200 * 1024 * 1024 });
-    const [fields, files] = await form.parse(req);
-    const file = files.file?.[0];
-    if (!file) return res.status(400).json({ error: 'No file provided' });
+    const { csvText, fileName } = req.body;
+    if (!csvText) return res.status(400).json({ error: 'No CSV text provided' });
 
-    const zipBuffer = fs.readFileSync(file.filepath);
-    const zip = await JSZip.loadAsync(zipBuffer);
-
-    // Busca activities.csv en cualquier carpeta
-    let activitiesFile = null;
-    zip.forEach((path, f) => {
-      if (path.endsWith('activities.csv') && !f.dir) activitiesFile = f;
-    });
-
-    if (!activitiesFile) {
-      return res.status(400).json({ error: 'No se encontró activities.csv en el ZIP' });
-    }
-
-    const csvText = await activitiesFile.async('string');
     const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
     const activities = parsed.data;
 
@@ -51,10 +33,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'CSV vacío' });
     }
 
-    // Detectar las columnas reales (Strava cambia nombres según idioma/versión)
     const sample = activities[0];
     const cols = Object.keys(sample);
-    const findCol = (...candidates) => cols.find(c => candidates.some(cand => c.toLowerCase().includes(cand.toLowerCase())));
+    const findCol = (...candidates) =>
+      cols.find(c => candidates.some(cand => c.toLowerCase().includes(cand.toLowerCase())));
 
     const colDate = findCol('Activity Date', 'fecha de la actividad', 'Data');
     const colType = findCol('Activity Type', 'tipo de actividad', 'Tipus');
@@ -75,7 +57,6 @@ export default async function handler(req, res) {
     const twoMonthsAgo = new Date();
     twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
 
-    let totalActivities = activities.length;
     let recent6mo = [];
     let recent2mo = [];
 
@@ -88,13 +69,11 @@ export default async function handler(req, res) {
       if (date >= twoMonthsAgo) recent2mo.push({ ...a, _date: date });
     }
 
-    // Volum setmanal (mitja últims 6 mesos = ~26 setmanes)
     const totalDistance6mo = recent6mo.reduce((s, a) => s + (num(a[colDist]) || 0), 0);
     const totalTime6mo = recent6mo.reduce((s, a) => s + (num(a[colTime]) || 0), 0);
     const avgWeeklyKm = Math.round(totalDistance6mo / 26 * 10) / 10;
     const avgWeeklyHours = Math.round(totalTime6mo / 3600 / 26 * 10) / 10;
 
-    // Distribució per esport (últims 6 mesos)
     const sportCounts = {};
     const sportVolume = {};
     recent6mo.forEach(a => {
@@ -104,17 +83,15 @@ export default async function handler(req, res) {
       sportVolume[mapped] = (sportVolume[mapped] || 0) + (num(a[colDist]) || 0);
     });
 
-    // Millors marques running (a partir de la distància i temps)
-    const runs6mo = recent6mo.filter(a => /Run/i.test(a[colType]) || /Trail Run/i.test(a[colType]));
-    let best5K = null, best10K = null, longestRun = 0;
-    let bestPace5K = null, bestPace10K = null;
+    const runs6mo = recent6mo.filter(a => /Run/i.test(a[colType] || ''));
+    let longestRun = 0, bestPace5K = null, bestPace10K = null;
 
     for (const r of runs6mo) {
       const km = num(r[colDist]);
       const sec = num(r[colMovTime]) || num(r[colTime]);
       if (!km || !sec) continue;
       if (km > longestRun) longestRun = km;
-      const pacePerKm = sec / km; // sec/km
+      const pacePerKm = sec / km;
       if (km >= 4.8 && km <= 5.5) {
         if (!bestPace5K || pacePerKm < bestPace5K) bestPace5K = pacePerKm;
       }
@@ -122,29 +99,26 @@ export default async function handler(req, res) {
         if (!bestPace10K || pacePerKm < bestPace10K) bestPace10K = pacePerKm;
       }
     }
-    best5K = bestPace5K ? Math.round(bestPace5K) : null;
-    best10K = bestPace10K ? Math.round(bestPace10K) : null;
 
-    // Cicling longest + estimació FTP (rough)
-    const rides6mo = recent6mo.filter(a => /Ride/i.test(a[colType]));
+    const best5K = bestPace5K ? Math.round(bestPace5K) : null;
+    const best10K = bestPace10K ? Math.round(bestPace10K) : null;
+
+    const rides6mo = recent6mo.filter(a => /Ride/i.test(a[colType] || ''));
     let longestRide = 0;
     for (const r of rides6mo) {
       const km = num(r[colDist]);
       if (km && km > longestRide) longestRide = km;
     }
 
-    // Volum últim mes (per detectar si està entrenant ara mateix)
-    const last4weeks = recent6mo.filter(a => {
-      const d = new Date(a._date);
-      return (Date.now() - d.getTime()) < 28 * 24 * 60 * 60 * 1000;
-    });
+    const last4weeks = recent6mo.filter(a => (Date.now() - a._date.getTime()) < 28 * 24 * 60 * 60 * 1000);
     const last4wKm = last4weeks.reduce((s, a) => s + (num(a[colDist]) || 0), 0);
     const last4wHours = last4weeks.reduce((s, a) => s + (num(a[colTime]) || 0), 0) / 3600;
 
     return res.status(200).json({
       success: true,
       data: {
-        totalActivities,
+        fileName: fileName || 'strava.zip',
+        totalActivities: activities.length,
         recentActivities6mo: recent6mo.length,
         recentActivities2mo: recent2mo.length,
         avgWeeklyKm,
@@ -172,6 +146,6 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Parse Strava error:', error);
-    return res.status(500).json({ error: error.message || 'Error procesando ZIP' });
+    return res.status(500).json({ error: error.message || 'Error procesando CSV' });
   }
 }
