@@ -1,130 +1,133 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>traineo — Configura tu plan</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Inter',-apple-system,sans-serif;background:#F1EFE8;min-height:100vh;color:#111110}
-    .app{max-width:390px;margin:0 auto;min-height:100vh;background:#FAF9F5;display:flex;flex-direction:column;padding-bottom:1rem}
-    .top{padding:1.25rem 1.25rem 0;position:sticky;top:0;background:#FAF9F5;z-index:10}
-    .nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
-    .nav-logo{font-size:1.1rem;font-weight:600;color:#111110;letter-spacing:-.4px}
-    .nav-neo{color:#163A28}
-    .btn-skip{background:none;border:none;color:#888780;font-size:.78rem;font-family:'Inter',sans-serif;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
-    .progress-wrap{margin-bottom:1rem}
-    .progress-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.4rem}
-    .progress-step{font-family:'Bebas Neue',sans-serif;font-size:.95rem;color:#163A28;letter-spacing:.5px}
-    .progress-label{font-size:.6rem;color:#888780;text-transform:uppercase;letter-spacing:.14em;font-weight:600}
-    .progress-bar{height:3px;background:#E8E6DF;border-radius:2px;overflow:hidden}
-    .progress-fill{height:100%;background:#163A28;border-radius:2px;transition:width .4s ease}
-    .step{display:none;flex:1;padding:1rem 1.25rem 2rem;flex-direction:column}
-    .step.active{display:flex;animation:fadeIn .3s}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-    .step-label{font-size:.62rem;color:#888780;text-transform:uppercase;letter-spacing:.16em;margin-bottom:.5rem;font-weight:600}
-    .step-title{font-size:1.5rem;font-weight:600;color:#111110;letter-spacing:-.5px;line-height:1.15;margin-bottom:.5rem}
-    .step-sub{font-size:.88rem;color:#888780;line-height:1.5;margin-bottom:1.25rem;font-weight:500}
-    .options{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.25rem}
-    .opt{border:.5px solid #E8E6DF;border-radius:12px;padding:1rem;background:#fff;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:.85rem}
-    .opt:hover{border-color:#163A28}
-    .opt.sel{border:1.5px solid #163A28;background:#F1FAF5}
-    .opt-icon{width:42px;height:42px;border-radius:10px;background:#F1EFE8;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
-    .opt.sel .opt-icon{background:#EBF5EF}
-    .opt-info{flex:1}
-    .opt-title{font-size:.95rem;font-weight:600;color:#111110;letter-spacing:-.1px}
-    .opt-sub{font-size:.75rem;color:#888780;margin-top:2px;font-weight:500}
-    .opt.sel .opt-title{color:#163A28}
-    .grid-options{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem}
-    .grid-opt{border:.5px solid #E8E6DF;border-radius:12px;padding:.9rem;background:#fff;cursor:pointer;transition:all .15s;text-align:center;position:relative}
-    .grid-opt:hover{border-color:#163A28}
-    .grid-opt.sel{border:1.5px solid #163A28;background:#F1FAF5}
-    .grid-opt-icon{font-size:1.5rem;margin-bottom:.4rem}
-    .grid-opt-title{font-size:.85rem;font-weight:600;color:#111110;letter-spacing:-.1px}
-    .grid-opt.sel .grid-opt-title{color:#163A28}
-    .check-badge{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:#163A28;color:#fff;font-size:.65rem;display:none;align-items:center;justify-content:center;font-weight:700}
-    .grid-opt.sel .check-badge{display:flex}
-    .sel-hint{font-size:.72rem;color:#888780;margin-bottom:1.25rem;text-align:center;font-weight:500}
-    .days-selector{display:flex;gap:.5rem;justify-content:center;margin-bottom:1.5rem}
-    .day-num{width:50px;height:50px;border-radius:50%;border:.5px solid #E8E6DF;background:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:1.2rem;color:#888780;cursor:pointer;transition:all .15s;letter-spacing:.5px}
-    .day-num.sel{background:#163A28;border-color:#163A28;color:#fff}
-    .rest-days{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.25rem}
-    .rest-day{padding:.55rem .95rem;border-radius:20px;border:.5px solid #E8E6DF;background:#fff;font-size:.82rem;font-weight:600;color:#888780;cursor:pointer;transition:all .15s}
-    .rest-day.sel{background:#163A28;border-color:#163A28;color:#fff}
-    .slider-block{background:#fff;border:.5px solid #E8E6DF;border-radius:12px;padding:1rem;margin-bottom:1rem}
-    .slider-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.5rem}
-    .slider-info{flex:1}
-    .slider-block-title{font-size:.85rem;font-weight:600;color:#111110;letter-spacing:-.1px}
-    .slider-block-sub{font-size:.72rem;color:#888780;margin-top:1px;font-weight:500}
-    .slider-bigval{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#163A28;line-height:.9;letter-spacing:.5px;text-align:right}
-    .slider-bigval-unit{font-size:.65rem;color:#888780;font-family:'Inter';font-weight:600;text-transform:uppercase;letter-spacing:.1em;display:block;margin-top:2px}
-    .slider-input{width:100%;accent-color:#163A28;margin-top:.5rem}
-    .zones-preview{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:1rem}
-    .zone-bar{border-radius:7px;padding:7px 4px;text-align:center}
-    .zone-label{font-family:'Bebas Neue';font-size:.85rem;color:#fff;letter-spacing:.5px;line-height:1}
-    .zone-range{font-size:.58rem;color:rgba(255,255,255,.85);margin-top:3px;font-weight:600}
-    .field-group{margin-bottom:1rem}
-    .field-label{font-size:.65rem;color:#888780;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:.5rem;display:block}
-    .field-input{width:100%;padding:.85rem 1rem;border:.5px solid #E8E6DF;border-radius:10px;font-size:.95rem;font-family:'Inter',sans-serif;color:#111110;background:#fff;outline:none;transition:border-color .15s}
-    .field-input:focus{border-color:#163A28}
-    .dist-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem}
-    .dist-opt{border:.5px solid #E8E6DF;border-radius:10px;padding:.75rem .5rem;background:#fff;cursor:pointer;text-align:center;transition:all .15s}
-    .dist-opt:hover{border-color:#163A28}
-    .dist-opt.sel{border:1.5px solid #163A28;background:#F1FAF5}
-    .dist-opt-dist{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:#111110;letter-spacing:.5px;line-height:1}
-    .dist-opt.sel .dist-opt-dist{color:#163A28}
-    .dist-opt-name{font-size:.62rem;color:#888780;margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
-    .ai-preview{background:#F1FAF5;border:.5px solid rgba(74,158,107,.3);border-radius:12px;padding:.9rem 1rem;margin-bottom:1.25rem;display:flex;gap:.6rem;align-items:flex-start}
-    .ai-dot{width:6px;height:6px;border-radius:50%;background:#163A28;margin-top:5px;flex-shrink:0}
-    .ai-text{font-size:.82rem;color:#163A28;line-height:1.5;font-weight:500}
-    .plan-preview{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1.25rem}
-    .plan-day{background:#fff;border:.5px solid #E8E6DF;border-radius:10px;padding:.75rem .85rem;display:flex;align-items:center;gap:.75rem}
-    .plan-day-name{font-family:'Bebas Neue',sans-serif;font-size:.85rem;color:#888780;width:32px;flex-shrink:0;letter-spacing:.4px}
-    .plan-day-icon{font-size:1.1rem;flex-shrink:0}
-    .plan-day-title{font-size:.88rem;font-weight:600;color:#111110;letter-spacing:-.1px}
-    .plan-day-sub{font-size:.72rem;color:#888780;margin-top:1px;font-weight:500}
-    .plan-day.rest-day-plan{background:#F1EFE8;border-color:#F1EFE8}
-    .plan-day.rest-day-plan .plan-day-title{color:#888780;font-weight:500}
-    .btn-next{width:100%;background:#163A28;color:#fff;border:none;border-radius:12px;padding:.95rem;font-size:.88rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;margin-top:auto;transition:opacity .15s;text-transform:uppercase;letter-spacing:.05em}
-    .btn-next:hover{opacity:.92}
-    .btn-next:disabled{opacity:.3;cursor:default}
-    .btn-secondary{width:100%;background:#fff;color:#163A28;border:.5px solid #163A28;border-radius:12px;padding:.85rem;font-size:.82rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;margin-top:.5rem;text-transform:uppercase;letter-spacing:.05em}
-    .race-summary{background:#111110;border-radius:12px;padding:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem}
-    .race-summary-icon{font-size:1.5rem;flex-shrink:0}
-    .race-summary-title{font-size:.9rem;font-weight:600;color:#fff;letter-spacing:-.1px}
-    .race-summary-sub{font-size:.7rem;color:rgba(255,255,255,.55);margin-top:2px;font-family:'Bebas Neue';letter-spacing:.5px}
-    .upload-card{background:#fff;border:1px dashed #C8C6BF;border-radius:12px;padding:1rem;margin-bottom:.75rem;transition:all .15s;position:relative}
-    .upload-card.uploaded{border:1.5px solid #4A9E6B;background:#F1FAF5;border-style:solid}
-    .upload-head{display:flex;align-items:center;gap:.85rem;margin-bottom:.5rem}
-    .upload-icon{width:42px;height:42px;border-radius:10px;background:#F1EFE8;color:#163A28;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
-    .upload-card.uploaded .upload-icon{background:#EBF5EF;color:#163A28}
-    .upload-info{flex:1}
-    .upload-title{font-size:.92rem;font-weight:600;color:#111110;letter-spacing:-.1px}
-    .upload-sub{font-size:.72rem;color:#888780;margin-top:1px;font-weight:500;line-height:1.4}
-    .upload-status{display:none;font-size:.78rem;color:#163A28;font-weight:600;margin-top:.4rem}
-    .upload-card.uploaded .upload-status{display:block}
-    .upload-btn{background:#163A28;color:#fff;border:none;border-radius:8px;padding:.55rem .85rem;font-size:.75rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;text-transform:uppercase;letter-spacing:.04em;width:100%;margin-top:.5rem}
-    .upload-card.uploaded .upload-btn{background:#fff;color:#888780;border:.5px solid #E8E6DF}
-    .upload-card input[type=file]{display:none}
-    .skip-info{background:#F1EFE8;border-radius:10px;padding:.7rem .85rem;margin-bottom:1rem;font-size:.75rem;color:#5F5E5A;line-height:1.5;font-weight:500;border-left:3px solid #4A9E6B}
-    .num-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem}
-    .num-card{background:#fff;border:.5px solid #E8E6DF;border-radius:12px;padding:.85rem 1rem}
-    .num-card-label{font-size:.62rem;color:#888780;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:.4rem}
-    .num-card-input{width:100%;border:none;outline:none;font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#163A28;background:transparent;letter-spacing:.5px}
-    .num-card-unit{font-size:.62rem;color:#888780;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-left:6px}
-    .gender-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem}
-    .gender-opt{border:.5px solid #E8E6DF;border-radius:10px;padding:.75rem .4rem;background:#fff;cursor:pointer;text-align:center;transition:all .15s;font-size:.8rem;font-weight:600;color:#888780;font-family:'Inter',sans-serif}
-    .gender-opt.sel{border:1.5px solid #163A28;background:#F1FAF5;color:#163A28}
-    .stats-card-prev{background:#fff;border:.5px solid #E8E6DF;border-radius:12px;padding:.85rem;margin-bottom:1rem}
-    .stats-card-prev-label{font-size:.62rem;color:#888780;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:.6rem}
-    .stats-card-prev-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem}
-    .stats-prev-block{}
-    .stats-prev-val{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:#111110;line-height:.95;letter-spacing:.5px}
-    .stats-prev-val.green{color:#163A28}
-    .stats-prev-lbl{font-size:.58rem;color:#888780;text-transform:uppercase;letter-spacing:.1em;margin-top:3px;font-weight:600}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>traineo — Configura tu plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,sans-serif;background:#F1EFE8;min-height:100vh;color:#111110}
+  .app{max-width:390px;margin:0 auto;min-height:100vh;background:#FAF9F5;display:flex;flex-direction:column;padding-bottom:1rem}
+  .top{padding:1.25rem 1.25rem 0;position:sticky;top:0;background:#FAF9F5;z-index:10}
+  .nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+  .nav-logo{font-size:1.1rem;font-weight:600;color:#111110;letter-spacing:-.4px}
+  .nav-neo{color:#163A28}
+  .btn-skip{background:none;border:none;color:#888780;font-size:.78rem;font-family:'Inter',sans-serif;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+  .progress-wrap{margin-bottom:1rem}
+  .progress-meta{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.4rem}
+  .progress-step{font-family:'Bebas Neue',sans-serif;font-size:.95rem;color:#163A28;letter-spacing:.5px}
+  .progress-label{font-size:.6rem;color:#888780;text-transform:uppercase;letter-spacing:.14em;font-weight:600}
+  .progress-bar{height:3px;background:#E8E6DF;border-radius:2px;overflow:hidden}
+  .progress-fill{height:100%;background:#163A28;border-radius:2px;transition:width .4s ease}
+  .step{display:none;flex:1;padding:1rem 1.25rem 2rem;flex-direction:column}
+  .step.active{display:flex;animation:fadeIn .3s}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .step-label{font-size:.62rem;color:#888780;text-transform:uppercase;letter-spacing:.16em;margin-bottom:.5rem;font-weight:600}
+  .step-title{font-size:1.5rem;font-weight:600;color:#111110;letter-spacing:-.5px;line-height:1.15;margin-bottom:.5rem}
+  .step-sub{font-size:.88rem;color:#888780;line-height:1.5;margin-bottom:1.25rem;font-weight:500}
+  .options{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.25rem}
+  .opt{border:.5px solid #E8E6DF;border-radius:12px;padding:1rem;background:#fff;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:.85rem}
+  .opt:hover{border-color:#163A28}
+  .opt.sel{border:1.5px solid #163A28;background:#F1FAF5}
+  .opt-icon{width:42px;height:42px;border-radius:10px;background:#F1EFE8;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+  .opt.sel .opt-icon{background:#EBF5EF}
+  .opt-info{flex:1}
+  .opt-title{font-size:.95rem;font-weight:600;color:#111110;letter-spacing:-.1px}
+  .opt-sub{font-size:.75rem;color:#888780;margin-top:2px;font-weight:500}
+  .opt.sel .opt-title{color:#163A28}
+  .grid-options{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem}
+  .grid-opt{border:.5px solid #E8E6DF;border-radius:12px;padding:.9rem;background:#fff;cursor:pointer;transition:all .15s;text-align:center;position:relative}
+  .grid-opt:hover{border-color:#163A28}
+  .grid-opt.sel{border:1.5px solid #163A28;background:#F1FAF5}
+  .grid-opt-icon{font-size:1.5rem;margin-bottom:.4rem}
+  .grid-opt-title{font-size:.85rem;font-weight:600;color:#111110;letter-spacing:-.1px}
+  .grid-opt.sel .grid-opt-title{color:#163A28}
+  .check-badge{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;background:#163A28;color:#fff;font-size:.65rem;display:none;align-items:center;justify-content:center;font-weight:700}
+  .grid-opt.sel .check-badge{display:flex}
+  .sel-hint{font-size:.72rem;color:#888780;margin-bottom:1.25rem;text-align:center;font-weight:500}
+  .days-selector{display:flex;gap:.5rem;justify-content:center;margin-bottom:1.5rem}
+  .day-num{width:50px;height:50px;border-radius:50%;border:.5px solid #E8E6DF;background:#fff;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:1.2rem;color:#888780;cursor:pointer;transition:all .15s;letter-spacing:.5px}
+  .day-num.sel{background:#163A28;border-color:#163A28;color:#fff}
+  .rest-days{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.25rem}
+  .rest-day{padding:.55rem .95rem;border-radius:20px;border:.5px solid #E8E6DF;background:#fff;font-size:.82rem;font-weight:600;color:#888780;cursor:pointer;transition:all .15s}
+  .rest-day.sel{background:#163A28;border-color:#163A28;color:#fff}
+  .field-group{margin-bottom:1rem}
+  .field-label{font-size:.65rem;color:#888780;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:.5rem;display:block}
+  .field-input{width:100%;padding:.85rem 1rem;border:.5px solid #E8E6DF;border-radius:10px;font-size:.95rem;font-family:'Inter',sans-serif;color:#111110;background:#fff;outline:none;transition:border-color .15s}
+  .field-input:focus{border-color:#163A28}
+  .dist-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem}
+  .dist-opt{border:.5px solid #E8E6DF;border-radius:10px;padding:.75rem .5rem;background:#fff;cursor:pointer;text-align:center;transition:all .15s}
+  .dist-opt:hover{border-color:#163A28}
+  .dist-opt.sel{border:1.5px solid #163A28;background:#F1FAF5}
+  .dist-opt-dist{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:#111110;letter-spacing:.5px;line-height:1}
+  .dist-opt.sel .dist-opt-dist{color:#163A28}
+  .dist-opt-name{font-size:.62rem;color:#888780;margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+  .ai-preview{background:#F1FAF5;border:.5px solid rgba(74,158,107,.3);border-radius:12px;padding:.9rem 1rem;margin-bottom:1.25rem;display:flex;gap:.6rem;align-items:flex-start}
+  .ai-dot{width:6px;height:6px;border-radius:50%;background:#163A28;margin-top:5px;flex-shrink:0}
+  .ai-text{font-size:.82rem;color:#163A28;line-height:1.5;font-weight:500}
+  .plan-preview{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1.25rem}
+  .plan-day{background:#fff;border:.5px solid #E8E6DF;border-radius:10px;padding:.75rem .85rem;display:flex;align-items:center;gap:.75rem}
+  .plan-day-name{font-family:'Bebas Neue',sans-serif;font-size:.85rem;color:#888780;width:32px;flex-shrink:0;letter-spacing:.4px}
+  .plan-day-icon{font-size:1.1rem;flex-shrink:0}
+  .plan-day-title{font-size:.88rem;font-weight:600;color:#111110;letter-spacing:-.1px}
+  .plan-day-sub{font-size:.72rem;color:#888780;margin-top:1px;font-weight:500}
+  .plan-day.rest-day-plan{background:#F1EFE8;border-color:#F1EFE8}
+  .plan-day.rest-day-plan .plan-day-title{color:#888780;font-weight:500}
+  .btn-next{width:100%;background:#163A28;color:#fff;border:none;border-radius:12px;padding:.95rem;font-size:.88rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;margin-top:auto;transition:opacity .15s;text-transform:uppercase;letter-spacing:.05em}
+  .btn-next:hover{opacity:.92}
+  .btn-next:disabled{opacity:.3;cursor:default}
+  .btn-secondary{width:100%;background:#fff;color:#163A28;border:.5px solid #163A28;border-radius:12px;padding:.85rem;font-size:.82rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;margin-top:.5rem;text-transform:uppercase;letter-spacing:.05em}
+  .race-summary{background:#111110;border-radius:12px;padding:1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem}
+  .race-summary-icon{font-size:1.5rem;flex-shrink:0}
+  .race-summary-title{font-size:.9rem;font-weight:600;color:#fff;letter-spacing:-.1px}
+  .race-summary-sub{font-size:.7rem;color:rgba(255,255,255,.55);margin-top:2px;font-family:'Bebas Neue';letter-spacing:.5px}
+  .upload-card{background:#fff;border:1px dashed #C8C6BF;border-radius:12px;padding:1rem;margin-bottom:.75rem;transition:all .15s;position:relative;display:block;cursor:pointer}
+  .upload-card.uploaded{border:1.5px solid #4A9E6B;background:#F1FAF5;border-style:solid}
+  .upload-card.error{border:1.5px solid #E04040;background:#FFEAEA;border-style:solid}
+  .upload-head{display:flex;align-items:center;gap:.85rem;margin-bottom:.5rem}
+  .upload-icon{width:42px;height:42px;border-radius:10px;background:#F1EFE8;color:#163A28;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+  .upload-card.uploaded .upload-icon{background:#EBF5EF;color:#163A28}
+  .upload-info{flex:1}
+  .upload-title{font-size:.92rem;font-weight:600;color:#111110;letter-spacing:-.1px}
+  .upload-sub{font-size:.72rem;color:#888780;margin-top:1px;font-weight:500;line-height:1.4}
+  .upload-status{font-size:.78rem;color:#163A28;font-weight:600;margin-top:.4rem;line-height:1.5}
+  .upload-btn{background:#163A28;color:#fff;border:none;border-radius:8px;padding:.55rem .85rem;font-size:.75rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;text-transform:uppercase;letter-spacing:.04em;width:100%;margin-top:.5rem}
+  .upload-card.uploaded .upload-btn{background:#fff;color:#888780;border:.5px solid #E8E6DF}
+  .upload-card input[type=file]{display:none}
+  .skip-info{background:#F1EFE8;border-radius:10px;padding:.7rem .85rem;margin-bottom:1rem;font-size:.75rem;color:#5F5E5A;line-height:1.5;font-weight:500;border-left:3px solid #4A9E6B}
+  .num-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:1rem}
+  .num-card{background:#fff;border:.5px solid #E8E6DF;border-radius:12px;padding:.85rem 1rem}
+  .num-card-label{font-size:.62rem;color:#888780;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:.4rem}
+  .num-card-input{width:100%;border:none;outline:none;font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#163A28;background:transparent;letter-spacing:.5px}
+  .num-card-unit{font-size:.62rem;color:#888780;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-left:6px}
+  .gender-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem}
+  .gender-opt{border:.5px solid #E8E6DF;border-radius:10px;padding:.75rem .4rem;background:#fff;cursor:pointer;text-align:center;transition:all .15s;font-size:.78rem;font-weight:600;color:#888780;font-family:'Inter',sans-serif}
+  .gender-opt.sel{border:1.5px solid #163A28;background:#F1FAF5;color:#163A28}
+  .cal-field{background:#fff;border:.5px solid #E8E6DF;border-radius:12px;padding:.85rem 1rem;margin-bottom:.6rem}
+  .cal-field.detected{border:1.5px solid #4A9E6B;background:#F8FDF9}
+  .cal-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.5rem}
+  .cal-name{font-size:.78rem;font-weight:600;color:#111110}
+  .cal-source{font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:2px 7px;border-radius:10px;background:#F1EFE8;color:#888780}
+  .cal-source.detected{background:#EBF5EF;color:#163A28}
+  .cal-source.estimated{background:#FEF6E5;color:#7C5B0A}
+  .cal-input-row{display:flex;align-items:center;gap:.6rem}
+  .cal-input{flex:1;background:transparent;border:none;outline:none;font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:#163A28;letter-spacing:.5px;padding:2px 0;border-bottom:1px dashed transparent;transition:border-color .15s}
+  .cal-input:focus{border-bottom-color:#163A28}
+  .cal-unit{font-size:.62rem;color:#888780;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  .cal-help{font-size:.7rem;color:#888780;margin-top:.3rem;line-height:1.4;font-weight:500}
+  .zones-preview{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:.75rem}
+  .zone-bar{border-radius:7px;padding:7px 4px;text-align:center}
+  .zone-label{font-family:'Bebas Neue';font-size:.85rem;color:#fff;letter-spacing:.5px;line-height:1}
+  .zone-range{font-size:.58rem;color:rgba(255,255,255,.85);margin-top:3px;font-weight:600}
+  .stats-card-prev{background:#fff;border:.5px solid #E8E6DF;border-radius:12px;padding:.85rem;margin-bottom:1rem}
+  .stats-card-prev-label{font-size:.62rem;color:#888780;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:.6rem}
+  .stats-card-prev-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem}
+  .stats-prev-val{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:#111110;line-height:.95;letter-spacing:.5px}
+  .stats-prev-val.green{color:#163A28}
+  .stats-prev-lbl{font-size:.58rem;color:#888780;text-transform:uppercase;letter-spacing:.1em;margin-top:3px;font-weight:600}
+</style>
 </head>
 <body>
 <div class="app">
@@ -148,28 +151,76 @@
     <div class="step-title">¿Para qué entrenas?</div>
     <div class="step-sub">Cuéntame qué quieres conseguir.</div>
     <div class="options">
-      <div class="opt" onclick="selOpt(this,'s1','carrera')">
-        <span class="opt-icon">🏅</span>
-        <div class="opt-info"><div class="opt-title">Tengo una carrera en mente</div><div class="opt-sub">Quiero llegar bien preparado a una prueba concreta</div></div>
-      </div>
-      <div class="opt" onclick="selOpt(this,'s1','forma')">
-        <span class="opt-icon">💪</span>
-        <div class="opt-info"><div class="opt-title">Quiero estar en forma</div><div class="opt-sub">Mejorar mi condición física general</div></div>
-      </div>
-      <div class="opt" onclick="selOpt(this,'s1','peso')">
-        <span class="opt-icon">⚖️</span>
-        <div class="opt-info"><div class="opt-title">Perder peso y ganar energía</div><div class="opt-sub">Combinar ejercicio con un estilo de vida más sano</div></div>
-      </div>
-      <div class="opt" onclick="selOpt(this,'s1','vuelta')">
-        <span class="opt-icon">🔄</span>
-        <div class="opt-info"><div class="opt-title">Volver después de una pausa</div><div class="opt-sub">Retomar el entreno de forma progresiva</div></div>
-      </div>
+      <div class="opt" onclick="selOpt(this,'s1','carrera')"><span class="opt-icon">🏅</span><div class="opt-info"><div class="opt-title">Tengo una carrera en mente</div><div class="opt-sub">Quiero llegar bien preparado a una prueba concreta</div></div></div>
+      <div class="opt" onclick="selOpt(this,'s1','forma')"><span class="opt-icon">💪</span><div class="opt-info"><div class="opt-title">Quiero estar en forma</div><div class="opt-sub">Mejorar mi condición física general</div></div></div>
+      <div class="opt" onclick="selOpt(this,'s1','peso')"><span class="opt-icon">⚖️</span><div class="opt-info"><div class="opt-title">Perder peso y ganar energía</div><div class="opt-sub">Combinar ejercicio con un estilo de vida más sano</div></div></div>
+      <div class="opt" onclick="selOpt(this,'s1','vuelta')"><span class="opt-icon">🔄</span><div class="opt-info"><div class="opt-title">Volver después de una pausa</div><div class="opt-sub">Retomar el entreno de forma progresiva</div></div></div>
     </div>
     <button class="btn-next" id="btn1" disabled onclick="goNext()">Siguiente →</button>
   </div>
 
-  <!-- S2: CARRERA (solo si objetivo = carrera) -->
+  <!-- S2: PERSONAL DATA (siempre) -->
   <div class="step" id="s2">
+    <div class="step-label">Tú</div>
+    <div class="step-title">Cuéntame sobre ti</div>
+    <div class="step-sub">Datos básicos para personalizar las zonas y la intensidad.</div>
+    <div class="num-grid">
+      <div class="num-card"><div class="num-card-label">Edad</div><input type="number" class="num-card-input" id="age-input" min="14" max="90" placeholder="35" oninput="updatePersonal()"><span class="num-card-unit">Años</span></div>
+      <div class="num-card"><div class="num-card-label">Altura</div><input type="number" class="num-card-input" id="height-input" min="120" max="220" placeholder="175" oninput="updatePersonal()"><span class="num-card-unit">cm</span></div>
+      <div class="num-card"><div class="num-card-label">Peso</div><input type="number" class="num-card-input" id="weight-input" min="30" max="200" step="0.5" placeholder="70" oninput="updatePersonal()"><span class="num-card-unit">kg</span></div>
+      <div class="num-card"><div class="num-card-label">FC reposo</div><input type="number" class="num-card-input" id="hrrest-input" min="35" max="100" placeholder="60" oninput="updatePersonal()"><span class="num-card-unit">bpm · opcional</span></div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Género (afecta zonas FC y nutrición)</label>
+      <div class="gender-grid">
+        <div class="gender-opt" onclick="selGender(this,'hombre')">Hombre</div>
+        <div class="gender-opt" onclick="selGender(this,'mujer')">Mujer</div>
+        <div class="gender-opt" onclick="selGender(this,'no_decir')">Prefiero no decir</div>
+      </div>
+    </div>
+    <div class="skip-info" id="personal-info">Con tu edad estimaré tu FCmax si no aportas datos más precisos. La altura y peso ajustan la intensidad.</div>
+    <button class="btn-next" id="btn2" disabled onclick="goNext()">Siguiente →</button>
+  </div>
+
+  <!-- S3: DATA SOURCES (uploads) -->
+  <div class="step" id="s3">
+    <div class="step-label">Datos avanzados</div>
+    <div class="step-title">¿Tienes datos para afinar al máximo?</div>
+    <div class="step-sub">Sube tu prueba de esfuerzo o exportación de Strava. Si tienes alguno de los dos, el plan será mucho más preciso. Es opcional.</div>
+
+    <label class="upload-card" id="stress-test-card">
+      <div class="upload-head">
+        <div class="upload-icon">📄</div>
+        <div class="upload-info">
+          <div class="upload-title">Prueba de esfuerzo (PDF)</div>
+          <div class="upload-sub">FCmax real, umbrales, VO2max, zonas individualizadas</div>
+        </div>
+      </div>
+      <div class="upload-status" id="stress-test-info"></div>
+      <button class="upload-btn" type="button" onclick="document.getElementById('stress-test-input').click();event.preventDefault()">Subir PDF</button>
+      <input type="file" id="stress-test-input" accept="application/pdf" onchange="handleStressTestUpload(this)">
+    </label>
+
+    <label class="upload-card" id="strava-card">
+      <div class="upload-head">
+        <div class="upload-icon">📦</div>
+        <div class="upload-info">
+          <div class="upload-title">Histórico Strava (ZIP)</div>
+          <div class="upload-sub">Ritmos reales, volumen actual, mejores marcas</div>
+        </div>
+      </div>
+      <div class="upload-status" id="strava-info"></div>
+      <button class="upload-btn" type="button" onclick="document.getElementById('strava-input').click();event.preventDefault()">Subir ZIP</button>
+      <input type="file" id="strava-input" accept=".zip,application/zip,application/x-zip-compressed" onchange="handleStravaUpload(this)">
+    </label>
+
+    <div class="skip-info">Si no tienes ninguno, sin problema — en el siguiente paso te pediré los datos manualmente con sliders.</div>
+    <button class="btn-next" onclick="goNext()">Siguiente →</button>
+    <button class="btn-secondary" onclick="goNext()">Continuar sin subir nada</button>
+  </div>
+
+  <!-- S4: CARRERA (conditional) -->
+  <div class="step" id="s4">
     <div class="step-label">Tu carrera</div>
     <div class="step-title">Cuéntame sobre la prueba</div>
     <div class="step-sub">Adaptaré todo el plan a tu objetivo concreto.</div>
@@ -189,30 +240,25 @@
       <div class="dist-grid" id="dist-grid"></div>
     </div>
     <div class="field-group" id="desnivel-section" style="display:none">
-      <div class="slider-block">
-        <div class="slider-meta">
-          <div class="slider-info"><div class="slider-block-title">Desnivel positivo</div><div class="slider-block-sub">Si es llana, déjalo en 0</div></div>
-          <div><div class="slider-bigval" id="desnivel-val">0</div><div class="slider-bigval-unit">m D+</div></div>
+      <div class="cal-field">
+        <div class="cal-row"><span class="cal-name">Desnivel positivo</span></div>
+        <div class="cal-input-row">
+          <input type="range" min="0" max="5000" step="50" value="0" id="desnivel-slider" style="flex:1;accent-color:#163A28" oninput="updateDesnivel(this.value)">
+          <span class="cal-input" id="desnivel-val" style="text-align:right;border:0;max-width:120px">0</span>
+          <span class="cal-unit">m D+</span>
         </div>
-        <input type="range" class="slider-input" min="0" max="5000" step="50" value="0" id="desnivel-slider" oninput="updateDesnivel(this.value)">
       </div>
     </div>
-    <div class="field-group">
-      <label class="field-label">Nombre de la carrera (opcional)</label>
-      <input type="text" class="field-input" id="carrera-nombre" placeholder="Ej: Marató de Barcelona">
-    </div>
-    <div class="field-group">
-      <label class="field-label">Fecha de la carrera</label>
-      <input type="date" class="field-input" id="carrera-fecha" min="">
-    </div>
-    <button class="btn-next" id="btn2" disabled onclick="goNext()">Siguiente →</button>
+    <div class="field-group"><label class="field-label">Nombre de la carrera (opcional)</label><input type="text" class="field-input" id="carrera-nombre" placeholder="Ej: Marató de Barcelona"></div>
+    <div class="field-group"><label class="field-label">Fecha de la carrera</label><input type="date" class="field-input" id="carrera-fecha" min=""></div>
+    <button class="btn-next" id="btn4" disabled onclick="goNext()">Siguiente →</button>
   </div>
 
-  <!-- S3: ESPORTS COMPLEMENTARIS -->
-  <div class="step" id="s3">
+  <!-- S5: DISCIPLINAS -->
+  <div class="step" id="s5">
     <div class="step-label">Disciplinas</div>
-    <div class="step-title" id="s3-title">¿Practicas algún deporte más?</div>
-    <div class="step-sub" id="s3-sub">Para complementar tu entrenamiento principal.</div>
+    <div class="step-title" id="s5-title">¿Practicas algún deporte más?</div>
+    <div class="step-sub" id="s5-sub">Para complementar tu entrenamiento principal.</div>
     <div class="grid-options">
       <div class="grid-opt" onclick="toggleSport(this,'running')"><div class="check-badge">✓</div><div class="grid-opt-icon">🏃</div><div class="grid-opt-title">Running</div></div>
       <div class="grid-opt" onclick="toggleSport(this,'ciclismo')"><div class="check-badge">✓</div><div class="grid-opt-icon">🚴</div><div class="grid-opt-title">Ciclismo</div></div>
@@ -222,86 +268,26 @@
       <div class="grid-opt" onclick="toggleSport(this,'trail')"><div class="check-badge">✓</div><div class="grid-opt-icon">🏔️</div><div class="grid-opt-title">Trail</div></div>
     </div>
     <p class="sel-hint" id="sport-hint">Puedes no seleccionar nada si solo quieres entrenar tu disciplina principal</p>
-    <button class="btn-next" id="btn3" onclick="goNext()">Siguiente →</button>
+    <button class="btn-next" id="btn5" onclick="goNext()">Siguiente →</button>
   </div>
 
-  <!-- S4: DATOS PERSONALES (NUEVO) -->
-  <div class="step" id="s4">
-    <div class="step-label">Tú</div>
-    <div class="step-title">Cuéntame sobre ti</div>
-    <div class="step-sub">Estos datos hacen tu plan mucho más preciso. Todos son opcionales pero recomendados.</div>
-    <div class="num-grid">
-      <div class="num-card">
-        <div class="num-card-label">Edad</div>
-        <input type="number" class="num-card-input" id="age-input" min="14" max="90" placeholder="35" oninput="updatePersonal()">
-        <span class="num-card-unit">Años</span>
-      </div>
-      <div class="num-card">
-        <div class="num-card-label">Altura</div>
-        <input type="number" class="num-card-input" id="height-input" min="120" max="220" placeholder="175" oninput="updatePersonal()">
-        <span class="num-card-unit">cm</span>
-      </div>
-      <div class="num-card">
-        <div class="num-card-label">Peso</div>
-        <input type="number" class="num-card-input" id="weight-input" min="30" max="200" step="0.5" placeholder="70" oninput="updatePersonal()">
-        <span class="num-card-unit">kg</span>
-      </div>
-      <div class="num-card">
-        <div class="num-card-label">FC reposo</div>
-        <input type="number" class="num-card-input" id="hrrest-input" min="35" max="100" placeholder="60" oninput="updatePersonal()">
-        <span class="num-card-unit">bpm · opcional</span>
-      </div>
-    </div>
-    <div class="field-group">
-      <label class="field-label">Género (afecta zonas FC y nutrición)</label>
-      <div class="gender-grid">
-        <div class="gender-opt" onclick="selGender(this,'hombre')">Hombre</div>
-        <div class="gender-opt" onclick="selGender(this,'mujer')">Mujer</div>
-        <div class="gender-opt" onclick="selGender(this,'no_decir')">Prefiero no decir</div>
-      </div>
-    </div>
-    <div class="skip-info" id="personal-info">Con tu edad estimaré tu FCmax (220−edad). Con altura y peso ajustaré la intensidad y los rangos.</div>
-    <button class="btn-next" id="btn4" onclick="goNext()">Siguiente →</button>
-  </div>
-
-  <!-- S5: NIVEL -->
-  <div class="step" id="s5">
-    <div class="step-label">Tu nivel</div>
-    <div class="step-title">¿Cómo es tu forma actual?</div>
-    <div class="step-sub">Sé honesto — el plan será mejor cuanto más preciso seas.</div>
-    <div class="options">
-      <div class="opt" onclick="selOpt(this,'s5','inicio')"><span class="opt-icon">🌱</span><div class="opt-info"><div class="opt-title">Empezando</div><div class="opt-sub">Menos de 6 meses entrenando regularmente</div></div></div>
-      <div class="opt" onclick="selOpt(this,'s5','intermedio')"><span class="opt-icon">📈</span><div class="opt-info"><div class="opt-title">Intermedio</div><div class="opt-sub">1-3 años entrenando. Hago eventos ocasionales</div></div></div>
-      <div class="opt" onclick="selOpt(this,'s5','avanzado')"><span class="opt-icon">🔥</span><div class="opt-info"><div class="opt-title">Avanzado</div><div class="opt-sub">3+ años. Compito regularmente</div></div></div>
-      <div class="opt" onclick="selOpt(this,'s5','vuelta')"><span class="opt-icon">😴</span><div class="opt-info"><div class="opt-title">Volviendo</div><div class="opt-sub">Tenía buen nivel pero llevo tiempo parado</div></div></div>
-    </div>
-    <button class="btn-next" id="btn5" disabled onclick="goNext()">Siguiente →</button>
-  </div>
-
-  <!-- S6: FC + VOLUM -->
+  <!-- S6: CALIBRACIÓN (adaptativa) -->
   <div class="step" id="s6">
-    <div class="step-label">Tus zonas</div>
-    <div class="step-title">Calibremos tu intensidad</div>
-    <div class="step-sub">Si has subido una prueba de esfuerzo más adelante, estos valores se actualizarán automáticamente.</div>
-    <div class="slider-block">
-      <div class="slider-meta">
-        <div class="slider-info"><div class="slider-block-title">Frecuencia cardíaca máxima</div><div class="slider-block-sub" id="fc-sub">Si no la sabes: 220 − tu edad</div></div>
-        <div><div class="slider-bigval" id="fc-val">185</div><div class="slider-bigval-unit">bpm</div></div>
-      </div>
-      <input type="range" class="slider-input" min="150" max="210" value="185" id="fc-slider" oninput="updateFC(this.value)">
+    <div class="step-label">Calibración</div>
+    <div class="step-title">Verifica tus parámetros</div>
+    <div class="step-sub" id="s6-sub">Los valores detectados de tus pruebas tienen prioridad. Puedes editar cualquier valor que veas raro.</div>
+    
+    <div id="cal-fields"></div>
+    
+    <div id="zones-block" class="cal-field detected" style="display:none">
+      <div class="cal-row"><span class="cal-name">Zonas de frecuencia cardíaca</span><span class="cal-source detected">Calculadas</span></div>
       <div class="zones-preview" id="zones-preview"></div>
     </div>
-    <div class="slider-block">
-      <div class="slider-meta">
-        <div class="slider-info"><div class="slider-block-title">Horas de entreno por semana</div><div class="slider-block-sub">En una semana normal ahora</div></div>
-        <div><div class="slider-bigval" id="vol-val">4</div><div class="slider-bigval-unit">h/sem</div></div>
-      </div>
-      <input type="range" class="slider-input" min="1" max="15" value="4" id="vol-slider" oninput="updateVol(this.value)">
-    </div>
+
     <button class="btn-next" onclick="goNext()">Siguiente →</button>
   </div>
 
-  <!-- S7: DIES + DESCANS -->
+  <!-- S7: DISPONIBILIDAD -->
   <div class="step" id="s7">
     <div class="step-label">Disponibilidad</div>
     <div class="step-title">¿Cuántos días puedes entrenar?</div>
@@ -316,65 +302,18 @@
     <div class="step-title" style="font-size:1rem;margin-bottom:.5rem">¿Día de descanso fijo?</div>
     <div class="step-sub">El día que nunca puedes entrenar.</div>
     <div class="rest-days">
-      <div class="rest-day" onclick="selRest(this)">Lu</div>
-      <div class="rest-day" onclick="selRest(this)">Ma</div>
-      <div class="rest-day" onclick="selRest(this)">Mi</div>
-      <div class="rest-day" onclick="selRest(this)">Ju</div>
-      <div class="rest-day" onclick="selRest(this)">Vi</div>
-      <div class="rest-day" onclick="selRest(this)">Sá</div>
-      <div class="rest-day" onclick="selRest(this)">Do</div>
-      <div class="rest-day" onclick="selRest(this)">Ninguno</div>
+      <div class="rest-day" onclick="selRest(this)">Lu</div><div class="rest-day" onclick="selRest(this)">Ma</div><div class="rest-day" onclick="selRest(this)">Mi</div><div class="rest-day" onclick="selRest(this)">Ju</div><div class="rest-day" onclick="selRest(this)">Vi</div><div class="rest-day" onclick="selRest(this)">Sá</div><div class="rest-day" onclick="selRest(this)">Do</div><div class="rest-day" onclick="selRest(this)">Ninguno</div>
     </div>
     <button class="btn-next" id="btn7" disabled onclick="goNext()">Siguiente →</button>
   </div>
 
-  <!-- S8: DATOS ADICIONALES OPCIONALES (NUEVO) -->
+  <!-- S8: PREVIEW -->
   <div class="step" id="s8">
-    <div class="step-label">Datos adicionales</div>
-    <div class="step-title">¿Tienes datos para afinar el plan?</div>
-    <div class="step-sub">Todo opcional. Si subes una prueba de esfuerzo o tu histórico de Strava, tu plan se personaliza al máximo.</div>
-    
-    <label class="upload-card" id="stress-test-card" for="stress-test-input">
-      <div class="upload-head">
-        <div class="upload-icon">📄</div>
-        <div class="upload-info">
-          <div class="upload-title">Prueba de esfuerzo (PDF)</div>
-          <div class="upload-sub">FCmax real, umbrales, VO2max, zonas individualizadas</div>
-        </div>
-      </div>
-      <div class="upload-status" id="stress-test-info"></div>
-      <button class="upload-btn" type="button" onclick="document.getElementById('stress-test-input').click();event.preventDefault()">Subir PDF</button>
-      <input type="file" id="stress-test-input" accept="application/pdf" onchange="handleStressTestUpload(this)">
-    </label>
-
-    <label class="upload-card" id="strava-card" for="strava-input">
-      <div class="upload-head">
-        <div class="upload-icon">📦</div>
-        <div class="upload-info">
-          <div class="upload-title">Histórico Strava (ZIP)</div>
-          <div class="upload-sub">Exportación completa · ritmos reales, volumen actual, mejores marcas</div>
-        </div>
-      </div>
-      <div class="upload-status" id="strava-info"></div>
-      <button class="upload-btn" type="button" onclick="document.getElementById('strava-input').click();event.preventDefault()">Subir ZIP</button>
-      <input type="file" id="strava-input" accept=".zip,application/zip,application/x-zip-compressed" onchange="handleStravaUpload(this)">
-    </label>
-
-    <div class="skip-info">¿No tienes nada de esto? Sin problema — el plan funcionará igual de bien con lo que ya nos has dicho. Más adelante podrás conectar Garmin/Strava automáticamente.</div>
-    <button class="btn-next" onclick="goNext()">Siguiente →</button>
-    <button class="btn-secondary" onclick="goNext()">Continuar sin subir nada</button>
-  </div>
-
-  <!-- S9: PREVIEW -->
-  <div class="step" id="s9">
     <div class="step-label">Tu plan</div>
     <div class="step-title">Aquí está tu primera semana</div>
     <div class="step-sub">Generado según tus respuestas. Lo puedes editar en el dashboard.</div>
     <div id="race-summary-preview"></div>
-    <div class="stats-card-prev">
-      <div class="stats-card-prev-label">Tus datos</div>
-      <div class="stats-card-prev-grid" id="stats-preview"></div>
-    </div>
+    <div class="stats-card-prev"><div class="stats-card-prev-label">Tus datos clave</div><div class="stats-card-prev-grid" id="stats-preview"></div></div>
     <div class="ai-preview"><div class="ai-dot"></div><div class="ai-text" id="ai-summary">He creado tu plan personalizado.</div></div>
     <div class="plan-preview" id="plan-preview"></div>
     <button class="btn-next" onclick="savePlan()">Ver mi dashboard →</button>
@@ -383,7 +322,7 @@
 
 <script>
 const dayNames=['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
-let userData={objetivo:'',carreraDisciplina:'',carreraNombre:'',carreraDistancia:'',carreraDesnivel:0,carreraFecha:'',sports:[],nivel:'',fcmax:185,volum:4,dias:0,descanso:'',edat:null,alcada:null,pes:null,fcrep:null,genere:'',pdfBase64:null,pdfName:'',stravaName:'',stravaSize:0};
+let userData={objetivo:'',carreraDisciplina:'',carreraNombre:'',carreraDistancia:'',carreraDesnivel:0,carreraFecha:'',sports:[],nivel:'',fcmax:185,volum:4,dias:0,descanso:'',edat:null,alcada:null,pes:null,fcrep:null,genere:'',pdfName:'',stravaName:'',stressTestData:null,stravaStats:null,calibrated:{fcmax:null,pacez2:null,ftp:null,nivel:null,volum:null}};
 let stravaFile=null;
 let stepOrder=[];
 let currentStepIdx=0;
@@ -394,35 +333,35 @@ const distancias={
   ciclismo:[{dist:'50K',name:'Corta'},{dist:'100K',name:'Fondo'},{dist:'150K',name:'Gran fondo'},{dist:'200K+',name:'Ultra fondo'},{dist:'Etapas',name:'Carrera etapas'},{dist:'CX/MTB',name:'Off road'}],
   triatlon:[{dist:'Sprint',name:'750m/20K/5K'},{dist:'Olímpico',name:'1.5K/40K/10K'},{dist:'70.3',name:'Half Ironman'},{dist:'Ironman',name:'Full 226K'},{dist:'Super Sprint',name:'Super corto'},{dist:'Otro',name:'Distancia custom'}],
   duatlon:[{dist:'Sprint',name:'5K/20K/2.5K'},{dist:'Estándar',name:'10K/40K/5K'},{dist:'Largo',name:'20K/80K/10K'},{dist:'Otro',name:'Distancia custom'},{dist:'Classic',name:'10K/40K/5K'},{dist:'Ultra',name:'Ultra distancia'}],
-  otro:[{dist:'Corta',name:'< 10K o equivalente'},{dist:'Media',name:'10-30K o equivalente'},{dist:'Larga',name:'30-60K o equivalente'},{dist:'Ultra',name:'> 60K o equivalente'},{dist:'1 día',name:'Prueba de un día'},{dist:'Varios días',name:'Multietapa'}]
+  otro:[{dist:'Corta',name:'< 10K'},{dist:'Media',name:'10-30K'},{dist:'Larga',name:'30-60K'},{dist:'Ultra',name:'> 60K'},{dist:'1 día',name:'Un día'},{dist:'Etapas',name:'Multietapa'}]
 };
 
 const sportSessions={
-  running:[{icon:'🏃',title:'Rodaje Z2',sub:'Aeróbico base'},{icon:'🏃',title:'Rodaje largo',sub:'Fondo'},{icon:'🏃',title:'Series de velocidad',sub:'Calidad'},{icon:'🏃',title:'Rodaje de recuperación',sub:'Regenerativo'}],
-  ciclismo:[{icon:'🚴',title:'Rodada Z2',sub:'Fondo en bici'},{icon:'🚴',title:'Series en bici',sub:'Potencia'}],
-  gimnasio:[{icon:'🏋️',title:'Fuerza tren inferior',sub:'Piernas'},{icon:'🏋️',title:'Fuerza tren superior',sub:'Tren alto'}],
-  natacion:[{icon:'🏊',title:'Técnica piscina',sub:'Eficiencia'}],
-  calistenia:[{icon:'🤸',title:'Calistenia básica',sub:'Dominadas y fondos'}],
-  trail:[{icon:'🏔️',title:'Trail Z2',sub:'Montaña suave'},{icon:'🏔️',title:'Series de cuestas',sub:'Desnivel'}],
-  triatlon:[{icon:'🥇',title:'Brick bici-run',sub:'Transición'}]
+  running:[{icon:'🏃',title:'Rodaje Z2',sub:'Aeróbico base'},{icon:'🏃',title:'Rodaje largo',sub:'Fondo'},{icon:'🏃',title:'Series',sub:'Calidad'},{icon:'🏃',title:'Recuperación',sub:'Regenerativo'}],
+  ciclismo:[{icon:'🚴',title:'Rodada Z2',sub:'Fondo bici'},{icon:'🚴',title:'Series bici',sub:'Potencia'}],
+  gimnasio:[{icon:'🏋️',title:'Fuerza inferior',sub:'Piernas'},{icon:'🏋️',title:'Fuerza superior',sub:'Tren alto'}],
+  natacion:[{icon:'🏊',title:'Técnica',sub:'Eficiencia'}],
+  calistenia:[{icon:'🤸',title:'Calistenia',sub:'Dominadas y fondos'}],
+  trail:[{icon:'🏔️',title:'Trail Z2',sub:'Montaña suave'},{icon:'🏔️',title:'Cuestas',sub:'Desnivel'}],
+  triatlon:[{icon:'🥇',title:'Brick',sub:'Transición'}]
 };
 
 function buildStepOrder(){
-  stepOrder=['s1'];
-  if(userData.objetivo==='carrera') stepOrder.push('s2');
-  stepOrder.push('s3','s4','s5','s6','s7','s8','s9');
+  stepOrder=['s1','s2','s3'];
+  if(userData.objetivo==='carrera') stepOrder.push('s4');
+  stepOrder.push('s5','s6','s7','s8');
 }
 
 function updateProgress(){
   const total=stepOrder.length;
   const current=currentStepIdx+1;
-  const pct=Math.round((current/total)*100);
-  document.getElementById('prog').style.width=pct+'%';
+  document.getElementById('prog').style.width=Math.round((current/total)*100)+'%';
   document.getElementById('prog-step').textContent='PASO '+current;
   document.getElementById('prog-text').textContent='DE '+total;
 }
 
 function goNext(){
+  if(currentStepIdx===1&&!validateStep2()) return; // S2 personal data validation
   const currentId=stepOrder[currentStepIdx];
   document.getElementById(currentId).classList.remove('active');
   currentStepIdx++;
@@ -430,18 +369,26 @@ function goNext(){
   const nextId=stepOrder[currentStepIdx];
   document.getElementById(nextId).classList.add('active');
   updateProgress();
-  if(nextId==='s9') generatePreview();
-  if(nextId==='s3') setupS3();
-  if(nextId==='s6') prefillFC();
+  if(nextId==='s5') setupS5();
+  if(nextId==='s6') renderCalibration();
+  if(nextId==='s8') generatePreview();
   window.scrollTo(0,0);
 }
 
-function setupS3(){
+function validateStep2(){
+  if(!userData.edat){alert('La edad es obligatoria');return false;}
+  if(!userData.alcada){alert('La altura es obligatoria');return false;}
+  if(!userData.pes){alert('El peso es obligatorio');return false;}
+  if(!userData.genere){alert('Selecciona tu género (puedes elegir "prefiero no decir")');return false;}
+  return true;
+}
+
+function setupS5(){
   const disc=userData.carreraDisciplina;
   const discMap={'triatlon':['running','ciclismo','natacion'],'duatlon':['running','ciclismo'],'running':['running'],'trail':['trail'],'ciclismo':['ciclismo'],'natacion':['natacion']};
   if(disc&&disc!=='otro'){
     const toSel=discMap[disc]||[disc];
-    document.querySelectorAll('#s3 .grid-opt').forEach(el=>{
+    document.querySelectorAll('#s5 .grid-opt').forEach(el=>{
       const sp=el.getAttribute('onclick').match(/'([^']+)'/)[1];
       if(toSel.includes(sp)){
         el.classList.add('sel');
@@ -449,38 +396,15 @@ function setupS3(){
       }
     });
     if(disc==='triatlon'){
-      document.getElementById('s3-title').textContent='¿Algún deporte más para complementar?';
-      document.getElementById('s3-sub').textContent='Running, bici y natación ya están incluidos. Añade fuerza u otros si quieres.';
+      document.getElementById('s5-title').textContent='¿Algún deporte más para complementar?';
+      document.getElementById('s5-sub').textContent='Running, bici y natación ya están incluidos. Añade fuerza u otros si quieres.';
     } else if(disc==='duatlon'){
-      document.getElementById('s3-title').textContent='¿Algún deporte más para complementar?';
-      document.getElementById('s3-sub').textContent='Running y bici ya están incluidos. Añade complementos si quieres.';
+      document.getElementById('s5-title').textContent='¿Algún deporte más para complementar?';
+      document.getElementById('s5-sub').textContent='Running y bici ya están incluidos. Añade complementos si quieres.';
     } else {
-      document.getElementById('s3-title').textContent='¿Practicas algún deporte más para complementar?';
-      document.getElementById('s3-sub').textContent='La '+disc+' es tu disciplina principal. Añade complementos si quieres.';
+      document.getElementById('s5-title').textContent='¿Practicas algún deporte más?';
+      document.getElementById('s5-sub').textContent='La '+disc+' es tu disciplina principal. Añade complementos si quieres.';
     }
-  } else {
-    document.getElementById('s3-title').textContent='¿Qué deportes practicas?';
-    document.getElementById('s3-sub').textContent='Elige los que quieras combinar en tu plan.';
-  }
-}
-
-function prefillFC(){
-  // Prioridad 1: prueba de esfuerzo
-  if(userData.stressTestData&&userData.stressTestData.fcmax){
-    const fc=userData.stressTestData.fcmax;
-    userData.fcmax=fc;
-    document.getElementById('fc-slider').value=fc;
-    document.getElementById('fc-sub').textContent='Detectado de tu prueba de esfuerzo: '+fc+' bpm.';
-    updateFC(fc);
-    return;
-  }
-  // Prioridad 2: 220 − edad
-  if(userData.edat&&userData.edat>10&&userData.edat<90){
-    const estimated=Math.max(150,Math.min(210,220-userData.edat));
-    userData.fcmax=estimated;
-    document.getElementById('fc-slider').value=estimated;
-    document.getElementById('fc-sub').textContent='Estimado a partir de tu edad ('+userData.edat+'): 220 − '+userData.edat+' = '+estimated+' bpm. Ajusta si conoces el real.';
-    updateFC(estimated);
   }
 }
 
@@ -489,34 +413,23 @@ function selOpt(el,stepId,val){
   el.classList.add('sel');
   const n=stepId.replace('s','');
   if(n==='1'){userData.objetivo=val;buildStepOrder();}
-  if(n==='5') userData.nivel=val;
   document.getElementById('btn'+n).disabled=false;
 }
 
 function selCarrera(el,disc){
-  document.querySelectorAll('#s2 .grid-opt').forEach(o=>o.classList.remove('sel'));
+  document.querySelectorAll('#s4 .grid-opt').forEach(o=>o.classList.remove('sel'));
   el.classList.add('sel');
   userData.carreraDisciplina=disc;
   document.getElementById('dist-section').style.display='block';
   document.getElementById('desnivel-section').style.display=(disc==='trail'||disc==='ciclismo')?'block':'none';
   const dists=distancias[disc]||distancias.otro;
   document.getElementById('dist-grid').innerHTML=dists.map(d=>'<div class="dist-opt" onclick="selDist(this,\''+d.dist+'\')"><div class="dist-opt-dist">'+d.dist+'</div><div class="dist-opt-name">'+d.name+'</div></div>').join('');
-  checkBtn2();
+  checkBtn4();
 }
 
-function selDist(el,dist){
-  document.querySelectorAll('.dist-opt').forEach(o=>o.classList.remove('sel'));
-  el.classList.add('sel');
-  userData.carreraDistancia=dist;
-  checkBtn2();
-}
-
-function updateDesnivel(v){
-  userData.carreraDesnivel=parseInt(v);
-  document.getElementById('desnivel-val').textContent=v;
-}
-
-function checkBtn2(){document.getElementById('btn2').disabled=!(userData.carreraDisciplina&&userData.carreraDistancia);}
+function selDist(el,dist){document.querySelectorAll('.dist-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');userData.carreraDistancia=dist;checkBtn4();}
+function updateDesnivel(v){userData.carreraDesnivel=parseInt(v);document.getElementById('desnivel-val').textContent=v;}
+function checkBtn4(){document.getElementById('btn4').disabled=!(userData.carreraDisciplina&&userData.carreraDistancia);}
 
 function toggleSport(el,sport){
   el.classList.toggle('sel');
@@ -535,21 +448,201 @@ function updatePersonal(){
   userData.alcada=h?parseInt(h):null;
   userData.pes=w?parseFloat(w):null;
   userData.fcrep=r?parseInt(r):null;
-  let msg='Con tu edad estimaré tu FCmax (220−edad). Con altura y peso ajustaré la intensidad y los rangos.';
-  if(userData.edat) msg='Tu FCmax estimada: '+(220-userData.edat)+' bpm. Lo podrás ajustar en el paso siguiente.';
+  let msg='Datos para personalizar tus zonas e intensidad.';
+  if(userData.edat) msg='Tu FCmax estimada: '+(220-userData.edat)+' bpm (la corregiremos si tienes datos más precisos).';
   document.getElementById('personal-info').textContent=msg;
+  checkBtn2();
+}
+function selGender(el,g){document.querySelectorAll('.gender-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');userData.genere=g;checkBtn2();}
+function checkBtn2(){document.getElementById('btn2').disabled=!(userData.edat&&userData.alcada&&userData.pes&&userData.genere);}
+
+async function handleStressTestUpload(input){
+  const file=input.files[0];if(!file) return;
+  if(file.type!=='application/pdf'&&!file.name.toLowerCase().endsWith('.pdf')){alert('Solo PDFs');input.value='';return;}
+  if(file.size>10*1024*1024){alert('PDF demasiado grande (máx 10MB)');input.value='';return;}
+  document.getElementById('stress-test-info').innerHTML='⏳ Analizando tu prueba de esfuerzo con IA...';
+  document.getElementById('stress-test-card').classList.add('uploaded');
+  try {
+    const pdfBase64=await new Promise(function(res,rej){const r=new FileReader();r.onload=function(){res(r.result);};r.onerror=rej;r.readAsDataURL(file);});
+    const apiRes=await fetch('/api/parse-stress-test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pdfBase64:pdfBase64})});
+    if(!apiRes.ok){const err=await apiRes.json();alert('Error: '+(err.error||'No se pudo procesar'));removeStressTest();return;}
+    const result=await apiRes.json();const d=result.data;
+    userData.pdfName=file.name;
+    userData.stressTestData=d;
+    let preview='✓ <strong>'+file.name+'</strong>';
+    const detected=[];
+    if(d.fcmax) detected.push('FCmax <strong>'+d.fcmax+'</strong> bpm');
+    if(d.fcrep) detected.push('FCrep '+d.fcrep);
+    if(d.vo2max) detected.push('VO2max '+d.vo2max);
+    if(d.ritme_z2){const m=Math.floor(d.ritme_z2/60),s=d.ritme_z2%60;detected.push('Z2 <strong>'+m+':'+(s<10?'0'+s:s)+'/km</strong>');}
+    if(d.umbral_anaerobic) detected.push('LT '+d.umbral_anaerobic);
+    if(d.ftp) detected.push('FTP <strong>'+d.ftp+'W</strong>');
+    if(detected.length>0) preview+='<br><span style="display:block;margin-top:6px;color:#163A28;font-weight:500;line-height:1.5">'+detected.join(' · ')+'</span>';
+    if(d.observacions) preview+='<br><span style="display:block;margin-top:4px;font-size:.72rem;color:#5F5E5A;font-weight:500;font-style:italic">'+d.observacions+'</span>';
+    preview+='<br><span style="display:block;margin-top:6px;font-size:.7rem;color:#888780;font-weight:500">Podrás verificar y editar estos valores en el siguiente paso.</span>';
+    document.getElementById('stress-test-info').innerHTML=preview;
+    try{sessionStorage.setItem('traineo_stress_test_data',JSON.stringify(d));}catch(e){}
+  } catch(e){console.error(e);alert('Error: '+e.message);removeStressTest();}
 }
 
-function selGender(el,g){
-  document.querySelectorAll('.gender-opt').forEach(o=>o.classList.remove('sel'));
-  el.classList.add('sel');
-  userData.genere=g;
+function removeStressTest(){userData.pdfName='';userData.stressTestData=null;const i=document.getElementById('stress-test-input');if(i)i.value='';document.getElementById('stress-test-info').innerHTML='';document.getElementById('stress-test-card').classList.remove('uploaded');}
+
+async function handleStravaUpload(input){
+  const file=input.files[0];if(!file) return;
+  if(!file.name.toLowerCase().endsWith('.zip')){alert('Solo .zip');input.value='';return;}
+  const mb=Math.round(file.size/(1024*1024)*10)/10;
+  document.getElementById('strava-info').innerHTML='⏳ Extrayendo activities.csv ('+mb+' MB)...';
+  document.getElementById('strava-card').classList.add('uploaded');
+  try {
+    if(typeof JSZip==='undefined'){alert('JSZip no cargado');removeStrava();return;}
+    const zip=await JSZip.loadAsync(file);
+    let csvFile=null;
+    zip.forEach(function(path,f){if(path.endsWith('activities.csv')&&!f.dir) csvFile=f;});
+    if(!csvFile){alert('No se encontró activities.csv en el ZIP');removeStrava();return;}
+    const csvText=await csvFile.async('string');
+    document.getElementById('strava-info').innerHTML='⏳ Analizando '+Math.round(csvText.length/1024)+' KB de actividades...';
+    const res=await fetch('/api/parse-strava',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csvText:csvText,fileName:file.name})});
+    if(!res.ok){const err=await res.json();alert('Error: '+(err.error||'No se pudo procesar'));removeStrava();return;}
+    const result=await res.json();
+    stravaFile=file;userData.stravaName=file.name;userData.stravaStats=result.data;
+    const d=result.data;
+    let preview='✓ <strong>'+d.totalActivities+' actividades</strong> · '+d.avgWeeklyHours+'h/sem promedio';
+    if(d.running?.best5K_pace) preview+=' · 5K <strong>'+d.running.best5K_pace+'</strong>';
+    if(d.running?.best10K_pace) preview+=' · 10K <strong>'+d.running.best10K_pace+'</strong>';
+    preview+='<br><span style="display:block;margin-top:6px;font-size:.7rem;color:#888780;font-weight:500">Verificarás los valores en el siguiente paso.</span>';
+    document.getElementById('strava-info').innerHTML=preview;
+    try{sessionStorage.setItem('traineo_strava_stats',JSON.stringify(result.data));}catch(e){}
+  } catch(e){console.error(e);alert('Error: '+e.message);removeStrava();}
 }
 
-function updateFC(v){
-  userData.fcmax=parseInt(v);
-  document.getElementById('fc-val').textContent=v;
-  const fc=parseInt(v);
+function removeStrava(){stravaFile=null;userData.stravaName='';userData.stravaStats=null;const i=document.getElementById('strava-input');if(i)i.value='';document.getElementById('strava-info').innerHTML='';document.getElementById('strava-card').classList.remove('uploaded');}
+
+function renderCalibration(){
+  const st=userData.stressTestData||{};
+  const sv=userData.stravaStats||{};
+  const fields=[];
+
+  // FCmax — prioridad: PDF > edad estimada > slider
+  const fcmaxFromPDF=st.fcmax;
+  const fcmaxFromAge=userData.edat?Math.max(150,Math.min(210,220-userData.edat)):null;
+  const fcmaxInitial=fcmaxFromPDF||fcmaxFromAge||185;
+  userData.calibrated.fcmax=fcmaxInitial;
+  fields.push({
+    id:'cal-fcmax',name:'Frecuencia cardíaca máxima',unit:'bpm',
+    value:fcmaxInitial,min:140,max:220,step:1,
+    source:fcmaxFromPDF?'detected':(fcmaxFromAge?'estimated':'manual'),
+    sourceLabel:fcmaxFromPDF?'Detectado · prueba esfuerzo':(fcmaxFromAge?'Estimado · 220 − edad':'Manual'),
+    help:fcmaxFromPDF?'Detectado de tu prueba de esfuerzo. Edita si crees que no es correcto.':'Estimado. Si conoces tu FCmax real, ajústalo.'
+  });
+
+  // Z2 pace (solo running/trail relevante)
+  const hasRun=userData.sports.includes('running')||userData.sports.includes('trail')||userData.carreraDisciplina==='running'||userData.carreraDisciplina==='trail'||userData.carreraDisciplina==='triatlon'||userData.carreraDisciplina==='duatlon';
+  if(hasRun){
+    const z2FromPDF=st.ritme_z2;
+    const best5K=sv.running?.best5K_sec;
+    const z2FromStrava=best5K?Math.round(best5K*1.18):null;
+    const levelPaces={'inicio':420,'intermedio':360,'avanzado':300,'vuelta':390};
+    const z2FromLevel=levelPaces[userData.nivel]||360;
+    const z2Initial=z2FromPDF||z2FromStrava||z2FromLevel;
+    userData.calibrated.pacez2=z2Initial;
+    fields.push({
+      id:'cal-pacez2',name:'Ritmo Z2 (running)',unit:'/km',
+      value:z2Initial,min:180,max:600,step:5,format:'pace',
+      source:z2FromPDF?'detected':(z2FromStrava?'detected':'estimated'),
+      sourceLabel:z2FromPDF?'Detectado · prueba esfuerzo':(z2FromStrava?'Estimado · Strava 5K · 1.18':'Estimado · nivel'),
+      help:z2FromPDF?'Detectado del rango Z2 de tu prueba. Si te parece raro, edítalo.':(z2FromStrava?'Calculado a partir de tu mejor 5K en Strava.':'Sin datos: estimado por nivel.')
+    });
+  }
+
+  // FTP (solo si bici + PDF lo tiene)
+  const hasBici=userData.sports.includes('ciclismo')||userData.carreraDisciplina==='ciclismo'||userData.carreraDisciplina==='triatlon'||userData.carreraDisciplina==='duatlon';
+  if(hasBici&&st.ftp){
+    userData.calibrated.ftp=st.ftp;
+    fields.push({
+      id:'cal-ftp',name:'FTP (ciclismo)',unit:'W',
+      value:st.ftp,min:100,max:500,step:5,
+      source:'detected',sourceLabel:'Detectado · prueba esfuerzo',
+      help:'Tu FTP detectado del test.'
+    });
+  }
+
+  // Nivel — si Strava lo sugiere por volumen, autodetecta
+  let nivelSugerido='intermedio';
+  if(sv.avgWeeklyHours){
+    if(sv.avgWeeklyHours>=8) nivelSugerido='avanzado';
+    else if(sv.avgWeeklyHours>=4) nivelSugerido='intermedio';
+    else nivelSugerido='inicio';
+  }
+  userData.nivel=userData.nivel||nivelSugerido;
+  userData.calibrated.nivel=userData.nivel;
+
+  // Volumen — si Strava, usa última 4 sem
+  const volFromStrava=sv.last4Weeks?.weeklyAvgHours;
+  userData.volum=volFromStrava||userData.volum||4;
+  userData.calibrated.volum=userData.volum;
+  fields.push({
+    id:'cal-volum',name:'Volumen semanal',unit:'h/sem',
+    value:userData.volum,min:1,max:20,step:0.5,
+    source:volFromStrava?'detected':'manual',
+    sourceLabel:volFromStrava?'Detectado · Strava 4 sem':'Manual',
+    help:volFromStrava?'Tu volumen real de las últimas 4 semanas en Strava.':'Indica las horas que entrenas semanalmente ahora.'
+  });
+
+  // Nivel selector (siempre visible para confirmar)
+  fields.push({
+    id:'cal-nivel',name:'Nivel actual',unit:'',
+    value:userData.nivel,
+    source:sv.avgWeeklyHours?'detected':'manual',
+    sourceLabel:sv.avgWeeklyHours?'Sugerido · Strava':'Manual',
+    help:sv.avgWeeklyHours?'Sugerido a partir de tu volumen real. Confirma o cambia.':'Elige tu nivel actual.',
+    type:'level'
+  });
+
+  document.getElementById('cal-fields').innerHTML=fields.map(f=>renderCalField(f)).join('');
+  updateZonesFromFC();
+}
+
+function renderCalField(f){
+  if(f.type==='level'){
+    return '<div class="cal-field '+(f.source==='detected'?'detected':'')+'">'+
+      '<div class="cal-row"><span class="cal-name">'+f.name+'</span><span class="cal-source '+f.source+'">'+f.sourceLabel+'</span></div>'+
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.3rem;margin-top:.5rem">'+
+        ['inicio','intermedio','avanzado','vuelta'].map(n=>'<button onclick="selCalNivel(\''+n+'\')" class="gender-opt '+(userData.nivel===n?'sel':'')+'" data-nivel="'+n+'" style="margin:0">'+n.charAt(0).toUpperCase()+n.slice(1)+'</button>').join('')+
+      '</div>'+
+      '<div class="cal-help">'+f.help+'</div>'+
+    '</div>';
+  }
+  const valDisplay=f.format==='pace'?paceFmt(f.value):f.value;
+  return '<div class="cal-field '+(f.source==='detected'?'detected':'')+'">'+
+    '<div class="cal-row"><span class="cal-name">'+f.name+'</span><span class="cal-source '+f.source+'">'+f.sourceLabel+'</span></div>'+
+    '<div class="cal-input-row">'+
+      '<input type="range" min="'+f.min+'" max="'+f.max+'" step="'+f.step+'" value="'+f.value+'" id="'+f.id+'-slider" oninput="updateCalField(\''+f.id+'\','+(f.format==='pace'?'true':'false')+')" style="flex:1;accent-color:#163A28">'+
+      '<span class="cal-input" id="'+f.id+'-val" style="text-align:right;border:0;max-width:130px">'+valDisplay+'</span>'+
+      '<span class="cal-unit">'+f.unit+'</span>'+
+    '</div>'+
+    '<div class="cal-help">'+f.help+'</div>'+
+  '</div>';
+}
+
+function paceFmt(sec){const m=Math.floor(sec/60);const s=sec%60;return m+':'+(s<10?'0':'')+s;}
+
+function updateCalField(id,isPace){
+  const v=parseFloat(document.getElementById(id+'-slider').value);
+  document.getElementById(id+'-val').textContent=isPace?paceFmt(Math.round(v)):v;
+  if(id==='cal-fcmax'){userData.calibrated.fcmax=v;userData.fcmax=v;updateZonesFromFC();}
+  if(id==='cal-pacez2') userData.calibrated.pacez2=Math.round(v);
+  if(id==='cal-ftp') userData.calibrated.ftp=v;
+  if(id==='cal-volum'){userData.calibrated.volum=v;userData.volum=v;}
+}
+
+function selCalNivel(n){
+  userData.nivel=n;userData.calibrated.nivel=n;
+  document.querySelectorAll('[data-nivel]').forEach(el=>el.classList.remove('sel'));
+  document.querySelector('[data-nivel="'+n+'"]').classList.add('sel');
+}
+
+function updateZonesFromFC(){
+  const fc=userData.calibrated.fcmax||185;
   const zones=[
     {label:'Z1',color:'#60B8F0',min:Math.round(fc*0.50),max:Math.round(fc*0.60)},
     {label:'Z2',color:'#4A9E6B',min:Math.round(fc*0.60),max:Math.round(fc*0.70)},
@@ -557,242 +650,48 @@ function updateFC(v){
     {label:'Z4',color:'#F08C30',min:Math.round(fc*0.80),max:Math.round(fc*0.90)},
     {label:'Z5',color:'#E04040',min:Math.round(fc*0.90),max:fc}
   ];
+  const block=document.getElementById('zones-block');
+  if(!block) return;
+  block.style.display='block';
   document.getElementById('zones-preview').innerHTML=zones.map(z=>'<div class="zone-bar" style="background:'+z.color+'"><div class="zone-label">'+z.label+'</div><div class="zone-range">'+z.min+'-'+z.max+'</div></div>').join('');
 }
 
-function updateVol(v){userData.volum=parseInt(v);document.getElementById('vol-val').textContent=v;}
-
-function selDay(el){
-  document.querySelectorAll('.day-num').forEach(d=>d.classList.remove('sel'));
-  el.classList.add('sel');
-  userData.dias=parseInt(el.textContent);
-  checkBtn7();
-}
-
-function selRest(el){
-  document.querySelectorAll('.rest-day').forEach(d=>d.classList.remove('sel'));
-  el.classList.add('sel');
-  userData.descanso=el.textContent;
-  checkBtn7();
-}
-
+function selDay(el){document.querySelectorAll('.day-num').forEach(d=>d.classList.remove('sel'));el.classList.add('sel');userData.dias=parseInt(el.textContent);checkBtn7();}
+function selRest(el){document.querySelectorAll('.rest-day').forEach(d=>d.classList.remove('sel'));el.classList.add('sel');userData.descanso=el.textContent;checkBtn7();}
 function checkBtn7(){document.getElementById('btn7').disabled=!(userData.dias&&userData.descanso);}
-
-async function handleStressTestUpload(input){
-  const file=input.files[0];
-  if(!file) return;
-  if(file.type!=='application/pdf'&&!file.name.toLowerCase().endsWith('.pdf')){
-    alert('Solo se aceptan archivos PDF');
-    input.value='';
-    return;
-  }
-  if(file.size>10*1024*1024){
-    alert('PDF demasiado grande (máx 10MB)');
-    input.value='';
-    return;
-  }
-  
-  document.getElementById('stress-test-info').innerHTML='⏳ Analizando tu prueba de esfuerzo con IA...';
-  document.getElementById('stress-test-card').classList.add('uploaded');
-  
-  try {
-    const pdfBase64=await new Promise(function(res,rej){
-      const r=new FileReader();
-      r.onload=function(){res(r.result);};
-      r.onerror=rej;
-      r.readAsDataURL(file);
-    });
-    
-    const apiRes=await fetch('/api/parse-stress-test',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({pdfBase64:pdfBase64})
-    });
-    
-    if(!apiRes.ok){
-      const err=await apiRes.json();
-      alert('Error: '+(err.error||'No se pudo procesar el PDF'));
-      removeStressTest();
-      return;
-    }
-    
-    const result=await apiRes.json();
-    const d=result.data;
-    
-    userData.pdfName=file.name;
-    userData.stressTestData=d;
-    if(d.fcmax) userData.fcmax=d.fcmax;
-    
-    let preview='✓ <strong>'+file.name+'</strong>';
-    const detected=[];
-    if(d.fcmax) detected.push('FCmax <strong>'+d.fcmax+'</strong> bpm');
-    if(d.fcrep) detected.push('FCrep '+d.fcrep+' bpm');
-    if(d.vo2max) detected.push('VO2max '+d.vo2max);
-    if(d.ritme_z2){
-      const m=Math.floor(d.ritme_z2/60),s=d.ritme_z2%60;
-      detected.push('Z2 <strong>'+m+':'+(s<10?'0'+s:s)+'/km</strong>');
-    }
-    if(d.umbral_anaerobic) detected.push('Umbral '+d.umbral_anaerobic+' bpm');
-    if(d.ftp) detected.push('FTP <strong>'+d.ftp+'W</strong>');
-    if(detected.length>0){
-      preview+='<br><span style="display:block;margin-top:6px;color:#163A28;font-weight:500;line-height:1.5">'+detected.join(' · ')+'</span>';
-    }
-    if(d.observacions){
-      preview+='<br><span style="display:block;margin-top:4px;font-size:.72rem;color:#5F5E5A;font-weight:500;font-style:italic">'+d.observacions+'</span>';
-    }
-    document.getElementById('stress-test-info').innerHTML=preview;
-    
-    try{sessionStorage.setItem('traineo_stress_test_data',JSON.stringify(d));}catch(e){}
-  } catch(e){
-    console.error('PDF processing error:',e);
-    alert('Error procesando el PDF: '+e.message);
-    removeStressTest();
-  }
-}
-
-function removeStressTest(){
-  userData.pdfName='';
-  userData.stressTestData=null;
-  const input=document.getElementById('stress-test-input');
-  if(input) input.value='';
-  const info=document.getElementById('stress-test-info');
-  if(info) info.innerHTML='';
-  document.getElementById('stress-test-card').classList.remove('uploaded');
-}
-async function handleStravaUpload(input){
-  const file=input.files[0];
-  if(!file) return;
-  if(!file.name.toLowerCase().endsWith('.zip')){
-    alert('Solo se aceptan archivos .zip (la exportación de Strava)');
-    input.value='';
-    return;
-  }
-  
-  const mb=Math.round(file.size/(1024*1024)*10)/10;
-  document.getElementById('strava-info').innerHTML='⏳ Extrayendo activities.csv del ZIP ('+mb+' MB)...';
-  document.getElementById('strava-card').classList.add('uploaded');
-  
-  try {
-    if(typeof JSZip==='undefined'){
-      alert('JSZip no cargado. Recarga la página.');
-      removeStrava();return;
-    }
-    const zip=await JSZip.loadAsync(file);
-    let csvFile=null,csvName='';
-    zip.forEach(function(path,f){
-      if(path.endsWith('activities.csv')&&!f.dir){csvFile=f;csvName=path;}
-    });
-    if(!csvFile){
-      alert('No se encontró activities.csv dentro del ZIP. ¿Has subido la exportación correcta de Strava?');
-      removeStrava();return;
-    }
-    const csvText=await csvFile.async('string');
-    const sizeKB=Math.round(csvText.length/1024);
-    document.getElementById('strava-info').innerHTML='⏳ Analizando '+sizeKB+' KB de actividades...';
-    
-    const res=await fetch('/api/parse-strava',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({csvText:csvText,fileName:file.name})
-    });
-    if(!res.ok){
-      const err=await res.json();
-      alert('Error: '+(err.error||'No se pudo procesar'));
-      removeStrava();return;
-    }
-    const result=await res.json();
-    stravaFile=file;
-    userData.stravaName=file.name;
-    userData.stravaStats=result.data;
-    
-    const d=result.data;
-    let preview='✓ <strong>'+d.totalActivities+' actividades</strong> · '+d.avgWeeklyHours+'h/sem promedio';
-    if(d.running?.best5K_pace) preview+=' · 5K en '+d.running.best5K_pace;
-    if(d.running?.best10K_pace) preview+=' · 10K en '+d.running.best10K_pace;
-    document.getElementById('strava-info').innerHTML=preview;
-    try{sessionStorage.setItem('traineo_strava_stats',JSON.stringify(result.data));}catch(e){}
-  } catch(e){
-    console.error('Strava processing error:',e);
-    alert('Error procesando el ZIP: '+e.message);
-    removeStrava();
-  }
-}
-
-function removeStrava(){
-  stravaFile=null;
-  userData.stravaName='';
-  userData.stravaStats=null;
-  const input=document.getElementById('strava-input');
-  if(input) input.value='';
-  const info=document.getElementById('strava-info');
-  if(info) info.innerHTML='';
-  document.getElementById('strava-card').classList.remove('uploaded');
-}
 
 function generatePreview(){
   const fecha=document.getElementById('carrera-fecha')?.value||'';
   const nom=document.getElementById('carrera-nombre')?.value||'';
-  userData.carreraFecha=fecha;
-  userData.carreraNombre=nom;
-
+  userData.carreraFecha=fecha;userData.carreraNombre=nom;
   const sports=userData.sports.length>0?userData.sports:['running'];
-  const dias=userData.dias||3;
-  const descanso=userData.descanso||'Ninguno';
-  let allS=[];
-  sports.forEach(s=>(sportSessions[s]||[]).forEach(x=>allS.push(x)));
+  const dias=userData.dias||3,descanso=userData.descanso||'Ninguno';
+  let allS=[];sports.forEach(s=>(sportSessions[s]||[]).forEach(x=>allS.push(x)));
   let planDays=[];let idx=0;
   dayNames.forEach(d=>{
     if(d===descanso){planDays.push({day:d,rest:true,icon:'💤',title:'Descanso',sub:''});}
     else if(idx<dias){planDays.push({day:d,rest:false,...allS[idx%allS.length]});idx++;}
     else planDays.push({day:d,rest:true,icon:'💤',title:'Descanso',sub:''});
   });
-
   document.getElementById('plan-preview').innerHTML=planDays.map(d=>'<div class="plan-day '+(d.rest?'rest-day-plan':'')+'"><span class="plan-day-name">'+d.day+'</span><span class="plan-day-icon">'+d.icon+'</span><div><div class="plan-day-title">'+d.title+'</div>'+(d.sub?'<div class="plan-day-sub">'+d.sub+'</div>':'')+'</div></div>').join('');
-
-  // Stats preview
-  let statsHTML='<div class="stats-prev-block"><div class="stats-prev-val green">'+userData.fcmax+'</div><div class="stats-prev-lbl">FCmax bpm</div></div>';
-  statsHTML+='<div class="stats-prev-block"><div class="stats-prev-val">'+dias+'</div><div class="stats-prev-lbl">Días/sem</div></div>';
-  statsHTML+='<div class="stats-prev-block"><div class="stats-prev-val">'+userData.volum+'h</div><div class="stats-prev-lbl">Volumen</div></div>';
-  document.getElementById('stats-preview').innerHTML=statsHTML;
-
-  const fc=userData.fcmax;
-  const z2min=Math.round(fc*0.60);
-  const z2max=Math.round(fc*0.70);
+  const fc=userData.calibrated.fcmax||userData.fcmax;
+  const z2min=Math.round(fc*0.60),z2max=Math.round(fc*0.70);
+  let stats='<div><div class="stats-prev-val green">'+fc+'</div><div class="stats-prev-lbl">FCmax bpm</div></div>';
+  if(userData.calibrated.pacez2) stats+='<div><div class="stats-prev-val">'+paceFmt(userData.calibrated.pacez2)+'</div><div class="stats-prev-lbl">Z2 /km</div></div>';
+  else stats+='<div><div class="stats-prev-val">'+dias+'</div><div class="stats-prev-lbl">Días/sem</div></div>';
+  stats+='<div><div class="stats-prev-val">'+userData.volum+'h</div><div class="stats-prev-lbl">Volumen</div></div>';
+  document.getElementById('stats-preview').innerHTML=stats;
   const sportNames=sports.map(s=>s.charAt(0).toUpperCase()+s.slice(1)).join(' + ');
-
-  let aiText='Plan de '+dias+' días con '+sportNames+'. Tu Z2 es '+z2min+'-'+z2max+' bpm. ';
-  if(userData.carreraDisciplina&&userData.carreraDistancia){
-    aiText+='Orientado a tu '+userData.carreraDisciplina+' de '+userData.carreraDistancia;
-    if(userData.carreraDesnivel>0) aiText+=' con +'+userData.carreraDesnivel+'m de desnivel';
-    aiText+='. ';
-  }
-  if(userData.pdfName||stravaFile){
-    aiText+='Procesaremos ';
-    const sources=[];
-    if(userData.pdfName) sources.push('tu prueba de esfuerzo');
-    if(stravaFile) sources.push('tu histórico de Strava');
-    aiText+=sources.join(' y ')+' para afinar el plan. ';
-  }
-  aiText+='Empezamos con fase base — el cuerpo necesita adaptarse la primera semana.';
+  let aiText='Plan de '+dias+' días con '+sportNames+'. Tu Z2 FC es '+z2min+'-'+z2max+' bpm. ';
+  if(userData.carreraDisciplina&&userData.carreraDistancia){aiText+='Orientado a tu '+userData.carreraDisciplina+' de '+userData.carreraDistancia;if(userData.carreraDesnivel>0) aiText+=' con +'+userData.carreraDesnivel+'m';aiText+='. ';}
+  if(userData.pdfName||stravaFile){aiText+='Personalizado con ';const srcs=[];if(userData.pdfName) srcs.push('tu prueba de esfuerzo');if(stravaFile) srcs.push('tu histórico de Strava');aiText+=srcs.join(' y ')+'. ';}
+  aiText+='Empezamos con fase base.';
   document.getElementById('ai-summary').textContent=aiText;
-
   const racePrev=document.getElementById('race-summary-preview');
   if(userData.carreraDisciplina&&userData.carreraDistancia){
     const diff=fecha?Math.ceil((new Date(fecha)-new Date())/(1000*60*60*24)):null;
     racePrev.innerHTML='<div class="race-summary"><div class="race-summary-icon">🏁</div><div><div class="race-summary-title">'+(nom||userData.carreraDistancia+' de '+userData.carreraDisciplina)+'</div><div class="race-summary-sub">'+userData.carreraDistancia.toUpperCase()+(userData.carreraDesnivel>0?' · +'+userData.carreraDesnivel+'M D+':'')+(diff&&diff>0?' · '+diff+' DÍAS':'')+'</div></div></div>';
   } else racePrev.innerHTML='';
-}
-
-async function uploadStravaIfAny(){
-  if(!stravaFile) return null;
-  try {
-    const form=new FormData();
-    form.append('file',stravaFile);
-    form.append('userData',JSON.stringify({nivel:userData.nivel,sports:userData.sports}));
-    const res=await fetch('/api/parse-strava',{method:'POST',body:form});
-    if(res.ok){const data=await res.json();return data;}
-  } catch(e){console.log('Strava parse failed:',e);}
-  return null;
 }
 
 async function savePlan(){
@@ -804,44 +703,36 @@ async function savePlan(){
     sessionStorage.setItem('traineo_userdata',JSON.stringify({
       edat:userData.edat,alcada:userData.alcada,pes:userData.pes,fcrep:userData.fcrep,genere:userData.genere,
       pdfName:userData.pdfName,stravaName:userData.stravaName,
-      stressTestData:userData.stressTestData,stravaStats:userData.stravaStats
+      stressTestData:userData.stressTestData,stravaStats:userData.stravaStats,
+      calibrated:userData.calibrated
     }));
-  } catch(e){console.log('Cannot save full data to sessionStorage');}
+  } catch(e){}
   
-  // Valores derivados de prueba de esfuerzo y Strava (los que la dashboard usa para calcularPaces)
-  const st=userData.stressTestData||{};
+  const c=userData.calibrated;
+  const fcmaxFinal=c.fcmax||userData.fcmax||185;
+  const pacez2=c.pacez2||null;
+  const ftp=c.ftp||null;
+  const volumFinal=c.volum||userData.volum||4;
+  const nivelFinal=c.nivel||userData.nivel||'intermedio';
   const sv=userData.stravaStats||{};
-  
-  // Z2 pace: prefiere PDF (medición directa). Fallback a Strava no aplica (no tiene Z2 explícito).
-  const pacez2=st.ritme_z2||null;
-  // FCmax: PDF gana sobre slider
-  const fcmaxFinal=st.fcmax||userData.fcmax||185;
-  // FCrep: PDF o usuario
-  const fcrepFinal=st.fcrep||userData.fcrep||null;
-  // race5k/10k: Strava (real reciente) > PDF (test). Pasados como tiempo TOTAL en segundos
-  const race5kSec=sv.running?.best5K_sec?(sv.running.best5K_sec*5):(st.ritme_5k?(st.ritme_5k*5):null);
-  const race10kSec=sv.running?.best10K_sec?(sv.running.best10K_sec*10):(st.ritme_10k?(st.ritme_10k*10):null);
-  // FTP: solo PDF
-  const ftp=st.ftp||null;
-  // Volumen real semanal de Strava (sobreescribe estimación)
-  const volumReal=sv.last4Weeks?.weeklyAvgHours||userData.volum||4;
+  const race5kSec=sv.running?.best5K_sec?(sv.running.best5K_sec*5):null;
+  const race10kSec=sv.running?.best10K_sec?(sv.running.best10K_sec*10):null;
   
   let url='dashboard.html?sports='+sports+
     '&dias='+(userData.dias||3)+
     '&descanso='+encodeURIComponent(userData.descanso||'Ninguno')+
-    '&nivel='+encodeURIComponent(userData.nivel||'Intermedio')+
+    '&nivel='+encodeURIComponent(nivelFinal)+
     '&fcmax='+fcmaxFinal+
-    '&volum='+volumReal+
+    '&volum='+volumFinal+
     '&objetivo='+encodeURIComponent(userData.objetivo||'')+
     '&carrera='+encodeURIComponent(nom||userData.carreraDisciplina||'')+
     '&distancia='+encodeURIComponent(userData.carreraDistancia||'')+
     '&desnivel='+(userData.carreraDesnivel||0)+
     '&fecha='+encodeURIComponent(fecha);
-  
   if(userData.edat) url+='&edat='+userData.edat;
   if(userData.alcada) url+='&alcada='+userData.alcada;
   if(userData.pes) url+='&pes='+userData.pes;
-  if(fcrepFinal) url+='&fcrep='+fcrepFinal;
+  if(userData.fcrep) url+='&fcrep='+userData.fcrep;
   if(userData.genere) url+='&genere='+encodeURIComponent(userData.genere);
   if(pacez2) url+='&pacez2='+pacez2;
   if(race5kSec) url+='&race5k='+race5kSec;
@@ -849,18 +740,12 @@ async function savePlan(){
   if(ftp) url+='&ftp='+ftp;
   if(userData.pdfName) url+='&pdf=1';
   if(userData.stravaName) url+='&strava=1';
-  
   window.location.href=url;
 }
 
-// Init
-buildStepOrder();
-updateProgress();
-updateFC(185);
-const minDate=new Date();
-minDate.setDate(minDate.getDate()+7);
-const fc=document.getElementById('carrera-fecha');
-if(fc) fc.min=minDate.toISOString().split('T')[0];
+buildStepOrder();updateProgress();
+const minDate=new Date();minDate.setDate(minDate.getDate()+7);
+const fc=document.getElementById('carrera-fecha');if(fc) fc.min=minDate.toISOString().split('T')[0];
 </script>
 </body>
 </html>
