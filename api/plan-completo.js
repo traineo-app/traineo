@@ -36,8 +36,11 @@ export default async function handler(req, res) {
     let weeks;
     if (objetivo === "carrera" && raceDate) {
       const diff = Math.ceil((new Date(raceDate) - new Date()) / (1000 * 60 * 60 * 24 * 7));
-      weeks = Math.max(4, Math.min(diff, 16));
+      // Cursa: pla complet fins a la prova. Sense slider, sense cap artificial.
+      // Cap a 24 setmanes per limitar cost i temps (≈6 mesos és suficient fins i tot per marató).
+      weeks = Math.max(1, Math.min(diff, 24));
     } else {
+      // Sense cursa: ciclo rolling
       weeks = totalWeeks || 4;
     }
 
