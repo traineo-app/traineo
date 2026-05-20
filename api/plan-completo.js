@@ -1,10 +1,21 @@
+import fs from 'fs';
+import path from 'path';
+
+// Cold start: llegeix la metodologia un cop, reutilitzable a totes les invocacions del lambda
+let METHODOLOGY = '';
+try {
+  METHODOLOGY = fs.readFileSync(path.join(process.cwd(), 'coach-methodology.md'), 'utf-8');
+  console.log('coach-methodology.md cargada:', METHODOLOGY.length, 'chars');
+} catch (e) {
+  console.warn('coach-methodology.md NO encontrada en', process.cwd(), '- usando fallback');
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
   const { userData, raceDate, raceName, totalWeeks } = req.body;
 
-  // Si hi ha data de cursa → carrera. Sinó l'objectiu d'onboarding.
   const objetivo = raceDate ? 'carrera' : (userData?.objetivo || 'forma');
 
   let weeks;
@@ -12,51 +23,57 @@ export default async function handler(req, res) {
     const diff = Math.ceil((new Date(raceDate) - new Date()) / (1000 * 60 * 60 * 24 * 7));
     weeks = Math.max(4, Math.min(diff, 16));
   } else {
-    weeks = totalWeeks || 4; // rolling 4 setmanes per defecte
+    weeks = totalWeeks || 4;
   }
 
   const objectiveGuidance = {
-    carrera: `OBJETIVO: CARRERA (${raceName || 'objetivo competitivo'} el ${raceDate})
-- Periodización clásica con fases: Base / Construcción / Específico / Taper / Carrera
-- Progresión hasta -2 semanas, taper últimas 1-2 semanas (60% volumen máx)
-- Distribución de intensidad según fase`,
+    carrera: `OBJETIVO ACTUAL: CARRERA (${raceName || 'objetivo competitivo'} el ${raceDate})
+- Aplica la periodización descrita en tu metodología: Base → Construcción → Específico → Taper → Carrera
+- Progresión hasta -2 semanas, taper últimas 1-2 semanas (~60% volumen máx)
+- Distribución de intensidad según fase y según los principios de tu metodología`,
 
-    forma: `OBJETIVO: PONERSE EN FORMA (mejora general, sin carrera)
-- Ciclo rolling con patrón 3+1 (3 sem progresión + 1 descarga)
-- NOMBRE de fases obligatorio: "Ciclo 1 · Semana X/${weeks}" (NUNCA "Base" / "Construcción")
-- Intensidad: ~70% Z2, 1 sesión de calidad/semana (tempo o intervalos cortos), opcional 1 Z4
-- Fuerza 2x/semana si los días lo permiten
-- Progresión: S1 base, S2 +5%, S3 +5-8%, S4 descarga -30%
-- Load entre 200-500, sin picos extremos`,
+    forma: `OBJETIVO ACTUAL: PONERSE EN FORMA (mejora general, SIN carrera)
+- Como no hay pico objetivo, usa ciclo rolling 3+1 (3 sem progresión + 1 descarga)
+- NOMBRE de fases obligatorio: "Ciclo 1 · Semana X/${weeks}" (NUNCA "Base 1" / "Construcción")
+- Aplica los principios de intensidad y distribución de tu metodología
+- Progresión: S1 base, S2 +5%, S3 +5-8%, S4 descarga -30%`,
 
-    peso: `OBJETIVO: PERDER PESO Y GANAR ENERGÍA (sin carrera)
-- Ciclo rolling con patrón 3+1
+    peso: `OBJETIVO ACTUAL: PERDER PESO Y GANAR ENERGÍA (SIN carrera)
+- Ciclo rolling 3+1
 - NOMBRE de fases obligatorio: "Ciclo 1 · Semana X/${weeks}"
-- MÁS volumen aeróbico (gasto calórico), MENOS intensidad alta
-- Intensidad: ~85% Z2 (zona quemagrasa), evitar Z4/Z5
-- FUERZA 2-3x/semana para preservar masa muscular
-- Variedad: caminar/marcha activa además de los entrenos
-- Progresión suave: S1 base, S2 +5%, S3 +5%, S4 descarga -25%
-- Load entre 200-450`,
+- Más volumen aeróbico, menos intensidad máxima
+- Mayor peso a Z2, incluir trabajo de fuerza para preservar masa muscular
+- Progresión suave: S1 base, S2 +5%, S3 +5%, S4 descarga -25%`,
 
-    vuelta: `OBJETIVO: VOLVER DESPUÉS DE UNA PAUSA (sin carrera)
-- Ciclo rolling con patrón 3+1 PERO con progresión muy conservadora
+    vuelta: `OBJETIVO ACTUAL: VOLVER DESPUÉS DE UNA PAUSA (SIN carrera)
+- Ciclo rolling 3+1 con progresión MUY conservadora
 - NOMBRE de fases obligatorio: "Ciclo 1 · Semana X/${weeks}"
-- Intensidad: ~90% Z1-Z2 las primeras 2 semanas, sin intensidad alta
-- A partir de S3 puedes introducir alguna calidad suave si las sensaciones son buenas
-- Volumen muy controlado, prioridad NO LESIONARSE
-- Progresión: S1 muy suave, S2 +3-5%, S3 +5%, S4 descarga -20%
-- Load entre 150-350 (techo bajo, consistencia > picos)`
+- Primeras 2 semanas casi exclusivamente Z1-Z2
+- Prioridad: NO LESIONARSE, construir consistencia
+- Progresión: S1 muy suave, S2 +3-5%, S3 +5%, S4 descarga -20%`
   };
 
-  const systemPrompt = `Eres un coach experto en periodización adaptada al objetivo del atleta.
+  // System com a array: bloc 1 cacheable (metodologia), bloc 2 dinàmic (objectiu)
+  const systemBlocks = [];
+  if (METHODOLOGY) {
+    systemBlocks.push({
+      type: 'text',
+      text: `METODOLOGÍA DEL COACH (autoridad principal — sigue estos principios SIEMPRE):\n\n${METHODOLOGY}`,
+      cache_control: { type: 'ephemeral' }
+    });
+  }
+  systemBlocks.push({
+    type: 'text',
+    text: `Eres un coach experto en periodización siguiendo la metodología anterior.
 
 ${objectiveGuidance[objetivo] || objectiveGuidance.forma}
 
-REGLAS GENERALES:
+REGLAS DE SALIDA:
 - Carga (load) 100-700 combinando volumen e intensidad
 - Responde SIEMPRE en castellano
-- Respeta estrictamente la nomenclatura de fases del objetivo`;
+- Respeta estrictamente la nomenclatura de fases del objetivo
+- Devuelve SOLO JSON válido sin preámbulo ni markdown`
+  });
 
   const ejemploFase = objetivo === 'carrera' ? 'Base 1' : `Ciclo 1 · Semana 1/${weeks}`;
 
@@ -71,7 +88,7 @@ ${objetivo === 'carrera'
 
 Para cada semana retorna: número, fase, horas totales, carga 100-700, foco en una frase, y los 3-4 títulos principales de sesiones.
 
-Responde SOLO con JSON válido:
+Responde SOLO con JSON válido (sin markdown, sin texto extra):
 {
   "totalWeeks": ${weeks},
   "objetivo": "${objetivo}",
@@ -91,18 +108,45 @@ Responde SOLO con JSON válido:
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 3500,
-        system: systemPrompt,
+        max_tokens: 4000,
+        system: systemBlocks,
         messages: [{ role: 'user', content: userMessage }]
       })
     });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Anthropic API error', response.status, errText);
+      return res.status(500).json({ error: 'AI error ' + response.status, detail: errText.slice(0, 500) });
+    }
+
     const data = await response.json();
+    if (!data.content?.[0]?.text) {
+      console.error('Respuesta inesperada:', JSON.stringify(data).slice(0, 500));
+      return res.status(500).json({ error: 'Respuesta inesperada del modelo' });
+    }
+
     const text = data.content[0].text;
-    const clean = text.replace(/```json|```/g, '').trim();
-    const result = JSON.parse(clean);
+    // Parsing robust: clean → fallback regex
+    let result;
+    try {
+      result = JSON.parse(text.replace(/```json|```/g, '').trim());
+    } catch (e1) {
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) {
+        console.error('Sin JSON en respuesta. Inicio:', text.slice(0, 300));
+        return res.status(500).json({ error: 'El modelo no devolvió JSON', preview: text.slice(0, 200) });
+      }
+      try { result = JSON.parse(match[0]); }
+      catch (e2) {
+        console.error('JSON inválido tras regex:', e2.message, 'Texto:', text.slice(0, 300));
+        return res.status(500).json({ error: 'JSON inválido del modelo' });
+      }
+    }
+
     return res.status(200).json(result);
   } catch (error) {
-    console.error('Plan completo error:', error);
+    console.error('Plan completo crash:', error);
     return res.status(500).json({ error: error.message });
   }
 }
