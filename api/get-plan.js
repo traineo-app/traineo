@@ -28,16 +28,16 @@ export default async function handler(req, res) {
   if (!email) return res.status(400).json({ error: 'Email requerit' });
 
   try {
-    // 1. Buscar profile per email
+    // 1. Profile per email
     const { data: profile, error: pErr } = await supabase
       .from('profiles')
       .select('*')
       .eq('email', email)
       .maybeSingle();
     if (pErr) throw pErr;
-    if (!profile) return res.status(200).json({ plan: null });
+    if (!profile) return res.status(200).json({ profile: null, plan: null });
 
-    // 2. Últim pla per setmana DESC
+    // 2. Últim pla del profile
     const { data: plans, error: plErr } = await supabase
       .from('plans')
       .select('*')
@@ -46,19 +46,15 @@ export default async function handler(req, res) {
       .limit(1);
     if (plErr) throw plErr;
 
-    if (!plans || plans.length === 0) {
-      return res.status(200).json({
-        plan: { userData: buildUserData(profile), sessions: null, resum: '' }
-      });
-    }
+    const plan = plans && plans.length > 0 ? plans[0] : null;
 
-    const plan = plans[0];
     return res.status(200).json({
+      profile: profile,  // raw — el que index.html espera
       plan: {
         userData: buildUserData(profile),
-        sessions: plan.sessions,
-        resum: plan.resum,
-        setmana: plan.setmana
+        sessions: plan?.sessions || null,
+        resum: plan?.resum || '',
+        setmana: plan?.setmana || null
       }
     });
   } catch (e) {
