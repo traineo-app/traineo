@@ -89,7 +89,8 @@ async function handlePlanGeneration(req, res) {
     edat, alcada, pes, fcrep, genere,
     pacez2, race5k, race10k, ftp,
     musculos, obj_gym, equipamiento,
-    stravaStats, stressTestData
+    stravaStats, stressTestData,
+    previousWeek, weekNumber, cycleInfo  // ← nous camps per adaptació setmanal
   } = req.body;
 
   const sportsList = Array.isArray(sports) ? sports : (sports || 'running').split(',');
@@ -221,6 +222,56 @@ async function handlePlanGeneration(req, res) {
     }
   }
 
+// ─── Setmana anterior (clau per adaptació) ──────────────────────────────
+  const { previousWeek, weekNumber, cycleInfo } = req.body;
+
+  if (previousWeek && previousWeek.sessions) {
+    ctx += `\n## SETMANA ANTERIOR — Adapta la nova en funció d'això\n`;
+    ctx += `**Fase de la setmana anterior:** ${previousWeek.phase || 'desconeguda'}\n\n`;
+    ctx += `**Resultat per dia:**\n`;
+
+    previousWeek.sessions.forEach(s => {
+      if (s.rest) {
+        ctx += `- ${s.day}: Descans\n`;
+      } else if (s.completed && s.completion) {
+        const c = s.completion;
+        const statusMap = { completed: 'COMPLETADA', partial: 'PARCIAL', skipped: 'NO FETA' };
+        const rpeMap = { easy: 'fàcil', good: 'bé', hard: 'dura', very_hard: 'al límit' };
+        let line = `- ${s.day}: [${s.title} · ${s.duracio_min}min` ;
+        if (s.custom) {
+          if (s.custom.km) line += ` · ${s.custom.km}km`;
+          if (s.custom.elev) line += ` · +${s.custom.elev}m`;
+        }
+        line += `] → ${statusMap[c.status] || c.status.toUpperCase()}`;
+        if (c.status === 'partial' && c.actualDuration) line += ` (${c.actualDuration}min reals de ${c.plannedDuration})`;
+        line += ` · RPE: ${rpeMap[c.rpe] || c.rpe}`;
+        if (c.note) line += ` · Nota: "${c.note}"`;
+        ctx += line + '\n';
+      } else if (s.skipped) {
+        ctx += `- ${s.day}: [${s.title}] → NO FETA (sense confirmar / saltada)\n`;
+      } else {
+        ctx += `- ${s.day}: [${s.title}] → SENSE DADES\n`;
+      }
+    });
+
+    ctx += `\n**INSTRUCCIÓ D'ADAPTACIÓ:**\n`;
+    ctx += `- Si l'atleta ha completat tot bé amb RPE moderat → segueix progressió natural (puja càrrega ~5%).\n`;
+    ctx += `- Si hi ha RPE "al límit" repetit (≥2 sessions) → suavitza Z4/Z5 aquesta setmana.\n`;
+    ctx += `- Si ha saltat o fet parcial una sessió clau (tirada llarga, qualitat) → NO la dobles, analitza per què (fatiga? logística?) i adapta.\n`;
+    ctx += `- Si ha completat poc (<60% sessions) → reduceix volum 15-20% i prioritza adherència sobre estímul.\n`;
+    ctx += `- Si RPE "fàcil" generalitzat → pots pujar lleugerament intensitat o volum.\n`;
+    ctx += `- Aplica BLOC 9 #57 de la teva metodologia (regla 3+1, lectura de fatiga real).\n`;
+  }
+
+  // Context de quina setmana del bloc estem (per fases periodització)
+  if (weekNumber) {
+    ctx += `\n## POSICIÓ AL BLOC\n- Setmana número ${weekNumber} del pla.\n`;
+  }
+  if (cycleInfo) {
+    ctx += `- Cicle ${cycleInfo.cycleNumber}, setmana ${cycleInfo.cycleWeek}/4 del cicle (rolling).\n`;
+    if (cycleInfo.cycleWeek === 4) ctx += `- Aquesta és setmana de DESCÀRREGA: -25/30% volum, mantén freqüència i una mica d'intensitat.\n`;
+  }
+  
   // Cursa
   if (objetivo === 'carrera' && carrera) {
     ctx += `\n## OBJECTIU CURSA\n`;
@@ -315,6 +366,7 @@ async function handlePlanGeneration(req, res) {
   return res.status(200).json({
     setmana: validated,
     resum: data.resum || data.resumen || '',
-    usage: response.usage  // monitora cache_creation_input_tokens / cache_read_input_tokens
+    phase: data.phase || data.fase || null,  // ← el coach pot retornar la fase si vol
+    usage: response.usage
   });
 }
