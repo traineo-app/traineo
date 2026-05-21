@@ -39,13 +39,40 @@
     .plan-link-title{font-size:.88rem;font-weight:600;color:#111110;letter-spacing:-.1px}
     .plan-link-sub{font-size:.72rem;color:#888780;margin-top:1px;font-weight:500}
     .plan-link-arrow{color:#163A28;font-size:1.1rem;font-weight:600}
+    .calendar-card{margin:0 1.25rem 1rem;background:#fff;border:.5px solid #E8E6DF;border-radius:14px;padding:1rem .85rem}
+    .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;padding:0 .15rem}
+    .cal-month{font-size:.9rem;font-weight:600;color:#111110;letter-spacing:-.1px}
+    .cal-nav{width:30px;height:30px;border-radius:8px;border:.5px solid #E8E6DF;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#163A28;font-size:1rem;font-weight:600}
+    .cal-nav:hover{background:#F1FAF5;border-color:#163A28}
+    .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:5px}
+    .cal-weekday{text-align:center;font-size:.56rem;font-weight:700;color:#888780;text-transform:uppercase;letter-spacing:.05em}
+    .cal-week-row{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;border-radius:9px;cursor:pointer;padding:3px;margin-bottom:2px;transition:background .15s}
+    .cal-week-row:hover{background:#F1EFE8}
+    .cal-week-row.current{background:#EBF5EF}
+    .cal-week-row.selected,.cal-week-row.selected:hover{background:#163A28}
+    .cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:7px;min-height:34px}
+    .cal-day-num{font-family:'Bebas Neue',sans-serif;font-size:.92rem;color:#111110;letter-spacing:.5px;line-height:1}
+    .cal-day.out .cal-day-num{color:#C8C6BF}
+    .cal-day.is-today .cal-day-num{color:#163A28;font-weight:700}
+    .cal-week-row.selected .cal-day-num{color:#fff}
+    .cal-week-row.selected .cal-day.out .cal-day-num{color:rgba(255,255,255,.4)}
+    .cal-dot{width:5px;height:5px;border-radius:50%;background:#4A9E6B}
+    .cal-dot.empty{background:transparent}
+    .cal-week-row.selected .cal-dot{background:#7FD4A0}
     .week-section{margin:0 1.25rem 1rem}
     .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.85rem}
     .section-title{font-size:.68rem;font-weight:600;color:#888780;text-transform:uppercase;letter-spacing:.16em}
+    .week-nav-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+    .week-nav-title{font-size:.92rem;font-weight:600;color:#111110;letter-spacing:-.2px}
+    .week-nav-badge{font-size:.58rem;font-weight:700;color:#163A28;background:#EBF5EF;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
+    .week-summary{font-size:.72rem;color:#888780;font-weight:500;font-family:'Bebas Neue';letter-spacing:.5px;margin-bottom:.75rem}
+    .week-empty{background:#F1EFE8;border-radius:10px;padding:1.25rem 1rem;text-align:center;font-size:.8rem;color:#888780;font-weight:500;line-height:1.6}
     .plan-list{display:flex;flex-direction:column;gap:5px}
     .plan-item{background:#fff;border:.5px solid #E8E6DF;border-radius:10px;padding:.7rem .85rem;display:flex;align-items:center;gap:.75rem;transition:all .15s;cursor:pointer}
     .plan-item.today-item{background:#F1FAF5;border:1px solid #163A28}
     .plan-item.rest-item{background:#F1EFE8;border-color:#E8E6DF;cursor:default}
+    .plan-item.readonly{cursor:default}
+    .plan-item.readonly:hover{border-color:#E8E6DF}
     .plan-item.dragging{opacity:.4}
     .plan-item.drag-over{border:1.5px dashed #163A28;background:#EBF5EF;transform:scale(1.01)}
     .plan-item.changed{border:1px solid #4A9E6B;background:#F1FAF5;animation:highlight 2s ease-out forwards}
@@ -70,6 +97,7 @@
     .stats-card{margin:0 1.25rem 1rem;background:#fff;border:.5px solid #E8E6DF;border-radius:12px;padding:1rem}
     .stats-label{font-size:.65rem;font-weight:600;color:#888780;text-transform:uppercase;letter-spacing:.16em;margin-bottom:.75rem}
     .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;padding-bottom:.85rem;border-bottom:.5px solid #E8E6DF;margin-bottom:.85rem}
+    .stats-grid.last{border-bottom:none;margin-bottom:0;padding-bottom:0}
     .stat{text-align:left}
     .stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.85rem;color:#111110;line-height:.95;letter-spacing:.5px}
     .stat-val.green{color:#163A28}
@@ -405,6 +433,20 @@ let adjustingSession=null;
 let adjustingSessionIdx=null;
 let adjustValues={time:45,km:7,pace:360,speed:27,elev:0};
 
+// ─── NOU: estat de calendari i navegació de setmanes ────────────────
+let calendarYear=today.getFullYear();
+let calendarMonth=today.getMonth();
+let allWeeks=[];
+let periodization=null;
+let _weekDataCache={};
+function _toISO(d){const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');}
+function getMondayISO(date){const d=new Date(date);const day=d.getDay();d.setDate(d.getDate()-(day===0?6:day-1));return _toISO(d);}
+function isoToDate(iso){const p=iso.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);}
+function addDaysISO(iso,n){const d=isoToDate(iso);d.setDate(d.getDate()+n);return _toISO(d);}
+function dayIdxOfISO(iso){return (isoToDate(iso).getDay()+6)%7;}
+let currentWeekStart=getMondayISO(new Date());
+let selectedWeekStart=currentWeekStart;
+
 function expandSports(sports){
   var expanded=[];
   (sports||['running']).forEach(function(s){
@@ -421,13 +463,13 @@ function calculatePaces(u){
   const nivel=(u?.nivel||'intermedio').toLowerCase();
   let runZ2;
     if (u?.pacez2) {
-      runZ2 = u.pacez2;                                        // calibrat a onboarding (autoritatiu)
+      runZ2 = u.pacez2;
     } else if (u?.race5k) {
-      runZ2 = Math.round((u.race5k/5)/0.85);                  // fallback derivat 5K
+      runZ2 = Math.round((u.race5k/5)/0.85);
     } else if (u?.race10k) {
-      runZ2 = Math.round((u.race10k/10)/0.88);                // fallback derivat 10K
+      runZ2 = Math.round((u.race10k/10)/0.88);
     } else {
-      runZ2 = levelPaces[nivel] || 360;                       // últim recurs: per nivell
+      runZ2 = levelPaces[nivel] || 360;
     }
   const cycZ2=u?.ftp?Math.round(u.ftp/8.5):(levelSpeeds[nivel]||27);
   return {
@@ -523,14 +565,19 @@ async function initDashboard(user){
     try {
       const res=await fetch('/api/get-plan?email='+encodeURIComponent(currentEmail));
       const data=await res.json();
-      if(data.plan&&data.plan.sessions&&data.plan.sessions.length>0){
-        planDays=normalizePlan(data.plan.sessions);
-        window._coachResum=data.plan.resum||'';
+      allWeeks=data.weeks||[];
+      const cur=allWeeks.find(w=>w.setmana===currentWeekStart);
+      const curSessions=cur?cur.sessions:(data.plan&&data.plan.sessions);
+      const curResum=cur?cur.resum:(data.plan&&data.plan.resum);
+      if(curSessions&&curSessions.length>0){
+        planDays=normalizePlan(curSessions);
+        window._coachResum=curResum||'';
         showToast('Plan cargado ✓');
         renderAll();
+        loadPeriodization();
         return;
       }
-    } catch(e){ console.log('No saved plan'); }
+    } catch(e){ console.log('No saved plan',e); }
   }
   await buildPlan(user);
 }
@@ -573,7 +620,10 @@ async function buildPlan(user){
     if(data.setmana){
       planDays=normalizePlan(data.setmana);
       if(data.resum) window._coachResum=data.resum;
+      allWeeks=allWeeks.filter(w=>w.setmana!==currentWeekStart);
+      allWeeks.push({setmana:currentWeekStart,sessions:planDays,resum:window._coachResum||''});
       renderAll();
+      loadPeriodization();
       if(currentEmail) await savePlanToSupabase();
       else setTimeout(()=>openEmailModal(),2000);
     } else throw new Error('Format incorrecte');
@@ -594,6 +644,126 @@ function buildPlanStatic(user){
     if(idx<dias){const s=allS[idx%allS.length];idx++;return{...s,day:d,rest:false,skipped:false,completed:false,duracio_min:45};}
     return{day:d,rest:true,icon:'💤',title:'Descanso',sub:'',tags:[],why:'',skipped:false,completed:false,duracio_min:0};
   });
+}
+
+// ─── NOU: periodització lleugera per a setmanes futures ─────────────
+async function loadPeriodization(){
+  if(!user) return;
+  try {
+    const body={
+      userData:user,
+      raceDate:(user.carrera&&user.fecha)?user.fecha:null,
+      raceName:(user.carrera&&user.fecha)?user.carrera:null,
+      totalWeeks:8
+    };
+    const res=await fetch('/api/plan-completo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();
+    if(data&&data.weeks&&data.weeks.length){
+      periodization=data;
+      renderAll();
+    }
+  } catch(e){ console.log('Periodización no disponible',e); }
+}
+
+function iconForTitle(t){
+  t=(t||'').toLowerCase();
+  if(t.includes('bici')||t.includes('rodada')||t.includes('ciclis')||t.includes('ruta')) return '🚴';
+  if(t.includes('trail')) return '🏔️';
+  if(t.includes('nad')||t.includes('piscina')||t.includes('natac')) return '🏊';
+  if(t.includes('fuerza')||t.includes('gimnas')||t.includes('core')||t.includes('full body')) return '🏋️';
+  if(t.includes('calisten')) return '🤸';
+  if(t.includes('brick')) return '🥇';
+  return '🏃';
+}
+
+function distributePreview(pw){
+  const titles=pw.sessions||[];
+  const dias=user.dias||3;
+  const descanso=user.descanso||'Ninguno';
+  const perSession=Math.round(((pw.totalHours||4)*60)/Math.max(dias,1));
+  let idx=0;
+  return dayNames.map(d=>{
+    if(d===descanso) return {day:d,rest:true,icon:'💤',title:'Descanso',sub:'',tags:[],duracio_min:0};
+    if(idx<dias){
+      const title=titles[idx]||titles[idx%Math.max(titles.length,1)]||'Sesión';
+      idx++;
+      return {day:d,rest:false,icon:iconForTitle(title),title:title,sub:'',tags:[],duracio_min:perSession,preview:true};
+    }
+    return {day:d,rest:true,icon:'💤',title:'Descanso',sub:'',tags:[],duracio_min:0};
+  });
+}
+
+function estimateLoad(train){
+  let load=0;
+  (train||[]).forEach(s=>{
+    const min=s.duracio_min||45;
+    const z=getZoneFromTags(s.tags);
+    const w={z1:0.8,z2:1,z3:1.5,z4:2.2,z5:3}[z]||1;
+    load+=min*w;
+  });
+  return Math.round(load);
+}
+
+function getWeekData(weekStart){
+  if(_weekDataCache[weekStart]) return _weekDataCache[weekStart];
+  let result;
+  if(weekStart===currentWeekStart){
+    result={type:'current',sessions:planDays,load:estimateLoad(planDays.filter(s=>!s.rest))};
+  } else {
+    const saved=allWeeks.find(w=>w.setmana===weekStart);
+    if(saved&&saved.sessions&&saved.sessions.length){
+      const norm=normalizePlan(saved.sessions);
+      result={type:weekStart<currentWeekStart?'past':'futureSaved',sessions:norm,resum:saved.resum,load:estimateLoad(norm.filter(s=>!s.rest))};
+    } else if(weekStart>currentWeekStart&&periodization&&periodization.weeks){
+      const weeksAhead=Math.round((isoToDate(weekStart)-isoToDate(currentWeekStart))/(7*86400000));
+      const pw=periodization.weeks[weeksAhead];
+      if(pw){
+        result={type:'futurePreview',sessions:distributePreview(pw),phase:pw.phase,resum:pw.focus,load:pw.load||null};
+      } else { result={type:'empty',sessions:null}; }
+    } else { result={type:'empty',sessions:null}; }
+  }
+  _weekDataCache[weekStart]=result;
+  return result;
+}
+
+function dayHasSession(iso){
+  const wd=getWeekData(getMondayISO(isoToDate(iso)));
+  if(!wd||!wd.sessions) return false;
+  const s=wd.sessions[dayIdxOfISO(iso)];
+  return !!(s&&!s.rest);
+}
+
+function formatWeekRange(weekStartISO){
+  const start=isoToDate(weekStartISO);
+  const end=new Date(start);end.setDate(end.getDate()+6);
+  if(start.getMonth()===end.getMonth())
+    return start.getDate()+'–'+end.getDate()+' '+months[start.getMonth()];
+  return start.getDate()+' '+months[start.getMonth()].substring(0,3)+' – '+end.getDate()+' '+months[end.getMonth()].substring(0,3);
+}
+
+function weekSummary(sessions){
+  if(!sessions) return '';
+  const train=sessions.filter(s=>!s.rest);
+  if(train.length===0) return 'Semana de descanso';
+  const totalMin=train.reduce((a,s)=>a+(s.duracio_min||45),0);
+  const h=Math.floor(totalMin/60),m=totalMin%60;
+  let totalKm=0;
+  train.forEach(s=>{const mt=getSessionMetrics(s,user);if(mt&&mt.km)totalKm+=mt.km;});
+  let parts=[train.length+' '+(train.length===1?'sesión':'sesiones')];
+  if(totalKm>0) parts.push(Math.round(totalKm)+' km');
+  parts.push(h+'h'+(m>0?' '+m+'m':''));
+  return parts.join(' · ');
+}
+
+function weekItemSub(d){
+  if(d.rest) return d.sub||'';
+  const metrics=getSessionMetrics(d,user);
+  if(metrics){
+    const mins=d.duracio_min||45;
+    if(metrics.sport==='running'||metrics.sport==='trail') return mins+"' · "+metrics.km+' KM · '+metrics.pace+'/KM'+(metrics.elev>0?' · +'+metrics.elev+'M':'');
+    if(metrics.sport==='cycling') return mins+"' · "+metrics.km+' KM · '+metrics.kmh+' KM/H'+(metrics.elev>0?' · +'+metrics.elev+'M':'');
+  }
+  return d.sub||((d.duracio_min||45)+"'");
 }
 
 function showCoachBanner(working,message){coachBannerState={working:working,message:message};renderCoachBanner();}
@@ -646,6 +816,10 @@ async function reajustarDiferit(descripcioCanvi,loadingMsg){
 
 async function savePlanToSupabase(){
   if(!currentEmail||planDays.length===0) return;
+  // NOU: mantenir la cache local de setmanes sincronitzada
+  const cw=allWeeks.find(w=>w.setmana===currentWeekStart);
+  if(cw){ cw.sessions=planDays; cw.resum=window._coachResum||''; }
+  else { allWeeks.push({setmana:currentWeekStart,sessions:planDays,resum:window._coachResum||''}); }
   try {
     await fetch('/api/save-plan',{
       method:'POST',
@@ -668,13 +842,12 @@ async function saveWithEmail(){
   showToast('Plan guardado ✓');
 }
 
+// ─── renderAll: targeta d'avui (intacta) + calendari + setmana + stats ───
 function renderAll(){
+  _weekDataCache={};
   const todayRealIdx=planDays.findIndex(d=>d.day===todayName);
   const todaySession=todayRealIdx>=0?planDays[todayRealIdx]:(planDays.find(d=>!d.rest)||planDays[0]||{title:'Descanso',icon:'💤',tags:[],duracio_min:0,sub:'',why:''});
   const trainDays=planDays.filter(d=>!d.rest);
-  const totalMin=trainDays.reduce((acc,d)=>acc+(d.duracio_min||50),0);
-  const h=Math.floor(totalMin/60);
-  const m=totalMin%60;
   const fc=user?.fcmax||185;
   const z2min=Math.round(fc*.60);
   const z2max=Math.round(fc*.70);
@@ -687,7 +860,6 @@ function renderAll(){
     }
   }
 
-  const savedBadge=currentEmail?'<span class="saved-badge">✓ Guardado</span>':'';
   const durMin=todaySession.duracio_min||45;
   const zona=(todaySession.tags||[]).find(t=>t.startsWith('Z'))||'Z2';
   const todayMetrics=todaySession.rest?null:getSessionMetrics(todaySession,user);
@@ -703,8 +875,7 @@ function renderAll(){
     }
   }
 
-  document.getElementById('main-content').innerHTML=
-    raceHTML+
+  const todayCard=
     '<div class="today" onclick="openSessio('+todayRealIdx+')">'+
       '<div class="today-meta">'+
         '<span class="today-label">● Sesión de hoy</span>'+
@@ -725,32 +896,151 @@ function renderAll(){
           '<button class="btn-ghost" onclick="openSessio('+todayRealIdx+')">▶ Empezar entreno</button>'+
         '</div>'
       )+
-    '</div>'+
+    '</div>';
+
+  const planLink=
     '<div class="plan-link" onclick="window.location.href=\'plan.html\'+window.location.search">'+
       '<div class="plan-link-icon">▦</div>'+
-      '<div class="plan-link-info"><div class="plan-link-title">Plan completo</div><div class="plan-link-sub">Periodización y semanas</div></div>'+
+      '<div class="plan-link-info"><div class="plan-link-title">Plan completo</div><div class="plan-link-sub">Periodización y fases</div></div>'+
       '<div class="plan-link-arrow">→</div>'+
-    '</div>'+
-    '<div class="week-section">'+
-      '<div id="reajust-banner-slot"></div>'+
-      '<div class="section-head">'+
-        '<span class="section-title">Esta semana '+savedBadge+'</span>'+
-        '<span style="font-size:.6rem;color:#C8C6BF;text-transform:uppercase;letter-spacing:.12em;font-weight:600">⠿ ARRASTRA · ✎ EDITA</span>'+
-      '</div>'+
-      '<div class="plan-list" id="plan-list">'+
-        planDays.map((d,i)=>renderPlanItem(d,i)).join('')+
-      '</div>'+
-    '</div>'+
-    '<div class="stats-card">'+
-      '<div class="stats-label">Esta semana</div>'+
-      '<div class="stats-grid">'+
-        '<div class="stat"><div class="stat-val">'+h+(m>0?':'+(m<10?'0'+m:m):'h')+'</div><div class="stat-lbl">Horas</div></div>'+
-        '<div class="stat"><div class="stat-val green">'+trainDays.length+'</div><div class="stat-lbl">Sesiones</div></div>'+
-        '<div class="stat"><div class="stat-val">'+z2min+'-'+z2max+'</div><div class="stat-lbl">Z2 bpm</div></div>'+
-      '</div>'+
-      '<button class="btn-reorganize" onclick="window.location.href=\'onboarding.html\'">↺ Reconfigurar plan</button>'+
     '</div>';
+
+  document.getElementById('main-content').innerHTML=
+    raceHTML+todayCard+planLink+renderCalendar()+renderWeekSection()+renderStatsCard();
   renderCoachBanner();
+}
+
+// ─── NOU: calendari mensual ─────────────────────────────────────────
+function renderCalendar(){
+  const firstOfMonth=new Date(calendarYear,calendarMonth,1);
+  let gridStart=new Date(firstOfMonth);
+  const fd=gridStart.getDay();
+  gridStart.setDate(gridStart.getDate()-(fd===0?6:fd-1));
+  const todayISO=_toISO(new Date());
+  let rowsHTML='';
+  let cursor=new Date(gridStart);
+  for(let w=0;w<6;w++){
+    const weekStartISO=_toISO(cursor);
+    let cellsHTML='';
+    let anyInMonth=false;
+    for(let d=0;d<7;d++){
+      const iso=_toISO(cursor);
+      const inMonth=cursor.getMonth()===calendarMonth;
+      if(inMonth) anyInMonth=true;
+      const has=dayHasSession(iso);
+      const isToday=iso===todayISO;
+      cellsHTML+='<div class="cal-day'+(inMonth?'':' out')+(isToday?' is-today':'')+'">'+
+        '<span class="cal-day-num">'+cursor.getDate()+'</span>'+
+        '<span class="cal-dot'+(has?'':' empty')+'"></span>'+
+      '</div>';
+      cursor.setDate(cursor.getDate()+1);
+    }
+    if(anyInMonth){
+      let rowCls='cal-week-row';
+      if(weekStartISO===currentWeekStart) rowCls+=' current';
+      if(weekStartISO===selectedWeekStart) rowCls+=' selected';
+      rowsHTML+='<div class="'+rowCls+'" onclick="selectWeek(\''+weekStartISO+'\')">'+cellsHTML+'</div>';
+    }
+  }
+  const monthLabel=months[calendarMonth].charAt(0).toUpperCase()+months[calendarMonth].slice(1)+' '+calendarYear;
+  return '<div class="calendar-card">'+
+    '<div class="cal-header">'+
+      '<button class="cal-nav" onclick="calPrevMonth()">‹</button>'+
+      '<span class="cal-month">'+monthLabel+'</span>'+
+      '<button class="cal-nav" onclick="calNextMonth()">›</button>'+
+    '</div>'+
+    '<div class="cal-weekdays">'+dayNames.map(d=>'<span class="cal-weekday">'+d+'</span>').join('')+'</div>'+
+    rowsHTML+
+  '</div>';
+}
+
+function calPrevMonth(){ calendarMonth--; if(calendarMonth<0){calendarMonth=11;calendarYear--;} renderAll(); }
+function calNextMonth(){ calendarMonth++; if(calendarMonth>11){calendarMonth=0;calendarYear++;} renderAll(); }
+function selectWeek(weekStartISO){ selectedWeekStart=weekStartISO; renderAll(); }
+
+// ─── NOU: secció de la setmana seleccionada ─────────────────────────
+function renderWeekSection(){
+  const wd=getWeekData(selectedWeekStart);
+  const isCurrent=selectedWeekStart===currentWeekStart;
+  const isPast=selectedWeekStart<currentWeekStart;
+  const label=formatWeekRange(selectedWeekStart);
+  let badge;
+  if(isCurrent) badge='<span class="week-nav-badge">Esta semana</span>';
+  else if(isPast) badge='<span class="week-nav-badge" style="background:#F1EFE8;color:#888780">Pasada</span>';
+  else badge='<span class="week-nav-badge" style="background:#FEF6E5;color:#7C5B0A">Próxima</span>';
+
+  let body;
+  if(!wd.sessions){
+    body='<div class="week-empty">Semana por planificar.<br>Se generará al llegar, adaptada a lo que hayas hecho.</div>';
+  } else if(isCurrent){
+    body='<div class="plan-list" id="plan-list">'+planDays.map((d,i)=>renderPlanItem(d,i)).join('')+'</div>';
+  } else {
+    body='<div class="plan-list">'+wd.sessions.map(d=>renderReadonlyItem(d,wd.type)).join('')+'</div>';
+  }
+
+  const summary=weekSummary(wd.sessions);
+  const hint=isCurrent
+    ?'<div style="text-align:right;margin-bottom:.5rem"><span style="font-size:.6rem;color:#C8C6BF;text-transform:uppercase;letter-spacing:.12em;font-weight:600">⠿ ARRASTRA · ✎ EDITA</span></div>'
+    :'';
+
+  return '<div class="week-section">'+
+    '<div id="reajust-banner-slot"></div>'+
+    '<div class="week-nav-head"><span class="week-nav-title">'+label+'</span>'+badge+'</div>'+
+    (summary?'<div class="week-summary">'+summary+'</div>':'')+
+    hint+
+    body+
+  '</div>';
+}
+
+function renderReadonlyItem(d,weekType){
+  let cls='readonly';
+  if(d.rest){ cls+=' rest-item'; }
+  else if(weekType==='past'){
+    const st=d.completion?d.completion.status:null;
+    if(d.completed&&st==='completed') cls+=' completed';
+    else if(st==='partial') cls+=' completed-partial';
+    else if(st==='skipped'||d.skipped) cls+=' completed-skipped';
+  }
+  const subText=d.rest?(d.sub||''):weekItemSub(d);
+  return '<div class="plan-item '+cls+'">'+
+    '<div class="plan-day-badge">'+getDayLong(d.day)+'</div>'+
+    '<span class="plan-item-icon">'+(d.icon||'🏃')+'</span>'+
+    '<div class="plan-item-info">'+
+      '<div class="plan-item-title">'+(d.title||'Sesión')+'</div>'+
+      (subText?'<div class="plan-item-sub">'+subText+'</div>':'')+
+    '</div>'+
+  '</div>';
+}
+
+// ─── NOU: stats enriquides de la setmana seleccionada ───────────────
+function renderStatsCard(){
+  const wd=getWeekData(selectedWeekStart);
+  const sessions=wd.sessions||[];
+  const train=sessions.filter(s=>!s.rest);
+  const totalMin=train.reduce((a,s)=>a+(s.duracio_min||45),0);
+  const h=Math.floor(totalMin/60),m=totalMin%60;
+  const load=(wd.load!=null)?wd.load:estimateLoad(train);
+  let totalKm=0;
+  train.forEach(s=>{const mt=getSessionMetrics(s,user);if(mt&&mt.km)totalKm+=mt.km;});
+  const z2count=train.filter(s=>getZoneFromTags(s.tags)==='z2').length;
+  const z2pct=train.length?Math.round(z2count/train.length*100):0;
+  const done=sessions.filter(s=>s.completed&&s.completion&&s.completion.status==='completed').length;
+  const isCurrent=selectedWeekStart===currentWeekStart;
+
+  return '<div class="stats-card">'+
+    '<div class="stats-label">Resumen de la semana</div>'+
+    '<div class="stats-grid">'+
+      '<div class="stat"><div class="stat-val">'+h+(m>0?':'+(m<10?'0'+m:m):'h')+'</div><div class="stat-lbl">Horas</div></div>'+
+      '<div class="stat"><div class="stat-val green">'+train.length+'</div><div class="stat-lbl">Sesiones</div></div>'+
+      '<div class="stat"><div class="stat-val">'+load+'</div><div class="stat-lbl">Carga</div></div>'+
+    '</div>'+
+    '<div class="stats-grid last">'+
+      '<div class="stat"><div class="stat-val">'+(totalKm>0?Math.round(totalKm):'—')+'</div><div class="stat-lbl">Km totales</div></div>'+
+      '<div class="stat"><div class="stat-val">'+z2pct+'%</div><div class="stat-lbl">En Z2</div></div>'+
+      '<div class="stat"><div class="stat-val green">'+done+'/'+train.length+'</div><div class="stat-lbl">Completado</div></div>'+
+    '</div>'+
+    (isCurrent?'<button class="btn-reorganize" style="margin-top:.85rem" onclick="window.location.href=\'onboarding.html\'">↺ Reconfigurar plan</button>':'')+
+  '</div>';
 }
 
 function renderPlanItem(d,i){
