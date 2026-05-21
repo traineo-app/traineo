@@ -223,8 +223,6 @@ async function handlePlanGeneration(req, res) {
   }
 
 // ─── Setmana anterior (clau per adaptació) ──────────────────────────────
-  const { previousWeek, weekNumber, cycleInfo } = req.body;
-
   if (previousWeek && previousWeek.sessions) {
     ctx += `\n## SETMANA ANTERIOR — Adapta la nova en funció d'això\n`;
     ctx += `**Fase de la setmana anterior:** ${previousWeek.phase || 'desconeguda'}\n\n`;
