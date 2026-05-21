@@ -49,7 +49,8 @@ export default async function handler(req, res) {
         resum: latest?.resum || '',
         setmana: latest?.setmana || null
       },
-      weeks: weeks || []  // nou: totes les setmanes per al dashboard
+      weeks: weeks || [],
+      periodization: profile.periodization || null
     });
   } catch (e) {
     console.error('get-plan error:', e);
