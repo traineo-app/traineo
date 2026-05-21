@@ -174,6 +174,13 @@
     .email-modal-input{width:100%;padding:.8rem 1rem;border:.5px solid #E8E6DF;border-radius:10px;font-size:.9rem;font-family:'Inter',sans-serif;color:#111110;background:#fff;outline:none;margin-bottom:1rem}
     .email-modal-input:focus{border-color:#163A28}
     .saved-badge{display:inline-flex;align-items:center;gap:4px;background:#EBF5EF;color:#163A28;font-size:.62rem;font-weight:600;padding:3px 8px;border-radius:20px;margin-left:8px;text-transform:uppercase;letter-spacing:.06em}
+    .catchup-item{background:#fff;border:.5px solid #E8E6DF;border-radius:10px;padding:.75rem .85rem;margin-bottom:.5rem}
+    .catchup-item-head{display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem}
+    .catchup-item-day{font-family:'Bebas Neue',sans-serif;font-size:.85rem;color:#888780;background:#F1EFE8;padding:2px 8px;border-radius:6px;letter-spacing:.5px}
+    .catchup-item-title{font-size:.85rem;font-weight:600;color:#111110}
+    .catchup-status{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem}
+    .catchup-btn{border:.5px solid #E8E6DF;background:#fff;border-radius:8px;padding:.55rem .25rem;font-size:.72rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;color:#888780;text-align:center}
+    .catchup-btn.sel{border:1.5px solid #163A28;background:#F1FAF5;color:#163A28}
   </style>
 </head>
 <body>
@@ -339,6 +346,15 @@
     </div>
     <button class="btn-green" id="save-completion-btn" onclick="saveCompletion()" disabled>Guardar →</button>
     <button class="btn-cancel" onclick="closeModal('modal-complete')">Cancelar</button>
+  </div>
+  <div class="modal-overlay" id="modal-catchup">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Pon al día tu semana</div>
+    <div class="modal-sub">¿Cómo fueron estos entrenos? Así el coach ajusta lo que queda.</div>
+    <div id="catchup-list"></div>
+    <button class="btn-green" id="catchup-save-btn" onclick="confirmCatchUp()" disabled>Guardar →</button>
+    <button class="btn-cancel" onclick="closeModal('modal-catchup')">Lo haré más tarde</button>
   </div>
 </div>
 
@@ -575,6 +591,7 @@ async function initDashboard(user){
         showToast('Plan cargado ✓');
         renderAll();
         loadPeriodization();
+        maybeShowCatchUp();
         return;
       }
     } catch(e){ console.log('No saved plan',e); }
@@ -634,15 +651,47 @@ async function buildPlan(user){
   }
 }
 
+function spreadTrainingDays(dias,descanso){
+  dias=Math.max(0,Math.min(7,dias||0));
+  const descIdx=dayNames.indexOf(descanso);
+  const slots=[];
+  for(let i=0;i<7;i++){ if(i!==descIdx) slots.push(i); }
+  const result=[false,false,false,false,false,false,false];
+  if(dias<=0) return result;
+  if(dias>=slots.length){ slots.forEach(i=>result[i]=true); return result; }
+  const picked=new Set();
+  for(let k=0;k<dias;k++){
+    const pos=Math.round(k*(slots.length-1)/Math.max(dias-1,1));
+    picked.add(slots[pos]);
+  }
+  let guard=0;
+  while(picked.size<dias&&guard<slots.length){
+    let best=-1,bestDist=-1;
+    slots.forEach(si=>{
+      if(picked.has(si)) return;
+      let dist=99;
+      picked.forEach(pi=>{dist=Math.min(dist,Math.abs(pi-si));});
+      if(dist>bestDist){bestDist=dist;best=si;}
+    });
+    if(best>=0) picked.add(best); else break;
+    guard++;
+  }
+  picked.forEach(i=>result[i]=true);
+  return result;
+}
+
 function buildPlanStatic(user){
   const sports=expandSports(user.sports),dias=user.dias,descanso=user.descanso;
   let allS=[];
   sports.forEach(s=>(allSessionsDB[s]||[]).forEach(x=>allS.push({...x})));
+  const isTrain=spreadTrainingDays(dias,descanso);
   let idx=0;
-  planDays=dayNames.map(d=>{
-    if(d===descanso) return{day:d,rest:true,icon:'💤',title:'Descanso',sub:'Recuperación activa',tags:[],why:'',skipped:false,completed:false,duracio_min:0};
-    if(idx<dias){const s=allS[idx%allS.length];idx++;return{...s,day:d,rest:false,skipped:false,completed:false,duracio_min:45};}
-    return{day:d,rest:true,icon:'💤',title:'Descanso',sub:'',tags:[],why:'',skipped:false,completed:false,duracio_min:0};
+  planDays=dayNames.map((d,i)=>{
+    if(isTrain[i]&&allS.length){
+      const s=allS[idx%allS.length];idx++;
+      return{...s,day:d,rest:false,skipped:false,completed:false,duracio_min:s.duracio_min||45};
+    }
+    return{day:d,rest:true,icon:'💤',title:'Descanso',sub:d===descanso?'Recuperación activa':'',tags:[],why:'',skipped:false,completed:false,duracio_min:0};
   });
 }
 
@@ -681,10 +730,10 @@ function distributePreview(pw){
   const dias=user.dias||3;
   const descanso=user.descanso||'Ninguno';
   const perSession=Math.round(((pw.totalHours||4)*60)/Math.max(dias,1));
+  const isTrain=spreadTrainingDays(dias,descanso);
   let idx=0;
-  return dayNames.map(d=>{
-    if(d===descanso) return {day:d,rest:true,icon:'💤',title:'Descanso',sub:'',tags:[],duracio_min:0};
-    if(idx<dias){
+  return dayNames.map((d,i)=>{
+    if(isTrain[i]){
       const title=titles[idx]||titles[idx%Math.max(titles.length,1)]||'Sesión';
       idx++;
       return {day:d,rest:false,icon:iconForTitle(title),title:title,sub:'',tags:[],duracio_min:perSession,preview:true};
@@ -1425,6 +1474,71 @@ function saveCompletion(){
     desc+=' Adapta los próximos días: si fue muy duro o parcial, suaviza; si fue fácil, puede absorber más carga.';
     reajustarDiferit(desc,'Coach adaptando los próximos días...');
   } else {showToast('¡Sesión completada! ✓');}
+}
+
+let catchUpItems=[];
+
+function getUnconfirmedPastSessions(){
+  const todayPos=dayNames.indexOf(todayName);
+  const out=[];
+  planDays.forEach((d,i)=>{
+    const pos=dayNames.indexOf(d.day);
+    if(pos>=0&&pos<todayPos&&!d.rest&&!d.completion) out.push(i);
+  });
+  return out;
+}
+
+function maybeShowCatchUp(){
+  const idxs=getUnconfirmedPastSessions();
+  if(idxs.length===0) return;
+  catchUpItems=idxs.map(i=>({idx:i,status:null}));
+  renderCatchUp();
+  document.getElementById('catchup-save-btn').disabled=true;
+  document.getElementById('modal-catchup').classList.add('open');
+}
+
+function renderCatchUp(){
+  document.getElementById('catchup-list').innerHTML=catchUpItems.map((it,k)=>{
+    const s=planDays[it.idx];
+    return '<div class="catchup-item">'+
+      '<div class="catchup-item-head">'+
+        '<span class="catchup-item-day">'+getDayLong(s.day)+'</span>'+
+        '<span class="catchup-item-title">'+s.title+'</span>'+
+      '</div>'+
+      '<div class="catchup-status">'+
+        '<button class="catchup-btn'+(it.status==='completed'?' sel':'')+'" onclick="setCatchUp('+k+',\'completed\')">✓ Hecho</button>'+
+        '<button class="catchup-btn'+(it.status==='partial'?' sel':'')+'" onclick="setCatchUp('+k+',\'partial\')">~ A medias</button>'+
+        '<button class="catchup-btn'+(it.status==='skipped'?' sel':'')+'" onclick="setCatchUp('+k+',\'skipped\')">✗ No</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function setCatchUp(k,status){
+  catchUpItems[k].status=status;
+  renderCatchUp();
+  document.getElementById('catchup-save-btn').disabled=catchUpItems.some(it=>!it.status);
+}
+
+function confirmCatchUp(){
+  if(catchUpItems.some(it=>!it.status)) return;
+  let descParts=[];
+  catchUpItems.forEach(it=>{
+    const s=planDays[it.idx];
+    s.completed=true;
+    s.completion={status:it.status,rpe:null,actualDuration:s.duracio_min||45,plannedDuration:s.duracio_min||45,note:'',date:new Date().toISOString()};
+    const lbl={completed:'hecha',partial:'a medias',skipped:'no hecha'}[it.status];
+    descParts.push('"'+s.title+'" ('+s.day+'): '+lbl);
+  });
+  closeModal('modal-catchup');
+  renderAll();
+  if(currentEmail) savePlanToSupabase();
+  const anyBad=catchUpItems.some(it=>it.status==='partial'||it.status==='skipped');
+  if(anyBad){
+    reajustarDiferit('Puesta al día de la semana — '+descParts.join('; ')+'. Adapta los días que quedan de la semana en consecuencia.','Coach adaptando la semana...');
+  } else {
+    showToast('Semana al día ✓');
+  }
 }
 
 function closeModal(id,e){if(!e||e.target===document.getElementById(id))document.getElementById(id).classList.remove('open');}
