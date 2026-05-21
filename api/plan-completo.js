@@ -1,14 +1,21 @@
-// api/plan-completo.js — pla plurisemanal amb metodologia del soci
+// api/plan-completo.js — pla plurisemanal amb metodologia, PERSISTIT (font única)
 import Anthropic from "@anthropic-ai/sdk";
+import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
 
 const anthropic = new Anthropic();
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 const METHODOLOGY = fs.readFileSync(
   path.join(process.cwd(), "coach-methodology.md"),
   "utf8"
 );
+
+const ROLLING_WEEKS = 8;
 
 const BASE_INSTRUCTIONS = `Eres el coach IA de traineo generando un PLAN PLURISEMANAL (vista de bloc, 4-16 setmanes).
 
@@ -26,25 +33,54 @@ REGLES GENERALS:
 - Volum total setmanal coherent amb el volum base de l'atleta
 - Retorna JSON estricte sense markdown ni preàmbul`;
 
+function getMondayISO(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString().split("T")[0];
+}
+
+function periodizationSig(userData, objetivo, raceDate) {
+  return [
+    objetivo,
+    raceDate || "",
+    Math.round(Number(userData?.volum) || 4),
+    userData?.dias ?? 3,
+    (userData?.sports || ["running"]).slice().sort().join(","),
+    userData?.nivel || "intermedio"
+  ].join("|");
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { userData, raceDate, raceName, totalWeeks } = req.body;
+    const { userData, raceDate, raceName, email, forceRegenerate } = req.body;
     const objetivo = raceDate ? "carrera" : (userData?.objetivo || "forma");
+    const sig = periodizationSig(userData, objetivo, raceDate);
 
+    // ── 1. Cache: si hi ha periodització vàlida desada, retorna-la ──
+    if (email && !forceRegenerate) {
+      const { data: cachedProfile } = await supabase
+        .from("profiles")
+        .select("periodization")
+        .eq("email", email)
+        .maybeSingle();
+      if (cachedProfile?.periodization && cachedProfile.periodization._sig === sig) {
+        return res.status(200).json({ ...cachedProfile.periodization, _cached: true });
+      }
+    }
+
+    // ── 2. Generar ──
     let weeks;
     if (objetivo === "carrera" && raceDate) {
       const diff = Math.ceil((new Date(raceDate) - new Date()) / (1000 * 60 * 60 * 24 * 7));
-      // Cursa: pla complet fins a la prova. Sense slider, sense cap artificial.
-      // Cap a 24 setmanes per limitar cost i temps (≈6 mesos és suficient fins i tot per marató).
       weeks = Math.max(1, Math.min(diff, 24));
     } else {
-      // Sense cursa: ciclo rolling
-      weeks = totalWeeks || 4;
+      weeks = ROLLING_WEEKS;
     }
 
-    // Task framing per objectiu — DELEGA a la metodologia, no la duplica
     const objectiveTask = {
       carrera: `OBJETIVO: CARRERA hacia ${raceName || "objetivo competitivo"} el ${raceDate}.
 Aplica la periodización descrita en BLOC 9 #56 de tu metodología (Off-season → Base → Build → Peak → Taper → Carrera).
@@ -124,7 +160,7 @@ Genera ${weeks} semanas. Para cada semana retorna: weekNum, phase (respeta la no
       }
       try { data = JSON.parse(match[0]); }
       catch (e2) {
-        console.error("JSON inválido tras regex:", e2.message, "Texto:", reply.substring(0, 500));
+        console.error("JSON inválido tras regex:", e2.message);
         return res.status(500).json({ error: "JSON inválido del modelo" });
       }
     }
@@ -134,10 +170,26 @@ Genera ${weeks} semanas. Para cada semana retorna: weekNum, phase (respeta la no
       return res.status(500).json({ error: "Respuesta sin estructura weeks" });
     }
 
-    return res.status(200).json({
-      ...data,
-      usage: response.usage
-    });
+    // ── 3. Adjuntar metadades i persistir ──
+    const result = {
+      totalWeeks: data.totalWeeks || weeks,
+      objetivo: data.objetivo || objetivo,
+      weeks: data.weeks,
+      resumen: data.resumen || data.resum || "",
+      _sig: sig,
+      _anchorMonday: getMondayISO(new Date()),
+      _generatedAt: new Date().toISOString()
+    };
+
+    if (email) {
+      const { error: saveErr } = await supabase
+        .from("profiles")
+        .update({ periodization: result })
+        .eq("email", email);
+      if (saveErr) console.error("No s'ha pogut desar la periodització:", saveErr.message);
+    }
+
+    return res.status(200).json({ ...result, usage: response.usage });
 
   } catch (error) {
     console.error("Plan completo error:", error);
@@ -145,7 +197,4 @@ Genera ${weeks} semanas. Para cada semana retorna: weekNum, phase (respeta la no
   }
 }
 
-// IMPORTANT: timeout per processar 42K tokens metodologia + generar fins a 16 setmanes
-export const config = {
-  maxDuration: 60
-};
+export const config = { maxDuration: 60 };
