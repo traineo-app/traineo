@@ -118,6 +118,13 @@
     .more-row:not(:last-child){border-bottom:.5px solid #F0EEE8}
     .more-k{font-size:.66rem;font-weight:600;color:#888780;text-transform:uppercase;letter-spacing:.05em;width:80px;flex-shrink:0;padding-top:1px}
     .more-v{font-size:.8rem;color:#3F3E3A;font-weight:500;line-height:1.45;flex:1}
+    /* ── NOU: hero stats ── */
+    .hero-stats{display:flex;margin-top:.85rem;background:rgba(0,0,0,.18);border-radius:11px;overflow:hidden}
+    .hero-stat{flex:1;padding:.65rem .4rem;text-align:center}
+    .hero-stat+.hero-stat{border-left:.5px solid rgba(255,255,255,.1)}
+    .hero-stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;color:#fff;letter-spacing:.5px;line-height:1}
+    .hero-stat-lbl{font-size:.56rem;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin-top:3px;font-weight:600}
+    .hero-why{font-size:.78rem;color:rgba(255,255,255,.6);margin-top:.6rem;font-weight:500;line-height:1.45}
     /* ── NOU: modal ajustar (mateix motor que el dashboard) ── */
     .modal-overlay{display:none;position:fixed;inset:0;background:rgba(17,17,16,.5);z-index:100;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
     .modal-overlay.open{display:flex}
@@ -275,10 +282,7 @@ var adjustValues={time:45,km:7,pace:360,speed:27,elev:0};
 // ─── HERO (instantani) ───
 document.getElementById('h-icon').textContent=icon;
 document.getElementById('h-title').textContent=title;
-var bulletsHTML='';
-if(sub) bulletsHTML+='<div class="hero-bullet"><div class="hero-bullet-dot"></div><span>⏱ '+esc(sub)+'</span></div>';
-if(why) bulletsHTML+='<div class="hero-bullet"><div class="hero-bullet-dot"></div><span>'+esc(why)+'</span></div>';
-document.getElementById('h-bullets').innerHTML=bulletsHTML;
+renderHeroStats(); // NOU: stats dinàmiques (s'actualitzen en ajustar)
 
 function showToast(msg){
   var t=document.getElementById('toast');
@@ -449,6 +453,44 @@ function toggleBlock(i){
 // ─── NOU: AJUSTAR SESIÓN (mateix motor i mateix efecte que el dashboard)
 // ════════════════════════════════════════════════════════════════════
 
+// ─── NOU: Header dinàmic (temps / km / ritme) — igual que la targeta del dashboard ─
+function renderHeroStats(){
+  var tagsArr=tags?tags.split(','):[];
+  var curSess=(weekSessions&&dayIdx>=0)?weekSessions[dayIdx]:null;
+  var curTags=curSess?curSess.tags:tagsArr;
+  var t2=title.toLowerCase(),tg2=(curTags||[]).join(' ').toLowerCase();
+  var sport='running';
+  if(t2.includes('trail')||tg2.includes('trail')) sport='trail';
+  else if(t2.includes('bici')||t2.includes('cicl')||t2.includes('rodada')||tg2.includes('ciclismo')) sport='cycling';
+  else if(t2.includes('nado')||t2.includes('piscina')||t2.includes('natación')||tg2.includes('natación')) sport='swim';
+  else if(t2.includes('fuerza')||t2.includes('gimnas')||t2.includes('full body')||t2.includes('core')||t2.includes('calistenia')||tg2.includes('gimnasio')) sport='gym';
+  var zone=getZoneFromTags(curTags);
+  var paces=calculatePaces(userData||{nivel:nivel,pacez2:pacez2,ftp:ftp});
+  var custom=curSess&&curSess.custom;
+  var v1=duracio+"'",v2,l2,v3,l3;
+  if(sport==='running'||sport==='trail'){
+    var km2=custom&&custom.km?custom.km:Math.round((duracio*60/(paces.running[zone]||paces.running.z2))*10)/10;
+    var p2=custom&&custom.pace?custom.pace:(paces.running[zone]||paces.running.z2);
+    v2=km2+' km';l2='Distancia';v3=formatPace(p2)+'/km';l3='Ritmo';
+  } else if(sport==='cycling'){
+    var spd=(custom&&custom.speed)?custom.speed:(paces.cycling[zone]||paces.cycling.z2);
+    var km3=custom&&custom.km?custom.km:Math.round((duracio*spd/60)*10)/10;
+    v2=km3+' km';l2='Distancia';v3=spd+' km/h';l3='Vel.';
+  } else if(sport==='gym'){
+    var gl=(curTags||[]).find(function(t){return t&&(t==='Piernas'||t==='Upper'||t==='Core'||t==='Lower');});
+    v2=gl||'Fuerza';l2='Tipo';v3=zone.toUpperCase();l3='Zona';
+  } else {
+    v2='—';l2='Tipo';v3=zone.toUpperCase();l3='Zona';
+  }
+  var html='<div class="hero-stats">';
+  html+='<div class="hero-stat"><div class="hero-stat-val">'+esc(v1)+'</div><div class="hero-stat-lbl">Tiempo</div></div>';
+  html+='<div class="hero-stat"><div class="hero-stat-val">'+esc(String(v2))+'</div><div class="hero-stat-lbl">'+l2+'</div></div>';
+  html+='<div class="hero-stat"><div class="hero-stat-val">'+esc(String(v3))+'</div><div class="hero-stat-lbl">'+l3+'</div></div>';
+  html+='</div>';
+  if(why) html+='<div class="hero-why">'+esc(why)+'</div>';
+  document.getElementById('h-bullets').innerHTML=html;
+}
+
 function closeModal(id,e){
   if(!e||e.target===document.getElementById(id)) document.getElementById(id).classList.remove('open');
 }
@@ -534,6 +576,7 @@ function loadWeek(){
       for(var j=0;j<weekSessions.length;j++){ if(weekSessions[j].day===day){ dayIdx=j; break; } }
       if(dayIdx>=0){
         if(weekSessions[dayIdx].duracio_min) duracio=weekSessions[dayIdx].duracio_min;
+        renderHeroStats();
         var aj=document.getElementById('btn-ajustar');
         if(aj) aj.disabled=false;
       }
@@ -642,6 +685,7 @@ function confirmAdjust(){
     custom:{km:adjustValues.km,pace:adjustValues.pace,speed:adjustValues.speed,elev:adjustValues.elev,sport:sport}
   });
   duracio=adjustValues.time;
+  renderHeroStats(); // actualitza l'header amb el nou temps/km/ritme
   showToast('Sesión ajustada a '+adjustValues.time+' min');
   // 2. Regenerem el detall d'aquesta sessió amb la nova duració
   var detailPromise=loadDetail();
