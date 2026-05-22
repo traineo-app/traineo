@@ -1558,7 +1558,14 @@ function openSessio(idx){
   if(idx<0||idx>=planDays.length) return;
   const d=planDays[idx];
   if(!d||d.rest) return;
-  const p=new URLSearchParams({title:d.title||'',sub:d.sub||'',why:d.why||'',tags:(d.tags||[]).join(','),icon:d.icon||'🏃',fcmax:user?.fcmax||185,nivel:user?.nivel||'Intermedio',duracio:d.duracio_min||45});
+  const p=new URLSearchParams({
+    title:d.title||'',sub:d.sub||'',why:d.why||'',tags:(d.tags||[]).join(','),
+    icon:d.icon||'🏃',fcmax:user?.fcmax||185,nivel:user?.nivel||'Intermedio',
+    duracio:d.duracio_min||45,
+    email:currentEmail||'',setmana:currentWeekStart,day:d.day||'',
+    objetivo:user?.objetivo||'',pacez2:user?.pacez2||'',ftp:user?.ftp||'',
+    musculos:params.get('musculos')||'',equip:params.get('equip')||''
+  });
   window.location.href='sessio.html?'+p.toString();
 }
 
