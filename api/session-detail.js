@@ -126,11 +126,28 @@ REGLAS DEL FORMATO:
     reply = reply.trim().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```$/i, "").trim();
 
     let data;
-    try { data = JSON.parse(reply); }
-    catch (e1) {
+    try {
+      data = JSON.parse(reply);
+    } catch (e1) {
       const m = reply.match(/\{[\s\S]*\}/);
-      if (!m) return res.status(500).json({ error: "Sin JSON en respuesta" });
-      data = JSON.parse(m[0]);
+      if (!m) {
+        return res.status(500).json({
+          error: "El modelo no devolvió JSON",
+          stop_reason: response.stop_reason,
+          preview: reply.slice(0, 300)
+        });
+      }
+      try {
+        data = JSON.parse(m[0]);
+      } catch (e2) {
+        return res.status(500).json({
+          error: response.stop_reason === "max_tokens"
+            ? "Respuesta cortada por límite de tokens (max_tokens)"
+            : "JSON inválido del modelo: " + e2.message,
+          stop_reason: response.stop_reason,
+          preview: reply.slice(-300)
+        });
+      }
     }
 
     const result = {
