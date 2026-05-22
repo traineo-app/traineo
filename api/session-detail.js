@@ -29,6 +29,7 @@ REGLAS:
 
 function detailSig(session, userData) {
   return [
+    "v2",
     session?.title || "", session?.duracio_min ?? 45,
     (session?.tags || []).join(","), userData?.fcmax ?? 185,
     userData?.nivel || "intermedio", userData?.pacez2 || "", userData?.ftp || ""
@@ -95,22 +96,30 @@ Desarrolla esta sesión en su ejecución detallada, aplicando tu metodología.
 {
   "kind": "cardio" | "gym",
   "summary": "una frase de qué es y cómo afrontarla",
+  "why_long": "2-4 frases: el propósito real de esta sesión y cómo encaja en la fase actual del plan del atleta",
+  "objectives": ["objetivo concreto y comprobable 1", "objetivo 2", "objetivo 3"],
   "blocks": [
-    {"label":"Calentamiento","detail":"qué hacer, concreto","minutes":12,"zone":"z1","series":null},
-    {"label":"6 × 800 m","detail":"ritmo y recuperación concretos","minutes":22,"zone":"z4","series":{"reps":6,"distance_m":800,"time_s":null,"rest_s":90}}
+    {"label":"Calentamiento","detail":"qué hacer, concreto","minutes":12,"zone":"z1","series":null,"rpe":"2-3","cue":"consejo técnico breve","feel":"qué debes notar en este bloque"},
+    {"label":"6 × 800 m","detail":"ritmo y recuperación concretos","minutes":22,"zone":"z4","series":{"reps":6,"distance_m":800,"time_s":null,"rest_s":90},"rpe":"8","cue":"mantén la zancada relajada","feel":"respiración fuerte pero controlada"}
   ],
   "exercises": [
     {"name":"Sentadilla trasera","prescription":"4 × 6","load":"75-80% RM","rest_s":150,"muscle":"Cuádriceps · Glúteos","cue":"controla la bajada 3 segundos"}
   ],
+  "alternatives": {
+    "short": "versión de ~30 min: qué recortar exactamente manteniendo lo esencial",
+    "easy": "versión suave: cómo bajar la intensidad si el atleta llega cansado, sin saltarse la sesión"
+  },
   "tip": "consejo del coach, 1-2 frases, alineado con la metodología"
 }
 
 REGLAS DEL FORMATO:
-- Si es cardio: rellena "blocks" (3-5 bloques), deja "exercises" como [].
-- Si es gimnasio/fuerza/calistenia: rellena "exercises" (5-7), deja "blocks" como [].
-- "zone" es uno de: z1, z2, z3, z4, z5.
+- Si es cardio: rellena "blocks" (3-5 bloques) con sus campos "rpe", "cue" y "feel"; deja "exercises" como [].
+- Si es gimnasio/fuerza/calistenia: rellena "exercises" (5-7); deja "blocks" como [].
+- "zone" es uno de: z1, z2, z3, z4, z5. "rpe" es un número o rango del 1 al 10 (esfuerzo percibido).
 - "series" solo cuando el bloque son repeticiones; si no, null.
-- La suma de "minutes" de los bloques ≈ ${session.duracio_min || 45}.`;
+- "why_long" y "objectives" SIEMPRE, sea cardio o gym.
+- "alternatives" SIEMPRE: una versión corta y una fácil, concretas y accionables.
+- La suma de "minutes" de los bloques ≈ ${session.duracio_min || 45}.
 
     const response = await anthropic.messages.create({
       model: "claude-haiku-4-5",
@@ -153,8 +162,11 @@ REGLAS DEL FORMATO:
     const result = {
       kind: data.kind || "cardio",
       summary: data.summary || "",
+      why_long: data.why_long || "",
+      objectives: Array.isArray(data.objectives) ? data.objectives : [],
       blocks: Array.isArray(data.blocks) ? data.blocks : [],
       exercises: Array.isArray(data.exercises) ? data.exercises : [],
+      alternatives: (data.alternatives && typeof data.alternatives === "object") ? data.alternatives : {},
       tip: data.tip || "",
       _sig: sig,
       _generatedAt: new Date().toISOString()
