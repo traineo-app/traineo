@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
 
-const anthropic = new Anthropic();
+const anthropic = new Anthropic({ maxRetries: 4 });
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -173,6 +173,15 @@ REGLAS DEL FORMATO:
 
   } catch (error) {
     console.error("session-detail error:", error);
+    const st = error && error.status;
+    const overloaded = st === 529 || st === 429 ||
+      (error && error.error && error.error.error && error.error.error.type === "overloaded_error");
+    if (overloaded) {
+      return res.status(503).json({
+        error: "El servidor de IA está saturado ahora mismo. Espera unos segundos y pulsa Reintentar.",
+        retryable: true
+      });
+    }
     return res.status(500).json({ error: error.message || "Error en session-detail" });
   }
 }
