@@ -174,12 +174,21 @@ REGLAS DEL FORMATO:
     };
 
     // 3. Persistir dins de la sessio
+    // IMPORTANT: rellegim sessions fresques just ara (el Claude ha trigat 5-10s
+    // i el dashboard podria haver guardat canvis durant aquest temps).
     if (planRow && sessionIdx >= 0) {
-      const updated = planRow.sessions.slice();
-      updated[sessionIdx] = { ...updated[sessionIdx], detail: result };
-      const { error: upErr } = await supabase
-        .from("plans").update({ sessions: updated }).eq("id", planRow.id);
-      if (upErr) console.error("No s'ha pogut desar el detall:", upErr.message);
+      const { data: freshPlan } = await supabase
+        .from("plans").select("sessions").eq("id", planRow.id).maybeSingle();
+      if (freshPlan && Array.isArray(freshPlan.sessions)) {
+        const updated = freshPlan.sessions.slice();
+        const freshIdx = updated.findIndex(s => s.day === day);
+        if (freshIdx >= 0) {
+          updated[freshIdx] = { ...updated[freshIdx], detail: result };
+          const { error: upErr } = await supabase
+            .from("plans").update({ sessions: updated }).eq("id", planRow.id);
+          if (upErr) console.error("No s'ha pogut desar el detall:", upErr.message);
+        }
+      }
     }
 
     return res.status(200).json(result);
