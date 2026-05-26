@@ -555,7 +555,7 @@ function normalizePlan(sessions){
 // Carrega la setmana sencera des de la taula plans (font única de la veritat)
 function loadWeek(){
   if(!email||!setmana||!day) return;
-  fetch('/api/get-plan?email='+encodeURIComponent(email))
+  fetch('/api/get-plan?email='+encodeURIComponent(email)+'&_t='+Date.now())
   .then(function(r){return r.json();})
   .then(function(data){
     if(!data) return;
@@ -687,7 +687,11 @@ async function confirmAdjust(){
   duracio=adjustValues.time;
   renderHeroStats();
   // ─── CLAU: guardem ABANS del toast. Si l'usuari torna enrere ara, el canvi ja és a la BD.
-  try{ await savePlanReq(); }catch(e){ console.log('save instant failed',e); }
+  try{ await savePlanReq(); }catch(e){ 
+    console.error('save instant failed',e);
+    showToast('⚠ Error al guardar · '+String(e.message).substring(0,60));
+    return; // no continuar si el save ha fallat
+  }
   showToast('Sesión ajustada a '+adjustValues.time+' min');
   // En segon pla: regenera el detall + el coach reorganitza la resta de la setmana
   var detailPromise=loadDetail();
@@ -695,9 +699,17 @@ async function confirmAdjust(){
 }
 
 function savePlanReq(){
+  // Idèntic al dashboard: sense detail (es regenera sol) i sense weekStartDate
+  var sessionsToSave=weekSessions.map(function(s){
+    if(!s) return s;
+    var c=Object.assign({},s); delete c.detail; return c;
+  });
   return fetch('/api/save-plan',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email:email,userData:userData,sessions:weekSessions,resum:weekResum,weekStartDate:setmana})
+    body:JSON.stringify({email:email,userData:userData,sessions:sessionsToSave,resum:weekResum})
+  }).then(function(r){
+    if(!r.ok) return r.text().then(function(t){throw new Error('save-plan '+r.status+': '+t.substring(0,120));});
+    return r;
   });
 }
 
