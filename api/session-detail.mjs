@@ -124,7 +124,7 @@ REGLAS DEL FORMATO:
 
     const response = await anthropic.messages.create({
       model: "claude-haiku-4-5",
-      max_tokens: 4096,
+      max_tokens: 1800,
       system: [
         { type: "text", text: BASE_INSTRUCTIONS },
         { type: "text", text: METHODOLOGY, cache_control: { type: "ephemeral" } }
@@ -177,6 +177,7 @@ REGLAS DEL FORMATO:
     // IMPORTANT: rellegim sessions fresques just ara (el Claude ha trigat 5-10s
     // i el dashboard podria haver guardat canvis durant aquest temps).
     if (planRow && sessionIdx >= 0) {
+      // Re-llegim sessions fresques ara: l'AI ha trigat 10-30s i la DB pot haver canviat
       const { data: freshPlan } = await supabase
         .from("plans").select("sessions").eq("id", planRow.id).maybeSingle();
       if (freshPlan && Array.isArray(freshPlan.sessions)) {
