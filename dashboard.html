@@ -449,7 +449,6 @@ let adjustingSession=null;
 let adjustingSessionIdx=null;
 let adjustValues={time:45,km:7,pace:360,speed:27,elev:0};
 
-// ─── NOU: estat de calendari i navegació de setmanes ────────────────
 let calendarYear=today.getFullYear();
 let calendarMonth=today.getMonth();
 let allWeeks=[];
@@ -579,7 +578,8 @@ async function initDashboard(user){
     document.getElementById('nav-avatar').textContent=currentEmail[0].toUpperCase();
     document.getElementById('greeting-name').textContent='Hola, '+currentEmail.split('@')[0];
     try {
-      const res=await fetch('/api/get-plan?email='+encodeURIComponent(currentEmail));
+      // NOU: &_t= evita que el navegador serveixi una resposta cacheada
+      const res=await fetch('/api/get-plan?email='+encodeURIComponent(currentEmail)+'&_t='+Date.now());
       const data=await res.json();
       allWeeks=data.weeks||[];
       periodization=data.periodization||null;
@@ -702,7 +702,6 @@ function buildPlanStatic(user){
   });
 }
 
-// ─── NOU: periodització lleugera per a setmanes futures ─────────────
 async function loadPeriodization(){
   if(!user) return;
   try {
@@ -876,7 +875,6 @@ async function reajustarDiferit(descripcioCanvi,loadingMsg){
 
 async function savePlanToSupabase(){
   if(!currentEmail||planDays.length===0) return;
-  // NOU: mantenir la cache local de setmanes sincronitzada
   const cw=allWeeks.find(w=>w.setmana===currentWeekStart);
   if(cw){ cw.sessions=planDays; cw.resum=window._coachResum||''; }
   else { allWeeks.push({setmana:currentWeekStart,sessions:planDays,resum:window._coachResum||''}); }
@@ -902,7 +900,6 @@ async function saveWithEmail(){
   showToast('Plan guardado ✓');
 }
 
-// ─── renderAll: targeta d'avui (intacta) + calendari + setmana + stats ───
 function renderAll(){
   _weekDataCache={};
   const todayRealIdx=planDays.findIndex(d=>d.day===todayName);
@@ -970,7 +967,6 @@ function renderAll(){
   renderCoachBanner();
 }
 
-// ─── NOU: calendari mensual ─────────────────────────────────────────
 function renderCalendar(){
   const firstOfMonth=new Date(calendarYear,calendarMonth,1);
   let gridStart=new Date(firstOfMonth);
@@ -1018,7 +1014,6 @@ function calPrevMonth(){ calendarMonth--; if(calendarMonth<0){calendarMonth=11;c
 function calNextMonth(){ calendarMonth++; if(calendarMonth>11){calendarMonth=0;calendarYear++;} renderAll(); }
 function selectWeek(weekStartISO){ selectedWeekStart=weekStartISO; renderAll(); }
 
-// ─── NOU: secció de la setmana seleccionada ─────────────────────────
 function renderWeekSection(){
   const wd=getWeekData(selectedWeekStart);
   const isCurrent=selectedWeekStart===currentWeekStart;
@@ -1072,7 +1067,6 @@ function renderReadonlyItem(d,weekType){
   '</div>';
 }
 
-// ─── NOU: stats enriquides de la setmana seleccionada ───────────────
 function renderStatsCard(){
   const wd=getWeekData(selectedWeekStart);
   const sessions=wd.sessions||[];
@@ -1574,7 +1568,28 @@ function showToast(msg){
   t.textContent=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2500);
 }
-window.addEventListener('pageshow',function(e){if(e.persisted)location.reload();});
+
+// ─── NOU: bfcache fix ─────────────────────────────────────────────────────────
+// En mòbil, el botó "enrere" restaura la pàgina del bfcache sense re-executar JS.
+// pageshow amb event.persisted=true detecta aquesta restauració i re-llegeix el pla.
+window.addEventListener('pageshow',function(e){
+  if(e.persisted&&currentEmail){
+    fetch('/api/get-plan?email='+encodeURIComponent(currentEmail)+'&_t='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(data){
+      allWeeks=data.weeks||[];
+      var cur=allWeeks.find(function(w){return w.setmana===currentWeekStart;});
+      var curSessions=cur?cur.sessions:(data.plan&&data.plan.sessions);
+      if(curSessions&&curSessions.length>0){
+        planDays=normalizePlan(curSessions);
+        window._coachResum=(cur?cur.resum:(data.plan&&data.plan.resum))||'';
+        _weekDataCache={};
+        renderAll();
+      }
+    })
+    .catch(function(){});
+  }
+});
 </script>
 </body>
 </html>
