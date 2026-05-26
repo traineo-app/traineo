@@ -746,7 +746,7 @@ function savePlanReq(){
   var uData=Object.assign({},userData||{},{email:email}); // email sempre dins userData
   return fetch('/api/save-plan',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email:email,userData:uData,sessions:sessionsToSave,resum:weekResum})
+    body:JSON.stringify({email:email,userData:uData,sessions:sessionsToSave,resum:weekResum,weekStartDate:setmana})
   }).then(function(r){
     if(!r.ok) return r.text().then(function(t){throw new Error('save-plan '+r.status+': '+t.substring(0,120));});
     return r;
