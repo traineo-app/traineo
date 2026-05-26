@@ -731,10 +731,8 @@ async function confirmAdjust(){
     showToast('⚠ Error al guardar · '+String(e.message).substring(0,60));
     return; // no continuar si el save ha fallat
   }
-  showToast('Sesión ajustada a '+adjustValues.time+' min');
-  // En segon pla: regenera el detall + el coach reorganitza la resta de la setmana
-  var detailPromise=loadDetail();
-  reajustAndSave(desc,detailPromise);
+  showToast('Sesión ajustada a '+adjustValues.time+' min ✓');
+  reajustAndSave(desc,null);
 }
 
 function savePlanReq(){
@@ -776,7 +774,7 @@ async function reajustAndSave(desc,detailPromise){
     }
   }catch(e){ console.log('reajust failed',e); }
   // Esperem que el detall regenerat estigui llest i l'adjuntem al dia ajustat
-  try{ await detailPromise; }catch(e){}
+  if(detailPromise) try{ await detailPromise; }catch(e){}
   if(dayIdx>=0&&weekSessions[dayIdx]&&detail) weekSessions[dayIdx].detail=detail;
   // Save final: setmana reorganitzada + detall fresc
   try{ await savePlanReq(); }catch(e){ console.log('save final failed',e); }
