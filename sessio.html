@@ -699,14 +699,15 @@ async function confirmAdjust(){
 }
 
 function savePlanReq(){
-  // Idèntic al dashboard: sense detail (es regenera sol) i sense weekStartDate
+  // Idèntic al dashboard: sense detail, i amb email DINS userData (save-plan el necessita)
   var sessionsToSave=weekSessions.map(function(s){
     if(!s) return s;
     var c=Object.assign({},s); delete c.detail; return c;
   });
+  var uData=Object.assign({},userData||{},{email:email}); // email sempre dins userData
   return fetch('/api/save-plan',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email:email,userData:userData,sessions:sessionsToSave,resum:weekResum})
+    body:JSON.stringify({email:email,userData:uData,sessions:sessionsToSave,resum:weekResum})
   }).then(function(r){
     if(!r.ok) return r.text().then(function(t){throw new Error('save-plan '+r.status+': '+t.substring(0,120));});
     return r;
