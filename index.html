@@ -4,46 +4,54 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>traineo — Entrena con inteligencia</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Outfit', sans-serif; background: #163A28; min-height: 100vh; }
-    .hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
-    .logo-wrap { margin-bottom: 2.5rem; }
-    .logo-icon { width: 64px; height: 64px; margin: 0 auto 1rem; }
-    .logo-name { font-size: 2.2rem; font-weight: 400; color: #fff; letter-spacing: -1px; }
-    .logo-neo { color: rgba(255,255,255,0.35); }
-    .tagline { font-size: 0.75rem; color: rgba(255,255,255,0.35); letter-spacing: 0.16em; text-transform: uppercase; margin-top: 0.5rem; }
-    h1 { font-size: 2.2rem; font-weight: 500; color: #fff; letter-spacing: -0.8px; line-height: 1.15; margin-bottom: 1rem; max-width: 420px; }
-    .sub { font-size: 1rem; color: rgba(255,255,255,0.5); line-height: 1.7; margin-bottom: 2.5rem; max-width: 360px; font-weight: 300; }
-    .badges { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
-    .badge { background: rgba(255,255,255,0.08); border: 0.5px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.6); font-size: 0.75rem; padding: 0.3rem 0.75rem; border-radius: 20px; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',-apple-system,sans-serif;background:#0D1C12;min-height:100vh}
+    .hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2.5rem 1.5rem;text-align:center;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;top:-120px;right:-80px;width:380px;height:380px;border-radius:50%;background:rgba(74,158,107,.07);pointer-events:none}
+    .hero::after{content:'';position:absolute;bottom:-80px;left:-60px;width:260px;height:260px;border-radius:50%;background:rgba(74,158,107,.05);pointer-events:none}
 
-    /* TABS */
-    .tabs { display: flex; gap: 0; background: rgba(255,255,255,0.08); border-radius: 12px; padding: 4px; margin-bottom: 1.25rem; width: 100%; max-width: 340px; }
-    .tab-btn { flex: 1; padding: 0.6rem; border: none; border-radius: 9px; background: transparent; color: rgba(255,255,255,0.5); font-size: 0.9rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; transition: all 0.2s; }
-    .tab-btn.active { background: #fff; color: #163A28; }
+    /* Logo */
+    .logo-wrap{margin-bottom:2.75rem;position:relative;z-index:1}
+    .logo-icon{width:68px;height:68px;margin:0 auto 1.1rem}
+    .logo-name{font-family:'Bebas Neue',sans-serif;font-size:2.6rem;font-weight:400;color:#fff;letter-spacing:-.5px;line-height:1}
+    .logo-neo{color:rgba(255,255,255,.28)}
+    .tagline{font-size:.62rem;color:rgba(255,255,255,.3);letter-spacing:.22em;text-transform:uppercase;margin-top:.5rem;font-weight:600}
 
-    /* FORMS */
-    .form { display: flex; flex-direction: column; gap: 0.75rem; width: 100%; max-width: 340px; }
-    .form-panel { display: none; flex-direction: column; gap: 0.75rem; }
-    .form-panel.active { display: flex; }
-    input { padding: 0.875rem 1rem; border-radius: 10px; border: 0.5px solid rgba(255,255,255,0.15); font-size: 1rem; font-family: 'Outfit', sans-serif; background: rgba(255,255,255,0.08); color: #fff; outline: none; transition: border-color 0.15s; width: 100%; }
-    input:focus { border-color: rgba(255,255,255,0.4); }
-    input::placeholder { color: rgba(255,255,255,0.3); }
-    .btn-primary { padding: 0.875rem; background: #fff; color: #163A28; border: none; border-radius: 10px; font-size: 1rem; font-weight: 500; font-family: 'Outfit', sans-serif; cursor: pointer; transition: opacity 0.15s; }
-    .btn-primary:hover { opacity: 0.92; }
-    .btn-loading { opacity: 0.6; cursor: default; }
-    .legal { font-size: 0.72rem; color: rgba(255,255,255,0.2); margin-top: 1.25rem; max-width: 340px; line-height: 1.6; }
-    .error-msg { font-size: 0.82rem; color: #F5C4B3; text-align: center; display: none; }
-    .error-msg.show { display: block; }
+    /* Headline */
+    h1{font-family:'Bebas Neue',sans-serif;font-size:3.2rem;font-weight:400;color:#fff;letter-spacing:-.5px;line-height:.95;margin-bottom:.9rem;max-width:380px;position:relative;z-index:1}
+    .sub{font-size:.9rem;color:rgba(255,255,255,.45);line-height:1.7;margin-bottom:2rem;max-width:320px;font-weight:400;position:relative;z-index:1}
+
+    /* Badges */
+    .badges{display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.25rem;position:relative;z-index:1}
+    .badge{background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);font-size:.68rem;padding:.3rem .75rem;border-radius:20px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+
+    /* Tabs */
+    .tabs{display:flex;gap:0;background:rgba(255,255,255,.07);border-radius:13px;padding:4px;margin-bottom:1.1rem;width:100%;max-width:340px;position:relative;z-index:1}
+    .tab-btn{flex:1;padding:.6rem;border:none;border-radius:10px;background:transparent;color:rgba(255,255,255,.4);font-size:.85rem;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:all .2s;letter-spacing:.01em}
+    .tab-btn.active{background:rgba(255,255,255,.12);color:#fff}
+
+    /* Form */
+    .form{display:flex;flex-direction:column;gap:.6rem;width:100%;max-width:340px;position:relative;z-index:1}
+    .form-panel{display:none;flex-direction:column;gap:.6rem}
+    .form-panel.active{display:flex}
+    input{padding:.9rem 1rem;border-radius:11px;border:.5px solid rgba(255,255,255,.12);font-size:.95rem;font-family:'Inter',sans-serif;background:rgba(255,255,255,.07);color:#fff;outline:none;transition:border-color .15s;width:100%;font-weight:400}
+    input:focus{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.1)}
+    input::placeholder{color:rgba(255,255,255,.25)}
+    .btn-primary{padding:.9rem;background:#4A9E6B;color:#0A1F12;border:none;border-radius:11px;font-size:.92rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:filter .15s;letter-spacing:.02em;text-transform:uppercase}
+    .btn-primary:hover{filter:brightness(1.08)}
+    .btn-loading{opacity:.6;cursor:default}
+    .legal{font-size:.68rem;color:rgba(255,255,255,.18);margin-top:1.25rem;max-width:300px;line-height:1.7;position:relative;z-index:1;font-weight:400}
+    .error-msg{font-size:.8rem;color:#F0A080;text-align:center;display:none;font-weight:500}
+    .error-msg.show{display:block}
   </style>
 </head>
 <body>
   <div class="hero">
     <div class="logo-wrap">
       <svg class="logo-icon" viewBox="0 0 56 56" fill="none">
-        <rect width="56" height="56" rx="16" fill="rgba(255,255,255,0.08)"/>
+        <rect width="56" height="56" rx="16" fill="rgba(255,255,255,.08)"/>
         <rect x="8" y="11" width="32" height="7" rx="2" fill="white" transform="skewX(-12)"/>
         <rect x="21" y="11" width="9" height="28" rx="2" fill="white" transform="skewX(-12)"/>
         <circle cx="32" cy="43" r="3.5" fill="white"/>
@@ -68,86 +76,74 @@
     </div>
 
     <div class="form">
-
-      <!-- NOU USUARI -->
       <div class="form-panel active" id="panel-new">
         <input type="text" id="new-name" placeholder="Tu nombre">
         <input type="email" id="new-email" placeholder="Tu correo electrónico">
         <button class="btn-primary" id="btn-new" onclick="startNew()">Empezar gratis →</button>
       </div>
-
-      <!-- LOGIN -->
       <div class="form-panel" id="panel-login">
         <input type="email" id="login-email" placeholder="Tu correo electrónico">
         <button class="btn-primary" id="btn-login" onclick="doLogin()">Acceder a mi plan →</button>
         <p class="error-msg" id="login-error">No encontramos una cuenta con ese email. ¿Quieres empezar uno nuevo?</p>
       </div>
-
     </div>
 
     <p class="legal">Tus datos deportivos no se venderán nunca.</p>
   </div>
 
 <script>
-  function switchTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active', (tab==='new'&&i===0)||(tab==='login'&&i===1)));
-    document.getElementById('panel-new').classList.toggle('active', tab==='new');
-    document.getElementById('panel-login').classList.toggle('active', tab==='login');
+  function switchTab(tab){
+    document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',(tab==='new'&&i===0)||(tab==='login'&&i===1)));
+    document.getElementById('panel-new').classList.toggle('active',tab==='new');
+    document.getElementById('panel-login').classList.toggle('active',tab==='login');
     document.getElementById('login-error').classList.remove('show');
   }
 
-  function startNew() {
-    const name = document.getElementById('new-name').value.trim();
-    const email = document.getElementById('new-email').value.trim();
-    if(!email || !email.includes('@')) { alert('Introduce un email válido'); return; }
-    // Guarda el nom per usar-lo després
-    const url = 'onboarding.html?email='+encodeURIComponent(email)+'&name='+encodeURIComponent(name||'');
-    window.location.href = url;
+  function startNew(){
+    const name=document.getElementById('new-name').value.trim();
+    const email=document.getElementById('new-email').value.trim();
+    if(!email||!email.includes('@')){alert('Introduce un email válido');return;}
+    window.location.href='onboarding.html?email='+encodeURIComponent(email)+'&name='+encodeURIComponent(name||'');
   }
 
-  async function doLogin() {
-    const email = document.getElementById('login-email').value.trim();
-    if(!email || !email.includes('@')) { alert('Introduce un email válido'); return; }
-
-    const btn = document.getElementById('btn-login');
-    btn.textContent = 'Buscando tu plan...';
+  async function doLogin(){
+    const email=document.getElementById('login-email').value.trim();
+    if(!email||!email.includes('@')){alert('Introduce un email válido');return;}
+    const btn=document.getElementById('btn-login');
+    btn.textContent='Buscando tu plan...';
     btn.classList.add('btn-loading');
-    btn.disabled = true;
+    btn.disabled=true;
     document.getElementById('login-error').classList.remove('show');
-
-    try {
-      const res = await fetch('/api/get-plan?email='+encodeURIComponent(email));
-      const data = await res.json();
-
-      if(data.profile && data.plan) {
-        // Té pla guardat — construeix la URL amb les seves dades
-        const p = data.profile;
-        const url = 'dashboard.html?' +
-          'sports=' + (p.sports||['running']).join(',') +
-          '&dias=' + (p.dias||3) +
-          '&descanso=' + encodeURIComponent(p.descanso||'Ninguno') +
-          '&nivel=' + encodeURIComponent(p.nivel||'Intermedio') +
-          '&fcmax=' + (p.fcmax||185) +
-          '&volum=' + (p.volum||4) +
-          '&objetivo=' + encodeURIComponent(p.objetivo||'') +
-          '&carrera=' + encodeURIComponent(p.carrera||'') +
-          '&distancia=' + encodeURIComponent(p.distancia||'') +
-          '&desnivel=' + (p.desnivel||0) +
-          '&fecha=' + encodeURIComponent(p.carrera_fecha||'') +
-          '&email=' + encodeURIComponent(email);
-        window.location.href = url;
+    try{
+      const res=await fetch('/api/get-plan?email='+encodeURIComponent(email));
+      const data=await res.json();
+      if(data.profile&&data.plan){
+        const p=data.profile;
+        const url='dashboard.html?'+
+          'sports='+(p.sports||['running']).join(',')+
+          '&dias='+(p.dias||3)+
+          '&descanso='+encodeURIComponent(p.descanso||'Ninguno')+
+          '&nivel='+encodeURIComponent(p.nivel||'Intermedio')+
+          '&fcmax='+(p.fcmax||185)+
+          '&volum='+(p.volum||4)+
+          '&objetivo='+encodeURIComponent(p.objetivo||'')+
+          '&carrera='+encodeURIComponent(p.carrera||'')+
+          '&distancia='+encodeURIComponent(p.distancia||'')+
+          '&desnivel='+(p.desnivel||0)+
+          '&fecha='+encodeURIComponent(p.carrera_fecha||'')+
+          '&email='+encodeURIComponent(email);
+        window.location.href=url;
       } else {
-        // No té compte — mostra error
         document.getElementById('login-error').classList.add('show');
-        btn.textContent = 'Acceder a mi plan →';
+        btn.textContent='Acceder a mi plan →';
         btn.classList.remove('btn-loading');
-        btn.disabled = false;
+        btn.disabled=false;
       }
-    } catch(e) {
+    }catch(e){
       document.getElementById('login-error').classList.add('show');
-      btn.textContent = 'Acceder a mi plan →';
+      btn.textContent='Acceder a mi plan →';
       btn.classList.remove('btn-loading');
-      btn.disabled = false;
+      btn.disabled=false;
     }
   }
 </script>
