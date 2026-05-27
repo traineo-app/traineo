@@ -254,6 +254,32 @@
         </div>
       </div>
     </div>
+   <div class="field-group" id="temps-objectiu-section" style="display:none">
+      <label class="field-label">Tiempo objetivo (opcional)</label>
+      <div class="cal-field">
+        <div class="cal-row"><span class="cal-name" id="temps-label">¿En qué tiempo quieres acabar?</span></div>
+        <div style="display:flex;gap:.5rem;align-items:center;margin-top:.6rem">
+          <div style="text-align:center;flex:1">
+            <input type="number" class="num-card-input" id="t-hores" min="0" max="24" placeholder="0" oninput="updateTemps()" style="width:100%;text-align:center">
+            <div style="font-size:.62rem;color:#888780;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-top:2px">h</div>
+          </div>
+          <div style="font-family:'Bebas Neue';font-size:1.5rem;color:#163A28;padding-bottom:18px">:</div>
+          <div style="text-align:center;flex:1">
+            <input type="number" class="num-card-input" id="t-min" min="0" max="59" placeholder="30" oninput="updateTemps()" style="width:100%;text-align:center">
+            <div style="font-size:.62rem;color:#888780;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-top:2px">min</div>
+          </div>
+          <div style="font-family:'Bebas Neue';font-size:1.5rem;color:#163A28;padding-bottom:18px">:</div>
+          <div style="text-align:center;flex:1">
+            <input type="number" class="num-card-input" id="t-sec" min="0" max="59" placeholder="00" oninput="updateTemps()" style="width:100%;text-align:center">
+            <div style="font-size:.62rem;color:#888780;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-top:2px">seg</div>
+          </div>
+        </div>
+        <div class="ai-preview" id="temps-preview" style="display:none;margin-top:.75rem;margin-bottom:0">
+          <div class="ai-dot"></div>
+          <div class="ai-text" id="temps-preview-text"></div>
+        </div>
+      </div>
+    </div>
     <div class="field-group"><label class="field-label">Nombre de la carrera (opcional)</label><input type="text" class="field-input" id="carrera-nombre" placeholder="Ej: Marató de Barcelona"></div>
     <div class="field-group"><label class="field-label">Fecha de la carrera</label><input type="date" class="field-input" id="carrera-fecha" min=""></div>
     <button class="btn-next" id="btn4" disabled onclick="goNext()">Siguiente →</button>
@@ -367,7 +393,7 @@
 
 <script>
 const dayNames=['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
-let userData={objetivo:'',carreraDisciplina:'',carreraNombre:'',carreraDistancia:'',carreraDesnivel:0,carreraFecha:'',sports:[],nivel:'',fcmax:185,volum:4,dias:0,descanso:'',edat:null,alcada:null,pes:null,fcrep:null,genere:'',pdfName:'',stravaName:'',stressTestData:null,stravaStats:null,calibrated:{fcmax:null,pacez2:null,ftp:null,nivel:null,volum:null}};
+let userData={objetivo:'',carreraDisciplina:'',carreraNombre:'',carreraDistancia:'',carreraDesnivel:0,carreraFecha:'',carreraTempsObjectiu:null,carreraRitmeObjectiu:null,carreraVelocitatObjectiu:null,sports:[],nivel:'',fcmax:185,volum:4,dias:0,descanso:'',edat:null,alcada:null,pes:null,fcrep:null,genere:'',pdfName:'',stravaName:'',stressTestData:null,stravaStats:null,calibrated:{fcmax:null,pacez2:null,ftp:null,nivel:null,volum:null}};
 let stravaFile=null;
 let stepOrder=[];
 let currentStepIdx=0;
@@ -549,14 +575,64 @@ function selCarrera(el,disc){
   document.querySelectorAll('#s4 .grid-opt').forEach(o=>o.classList.remove('sel'));
   el.classList.add('sel');
   userData.carreraDisciplina=disc;
+  userData.carreraTempsObjectiu=null;userData.carreraRitmeObjectiu=null;userData.carreraVelocitatObjectiu=null;
+  document.getElementById('temps-objectiu-section').style.display='none';
   document.getElementById('dist-section').style.display='block';
   document.getElementById('desnivel-section').style.display=(disc==='trail'||disc==='ciclismo')?'block':'none';
   const dists=distancias[disc]||distancias.otro;
   document.getElementById('dist-grid').innerHTML=dists.map(d=>'<div class="dist-opt" onclick="selDist(this,\''+d.dist+'\')"><div class="dist-opt-dist">'+d.dist+'</div><div class="dist-opt-name">'+d.name+'</div></div>').join('');
   checkBtn4();
 }
+const distKmObj={
+  running:{'5K':5,'10K':10,'15K':15,'½ M':21.097,'Maratón':42.195,'Ultra':50},
+  trail:{'10K':10,'21K':21,'42K':42,'50K':50,'80K':80,'100K+':100},
+  ciclismo:{'50K':50,'100K':100,'150K':150,'200K+':200},
+  triatlon:{'Sprint':51.5,'Olímpico':51.5,'70.3':113,'Ironman':226},
+  duatlon:{'Sprint':27.5,'Estándar':55,'Largo':110}
+};
 
-function selDist(el,dist){document.querySelectorAll('.dist-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');userData.carreraDistancia=dist;checkBtn4();}
+function showTempsObjectiu(disc,dist){
+  const section=document.getElementById('temps-objectiu-section');
+  if(!section) return;
+  const show=['running','trail','ciclismo','triatlon','duatlon'].includes(disc)&&dist;
+  section.style.display=show?'block':'none';
+  if(!show) return;
+  const labels={running:'¿En qué tiempo quieres acabar?',trail:'¿En qué tiempo quieres acabar?',ciclismo:'¿En qué tiempo quieres completarlo?',triatlon:'Tiempo objetivo total',duatlon:'Tiempo objetivo total'};
+  document.getElementById('temps-label').textContent=labels[disc]||'¿En qué tiempo quieres acabar?';
+  document.getElementById('t-hores').value='';
+  document.getElementById('t-min').value='';
+  document.getElementById('t-sec').value='';
+  document.getElementById('temps-preview').style.display='none';
+  userData.carreraTempsObjectiu=null;
+  userData.carreraRitmeObjectiu=null;
+  userData.carreraVelocitatObjectiu=null;
+}
+
+function updateTemps(){
+  const h=parseInt(document.getElementById('t-hores').value)||0;
+  const m=parseInt(document.getElementById('t-min').value)||0;
+  const s=parseInt(document.getElementById('t-sec').value)||0;
+  const total=h*3600+m*60+s;
+  if(total<=0){document.getElementById('temps-preview').style.display='none';userData.carreraTempsObjectiu=null;return;}
+  userData.carreraTempsObjectiu=total;
+  const disc=userData.carreraDisciplina;
+  const km=(distKmObj[disc]||{})[userData.carreraDistancia]||null;
+  let preview='';
+  if((disc==='running'||disc==='trail')&&km){
+    const paceS=total/km;
+    const pMin=Math.floor(paceS/60),pSec=Math.round(paceS%60);
+    userData.carreraRitmeObjectiu=Math.round(paceS);
+    preview='Ritmo objetivo: '+pMin+':'+(pSec<10?'0':'')+pSec+'/km'+(disc==='trail'?' (promedio con desnivel)':'');
+  } else if(disc==='ciclismo'&&km){
+    const vel=Math.round(km/(total/3600)*10)/10;
+    userData.carreraVelocitatObjectiu=vel;
+    preview='Velocidad media objetivo: '+vel+' km/h';
+  } else if(disc==='triatlon'||disc==='duatlon'){
+    preview='Tiempo objetivo total registrado ✓';
+  }
+  if(preview){document.getElementById('temps-preview-text').textContent=preview;document.getElementById('temps-preview').style.display='flex';}
+}
+function selDist(el,dist){document.querySelectorAll('.dist-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');userData.carreraDistancia=dist;showTempsObjectiu(userData.carreraDisciplina,dist);checkBtn4();}
 function updateDesnivel(v){userData.carreraDesnivel=parseInt(v);document.getElementById('desnivel-val').textContent=v;}
 function checkBtn4(){document.getElementById('btn4').disabled=!(userData.carreraDisciplina&&userData.carreraDistancia);}
 
@@ -868,6 +944,9 @@ async function savePlan(){
   if(userData.musculos&&userData.musculos.length>0) url+='&musculos='+encodeURIComponent(userData.musculos.join(','));
   if(userData.objetivoGym) url+='&obj_gym='+encodeURIComponent(userData.objetivoGym);
   if(userData.equipamiento) url+='&equip='+encodeURIComponent(userData.equipamiento);
+  if(userData.carreraTempsObjectiu) url+='&temps_obj='+userData.carreraTempsObjectiu;
+  if(userData.carreraRitmeObjectiu) url+='&ritme_obj='+userData.carreraRitmeObjectiu;
+  if(userData.carreraVelocitatObjectiu) url+='&vel_obj='+userData.carreraVelocitatObjectiu;
   window.location.href=url;
 }
 
