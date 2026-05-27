@@ -32,8 +32,7 @@ REGLA #3 — DISTRIBUCIÓN DE INTENSIDAD (SIEMPRE aplica, incluso sin déficit/s
   → El día POSTERIOR debe ser Z1, recuperación activa o descanso
 - Nunca dos sesiones de alta intensidad (Z4/Z5 o series) en días consecutivos
 - DURACIÓN MÍNIMA: Running/Trail mín. 25 min · Ciclismo mín. 35 min · Gimnasio mín. 30 min · Natación mín. 20 min. Si al redistribuir queda por debajo del mínimo, conviértela en DESCANSO (rest:true).
-- Puedes CAMBIAR EL TIPO de sesión de los días no modificados si la metodología lo requiere:
-  ejemplo → convertir "Series de velocidad" en "Rodaje Z2 recuperación", o reducir intensidad de un bloque
+- Puedes CAMBIAR EL TIPO de sesión de los días no modificados si la metodología lo requiere
   → Si cambias el tipo, actualiza title, sub, tags, icon y why coherentemente
 - Nunca fuerza pesada lower body el día anterior a: intervalos, tirada larga o competición.
 
@@ -44,16 +43,15 @@ REGLA #4 — COHERENCIA GENERAL:
 
 OUTPUT en castellano, JSON válido sin markdown.`;
 
-// Càlcul de càrrega ponderada per zona i desnivell (trail compta molt més)
+const DIA_NAMES = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
+
 function sessionLoad(d) {
   if (d.rest) return 0;
   const min = d.duracio_min || 45;
   const tags = d.tags || [];
   const z = (tags.find(t => t && t.startsWith('Z')) || '').toLowerCase().substring(0, 2);
   const zWeight = { z1: 0.8, z2: 1.0, z3: 1.5, z4: 2.2, z5: 3.0 }[z] || 1.0;
-  // Trail amb desnivell: cada 500m D+ suma ~0.4 al multiplicador
   const elevBonus = d.custom?.elev ? Math.min(d.custom.elev / 500 * 0.4, 1.6) : 0;
-  // Sessió llarga (>90 min) compta com a Z3 mínim
   const longBonus = min > 90 ? Math.max(0, 1.3 - zWeight) : 0;
   return Math.round(min * (zWeight + elevBonus + longBonus));
 }
@@ -70,13 +68,26 @@ export default async function handler(req, res) {
     const z2min = Math.round(fc * 0.60);
     const z2max = Math.round(fc * 0.70);
 
-    // Càrrega ponderada (no sols minuts)
-    const targetLoad = Math.round((userData?.volum || 4) * 60 * 1.0); // 1.0 = Z2 base
-    const currentLoad = planActual.reduce((sum, d) => sum + sessionLoad(d), 0);
+    // ── Dia actual i dies passats ─────────────────────────────────────────────
+    const todayDow = (new Date().getDay() + 6) % 7; // 0=Lu … 6=Do
+    const todayDayName = DIA_NAMES[todayDow];
+    const pastDayNames = planActual
+      .filter(d => { const idx = DIA_NAMES.indexOf(d.day); return idx >= 0 && idx < todayDow; })
+      .map(d => d.day);
+
+    // ── Càrrega: només dies a partir d'avui (passats no recuperables) ─────────
+    const targetLoadFull = Math.round((userData?.volum || 4) * 60 * 1.0);
+    const remainingRatio = Math.max(1, 7 - todayDow) / 7;
+    const targetLoad = Math.round(targetLoadFull * remainingRatio);
+
+    const currentLoad = planActual
+      .filter(d => { const idx = DIA_NAMES.indexOf(d.day); return idx >= todayDow; })
+      .reduce((sum, d) => sum + sessionLoad(d), 0);
+
     const deltaLoad = targetLoad - currentLoad;
     const needsRedistribution = Math.abs(deltaLoad) >= 20;
 
-    // Detectem sessions clau per informar el model
+    // ── Sessions clau ─────────────────────────────────────────────────────────
     const keySessions = planActual
       .filter(d => !d.rest && (
         (d.custom?.elev || 0) > 500 ||
@@ -102,22 +113,26 @@ ${JSON.stringify(planSimple)}
 
 Cambio del atleta: ${canvi}
 
-ANÁLISIS DE CARGA SEMANAL:
-- Carga objetivo (Z2 base, ${userData?.volum || 4}h/sem): ${targetLoad} unidades
-- Carga actual ponderada (intensidad × tiempo + desnivel): ${currentLoad} unidades
+HOY ES: ${todayDayName}
+${pastDayNames.length > 0 ? `DÍAS PASADOS (inmutables, su carga NO se recupera): ${pastDayNames.join(', ')}
+→ NO añadas sesiones en días pasados. NO intentes compensar su carga en días futuros.` : ''}
+
+ANÁLISIS DE CARGA (solo días desde hoy):
+- Carga objetivo restante de la semana: ${targetLoad} unidades
+- Carga actual desde hoy: ${currentLoad} unidades
 - Delta: ${deltaLoad > 0 ? '+' : ''}${deltaLoad} unidades
 ${needsRedistribution
-  ? `⚠ REDISTRIBUCIÓN NECESARIA: ${deltaLoad > 0 ? `Añade carga equivalente en días libres` : `Reduce carga en días no modificados`}`
-  : `✓ Volumen total equilibrado. PERO: revisa la distribución de intensidad — puede que algunos días necesiten cambiar de tipo de sesión.`
+  ? `⚠ REDISTRIBUCIÓN NECESARIA: ${deltaLoad > 0 ? `Añade carga en días libres restantes` : `Reduce carga en días no modificados`}`
+  : `✓ Carga equilibrada. Revisa distribución de intensidad si hace falta.`
 }
 
-${keySessions.length > 0 ? `SESIONES CLAVE DETECTADAS (requieren proteger días adyacentes):
+${keySessions.length > 0 ? `SESIONES CLAVE (requieren proteger días adyacentes):
 ${keySessions.join('\n')}
-→ Aplica REGLA #3: días previos y posterior a estas sesiones deben ser fáciles.` : ''}
+→ Aplica REGLA #3: días previos y posterior deben ser fáciles.` : ''}
 
 Datos atleta: FC max ${fc}, Z2 ${z2min}-${z2max}, ${userData?.dias || 3} días/sem, ${(userData?.sports || ['running']).join('+')}, nivel ${userData?.nivel || 'intermedio'}
 
-Instrucción: Optimiza la semana entera. Puedes cambiar tipo de sesión (title, tags, sub, icon) en días NO modificados si la metodología lo exige.
+Instrucción: Optimiza los días restantes de la semana. Puedes cambiar tipo de sesión (title, tags, sub, icon) en días NO modificados si la metodología lo exige.
 Devuelve SOLO JSON válido:
 {
   "setmana": [
