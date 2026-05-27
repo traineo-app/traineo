@@ -25,13 +25,9 @@ function paceFmt(sec){
   return m+':'+String(s).padStart(2,'0');
 }
 
-// Strava CSV: distància en METRES, dividir per 1000 per km
 function toKm(v) {
   const n = num(v);
   if (n === null) return null;
-  // Auto-detect: si valor > 100 és metres; si < 100 ja és km
-  // Strava col 6 = km (9.02), col 17 = metres (9027.9)
-  // Papa.parse pot retornar qualsevol de les dues
   return n > 100 ? Math.round(n / 1000 * 100) / 100 : Math.round(n * 100) / 100;
 }
 
@@ -87,7 +83,7 @@ export default async function handler(req,res){
       sportVolume[m]=(sportVolume[m]||0)+(toKm(a[colDist])||0);
     });
 
-    // Running
+    // Running / Riding
     const runs6mo=recent6mo.filter(a=>/Run/i.test(a[colType]||''));
     const rides6mo=recent6mo.filter(a=>/Ride/i.test(a[colType]||''));
 
@@ -103,7 +99,7 @@ export default async function handler(req,res){
       if(km>=9.5&&km<=11.0&&(!bestPace10K||pace<bestPace10K)) bestPace10K=pace;
     }
 
-    // ── ANÀLISI DE FREQÜÈNCIA CARDÍACA ─────────────────────────────────────
+    // HR analysis
     let maxHRever_run=0,maxHRever_bike=0;
     const hrRuns=[];
 
@@ -112,11 +108,9 @@ export default async function handler(req,res){
       const maxHR=colHRmax?num(r[colHRmax]):null;
       const km=toKm(r[colDist]);
       const sec=num(r[colMovTime])||num(r[colTime]);
-      const elev=num(r[colElev])||0;
-      // FCmax real: agafa només runs >20min per evitar escalfaments
       if(maxHR&&sec&&sec>1200&&maxHR>maxHRever_run) maxHRever_run=maxHR;
       if(avgHR&&km&&km>1&&sec&&sec>0){
-        hrRuns.push({avgHR,maxHR,km,sec,pacePerKm:sec/km,elev});
+        hrRuns.push({avgHR,maxHR,km,sec,pacePerKm:sec/km,elev:num(r[colElev])||0});
       }
     }
     for(const r of rides6mo){
@@ -127,43 +121,27 @@ export default async function handler(req,res){
 
     const maxHRever=Math.max(maxHRever_run,maxHRever_bike)||null;
 
-    // ── Estimació FCmax real ─────────────────────────────────────────────────
-    // L'usuari rarament arriba al màxim absolut en entrenaments normals.
-    // Si la FC mitja d'entrenament és >73% de la màxima observada, la FCmax real
-    // és probablement superior. Divisor 0.74 = assumeix que la mitja d'entrenaments
-    // és ~74% del FCmax real (zona Z2-Z3 frontera).
     let fcmaxEstimate=null;
     if(maxHRever_run){
-      const avgHRall=hrRuns.length>0
-        ?hrRuns.reduce((s,r)=>s+r.avgHR,0)/hrRuns.length
-        :null;
+      const avgHRall=hrRuns.length>0?hrRuns.reduce((s,r)=>s+r.avgHR,0)/hrRuns.length:null;
       if(avgHRall){
         const avgPct=avgHRall/maxHRever_run;
-        if(avgPct>0.73){
-          fcmaxEstimate=Math.round(avgHRall/0.74); // ← 0.74 (era 0.78)
-        } else {
-          fcmaxEstimate=maxHRever_run;
-        }
+        fcmaxEstimate=avgPct>0.73?Math.round(avgHRall/0.74):maxHRever_run;
       }
     }
 
-    // ── Z2 real des de HR ────────────────────────────────────────────────────
-    // Usa fcmaxEstimate si disponible, sinó maxHRever_run.
-    // z2Hi = 74% FCmax (era 72%) — rang més ample per capturar runs fàcils reals.
     const fcmaxForZones=fcmaxEstimate||maxHRever_run;
     let z2PaceSec=null,z2AvgHR=null,z2RunsCount=0;
     let z4PaceSec=null,z4RunsCount=0;
 
     if(fcmaxForZones&&hrRuns.length>0){
-      const z2Lo=fcmaxForZones*0.60;
-      const z2Hi=fcmaxForZones*0.74; // ← 0.74 (era 0.72)
+      const z2Lo=fcmaxForZones*0.60,z2Hi=fcmaxForZones*0.74;
       const z2Runs=hrRuns.filter(r=>r.avgHR>=z2Lo&&r.avgHR<=z2Hi&&r.km>=4);
-      if(z2Runs.length>=1){ // ← >= 1 (era >= 2)
+      if(z2Runs.length>=1){
         z2PaceSec=Math.round(z2Runs.reduce((s,r)=>s+r.pacePerKm,0)/z2Runs.length);
         z2AvgHR=Math.round(z2Runs.reduce((s,r)=>s+r.avgHR,0)/z2Runs.length);
         z2RunsCount=z2Runs.length;
       }
-
       const z4Lo=fcmaxForZones*0.85;
       const z4Runs=hrRuns.filter(r=>r.avgHR>=z4Lo&&r.km>=1);
       if(z4Runs.length>=2){
@@ -182,6 +160,31 @@ export default async function handler(req,res){
       const km=toKm(r[colDist]);
       if(km&&km>longestRide) longestRide=km;
     }
+
+    // ── ACTIVITATS DE LA SETMANA ACTUAL (per auto-completar el dashboard) ──
+    const dayNamesWeek=['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
+    const mondayCW=new Date();
+    const dowCW=mondayCW.getDay();
+    mondayCW.setDate(mondayCW.getDate()-(dowCW===0?6:dowCW-1));
+    mondayCW.setHours(0,0,0,0);
+
+    const currentWeek=recent6mo
+      .filter(a=>a._date>=mondayCW)
+      .map(a=>{
+        const dow=a._date.getDay();
+        const dayIdx=dow===0?6:dow-1;
+        const sport=SPORT_MAP[a[colType]]||'otros';
+        return {
+          date:a._date.toISOString().split('T')[0],
+          dayOfWeek:dayNamesWeek[dayIdx],
+          sport:sport,
+          durationMin:Math.round((num(a[colMovTime])||0)/60),
+          distanceKm:toKm(a[colDist])||0,
+          elevationM:num(a[colElev])||0,
+          avgHR:colHRavg?num(a[colHRavg]):null
+        };
+      })
+      .filter(a=>a.sport!=='otros'&&a.sport!=='walking'&&a.durationMin>5);
 
     const best5K=bestPace5K?Math.round(bestPace5K):null;
     const best10K=bestPace10K?Math.round(bestPace10K):null;
@@ -219,22 +222,14 @@ export default async function handler(req,res){
           maxEver:maxHRever,
           fcmaxEstimate:fcmaxEstimate,
           fcmaxNote:fcmaxEstimate&&fcmaxEstimate>(maxHRever_run||0)
-            ?'FCmax estimada superior a la observada (entrenos no han llegado al máximo absoluto)'
+            ?'FCmax estimada superior a la observada'
             :'FCmax basada en HR máxima registrada',
           runsWithHR:hrRuns.length,
           avgTrainingHR:hrRuns.length?Math.round(hrRuns.reduce((s,r)=>s+r.avgHR,0)/hrRuns.length):null,
-          z2:{
-            paceFromHR_sec:z2PaceSec,
-            paceFromHR:paceFmt(z2PaceSec),
-            avgHR:z2AvgHR,
-            runsCount:z2RunsCount
-          },
-          z4:{
-            paceFromHR_sec:z4PaceSec,
-            paceFromHR:paceFmt(z4PaceSec),
-            runsCount:z4RunsCount
-          }
-        }
+          z2:{paceFromHR_sec:z2PaceSec,paceFromHR:paceFmt(z2PaceSec),avgHR:z2AvgHR,runsCount:z2RunsCount},
+          z4:{paceFromHR_sec:z4PaceSec,paceFromHR:paceFmt(z4PaceSec),runsCount:z4RunsCount}
+        },
+        currentWeek:currentWeek
       }
     });
   } catch(error){
