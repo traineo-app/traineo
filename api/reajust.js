@@ -31,10 +31,11 @@ REGLA #3 — DISTRIBUCIÓN DE INTENSIDAD (SIEMPRE aplica, incluso sin déficit/s
   → Los 1-2 días ANTERIORES deben ser Z1/Z2 o descanso (no series, no intensidad alta)
   → El día POSTERIOR debe ser Z1, recuperación activa o descanso
 - Nunca dos sesiones de alta intensidad (Z4/Z5 o series) en días consecutivos
-- DURACIÓN MÍNIMA: Running/Trail mín. 15 min · Ciclismo mín. 25 min · Gimnasio mín. 10 min · Natación mín. 15 min. Si al redistribuir una sesión queda por debajo del mínimo, conviértela en DESCANSO (rest:true) en lugar de dejarla con duración ridícula.
+- DURACIÓN MÍNIMA: Running/Trail mín. 25 min · Ciclismo mín. 35 min · Gimnasio mín. 30 min · Natación mín. 20 min. Si al redistribuir queda por debajo del mínimo, conviértela en DESCANSO (rest:true).
 - Puedes CAMBIAR EL TIPO de sesión de los días no modificados si la metodología lo requiere:
   ejemplo → convertir "Series de velocidad" en "Rodaje Z2 recuperación", o reducir intensidad de un bloque
   → Si cambias el tipo, actualiza title, sub, tags, icon y why coherentemente
+- Nunca fuerza pesada lower body el día anterior a: intervalos, tirada larga o competición.
 
 REGLA #4 — COHERENCIA GENERAL:
 - Aplica la lógica de carga/recuperación del CERVELL DEL COACH
@@ -128,7 +129,7 @@ Devuelve SOLO JSON válido:
 
     const response = await anthropic.messages.create({
       model: "claude-haiku-4-5",
-      max_tokens: 1800,
+      max_tokens: 2500,
       system: [
         { type: "text", text: BASE_INSTRUCTIONS },
         { type: "text", text: METHODOLOGY, cache_control: { type: "ephemeral" } }
