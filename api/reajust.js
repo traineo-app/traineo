@@ -47,6 +47,8 @@ const DIA_NAMES = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
 
 function sessionLoad(d) {
   if (d.rest) return 0;
+  if (d.completed && d.completion && d.completion.status === 'skipped') return 0;
+  if (d.skipped) return 0;
   const min = d.duracio_min || 45;
   const tags = d.tags || [];
   const z = (tags.find(t => t && t.startsWith('Z')) || '').toLowerCase().substring(0, 2);
