@@ -341,6 +341,30 @@
 
   <button class="btn-next" id="btns5b" disabled onclick="goNext()">Siguiente →</button>
 </div>
+
+ <div class="step" id="s5c">
+  <div class="step-label">Tu material</div>
+  <div class="step-title">¿Dónde haces fuerza?</div>
+  <div class="step-sub">Adaptaré los ejercicios al material que tengas.</div>
+  <div class="field-group">
+    <div class="grid-options" style="grid-template-columns:1fr 1fr">
+      <div class="grid-opt" onclick="selGymUbi(this,'gimnasio')"><div class="check-badge">✓</div><div class="grid-opt-icon">🏋️</div><div class="grid-opt-title">Gimnasio</div><div class="grid-opt-sub" style="font-size:.65rem;color:#888780;margin-top:2px">Tengo todo el material</div></div>
+      <div class="grid-opt" onclick="selGymUbi(this,'casa')"><div class="check-badge">✓</div><div class="grid-opt-icon">🏠</div><div class="grid-opt-title">En casa</div><div class="grid-opt-sub" style="font-size:.65rem;color:#888780;margin-top:2px">Con mi material</div></div>
+    </div>
+  </div>
+  <div class="field-group" id="gym-material-section" style="display:none">
+    <label class="field-label">¿Qué material tienes? (elige los que quieras)</label>
+    <div class="grid-options">
+      <div class="grid-opt" onclick="toggleGymMat(this,'mancuernas')"><div class="check-badge">✓</div><div class="grid-opt-icon">🏋️</div><div class="grid-opt-title">Mancuernas</div></div>
+      <div class="grid-opt" onclick="toggleGymMat(this,'kettlebell')"><div class="check-badge">✓</div><div class="grid-opt-icon">🔔</div><div class="grid-opt-title">Kettlebell</div></div>
+      <div class="grid-opt" onclick="toggleGymMat(this,'gomas')"><div class="check-badge">✓</div><div class="grid-opt-icon">➰</div><div class="grid-opt-title">Gomas elásticas</div></div>
+      <div class="grid-opt" onclick="toggleGymMat(this,'barra_dominadas')"><div class="check-badge">✓</div><div class="grid-opt-icon">🚪</div><div class="grid-opt-title">Barra dominadas</div></div>
+      <div class="grid-opt" onclick="toggleGymMat(this,'banco')"><div class="check-badge">✓</div><div class="grid-opt-icon">🛋️</div><div class="grid-opt-title">Banco / barra</div></div>
+      <div class="grid-opt" onclick="toggleGymMat(this,'nada')"><div class="check-badge">✓</div><div class="grid-opt-icon">🤸</div><div class="grid-opt-title">Sin material</div></div>
+    </div>
+  </div>
+  <button class="btn-next" id="btns5c" disabled onclick="goNext()">Siguiente →</button>
+</div>
  
   <!-- S6: CALIBRACIÓN (adaptativa) -->
   <div class="step" id="s6">
@@ -421,6 +445,8 @@ const sportSessions={
 userData.musculos=[];
 userData.objetivoGym='';
 userData.equipamiento='';
+userData.gymUbicacion='';
+userData.gymMaterial=[];
 
 function spreadTrainingDays(dias,descanso){
   dias=Math.max(0,Math.min(7,dias||0));
@@ -470,6 +496,35 @@ function checkBtnS5b(){
   document.getElementById('btns5b').disabled=!(userData.objetivoGym&&userData.equipamiento);
 }
 
+function selGymUbi(el,ubi){
+  document.querySelectorAll('#s5c [onclick^="selGymUbi"]').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  userData.gymUbicacion=ubi;
+  document.getElementById('gym-material-section').style.display=ubi==='casa'?'block':'none';
+  if(ubi==='gimnasio'){userData.gymMaterial=[];userData.equipamiento='gym_completo';}
+  checkBtnS5c();
+}
+function toggleGymMat(el,mat){
+  if(mat==='nada'){
+    document.querySelectorAll('#gym-material-section .grid-opt').forEach(o=>o.classList.remove('sel'));
+    el.classList.add('sel');
+    userData.gymMaterial=['nada'];
+  } else {
+    var nada=Array.from(document.querySelectorAll('#gym-material-section .grid-opt')).find(o=>/nada/.test(o.getAttribute('onclick')));
+    if(nada) nada.classList.remove('sel');
+    el.classList.toggle('sel');
+    if(el.classList.contains('sel')){if(!userData.gymMaterial.includes(mat)) userData.gymMaterial.push(mat);}
+    else userData.gymMaterial=userData.gymMaterial.filter(m=>m!==mat);
+    userData.gymMaterial=userData.gymMaterial.filter(m=>m!=='nada');
+  }
+  userData.equipamiento=userData.gymMaterial.includes('nada')?'cuerpo':(userData.gymMaterial.length>0?'casa_material':'cuerpo');
+  checkBtnS5c();
+}
+function checkBtnS5c(){
+  var ok = userData.gymUbicacion==='gimnasio' || (userData.gymUbicacion==='casa' && userData.gymMaterial.length>0);
+  document.getElementById('btns5c').disabled=!ok;
+}
+
 function buildStepOrder(){
   stepOrder=['s1'];
   const isCarrera=userData.objetivo==='carrera';
@@ -478,17 +533,22 @@ function buildStepOrder(){
   const isGymOnly=sports.length>0&&sports.every(function(s){return ['gimnasio','calistenia'].includes(s);});
 
   if(isCarrera){
-    // Carrera: personal → carrera info → disciplines complementàries → uploads → calibració
-    stepOrder.push('s2','s4','s5','s3','s6');
+    stepOrder.push('s2','s4','s5','s3');
+    if(sports.some(function(s){return ['gimnasio','calistenia'].includes(s);})) stepOrder.push('s5c');
+    stepOrder.push('s6');
+  }
   } else {
     // Forma/peso/vuelta: ESPORTS PRIMER, després la resta
     stepOrder.push('s5'); // Esports (sense "practicas algún deporte más?")
     stepOrder.push('s2'); // Personal data
+    const hasGym=sports.some(function(s){return ['gimnasio','calistenia'].includes(s);});
     if(isGymOnly){
-      stepOrder.push('s5b'); // Muscle focus
+      stepOrder.push('s5b');
+      stepOrder.push('s5c');
     } else {
-      stepOrder.push('s3'); // Uploads
-      if(hasCardio||sports.length===0) stepOrder.push('s6'); // Calibració cardio
+      stepOrder.push('s3');
+      if(hasGym) stepOrder.push('s5c');
+      if(hasCardio||sports.length===0) stepOrder.push('s6');
     }
   }
   stepOrder.push('s7','s8');
