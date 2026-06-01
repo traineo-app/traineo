@@ -1022,6 +1022,8 @@ async function savePlan(){
   if(userData.musculos&&userData.musculos.length>0) url+='&musculos='+encodeURIComponent(userData.musculos.join(','));
   if(userData.objetivoGym) url+='&obj_gym='+encodeURIComponent(userData.objetivoGym);
   if(userData.equipamiento) url+='&equip='+encodeURIComponent(userData.equipamiento);
+  if(userData.gymUbicacion) url+='&gym_ubi='+encodeURIComponent(userData.gymUbicacion);
+  if(userData.gymMaterial&&userData.gymMaterial.length>0) url+='&gym_mat='+encodeURIComponent(userData.gymMaterial.join(','));
   if(userData.carreraTempsObjectiu) url+='&temps_obj='+userData.carreraTempsObjectiu;
   if(userData.carreraRitmeObjectiu) url+='&ritme_obj='+userData.carreraRitmeObjectiu;
   if(userData.carreraVelocitatObjectiu) url+='&vel_obj='+userData.carreraVelocitatObjectiu;
