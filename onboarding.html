@@ -418,6 +418,9 @@
 <script>
 const dayNames=['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
 let userData={objetivo:'',carreraDisciplina:'',carreraNombre:'',carreraDistancia:'',carreraDesnivel:0,carreraFecha:'',carreraTempsObjectiu:null,carreraRitmeObjectiu:null,carreraVelocitatObjectiu:null,sports:[],nivel:'',fcmax:185,volum:4,dias:0,descanso:'',descansos:[],edat:null,alcada:null,pes:null,fcrep:null,genere:'',pdfName:'',stravaName:'',stressTestData:null,stravaStats:null,calibrated:{fcmax:null,pacez2:null,ftp:null,nivel:null,volum:null}};
+var _urlParams=new URLSearchParams(window.location.search);
+userData.email=_urlParams.get('email')||'';
+userData.name=_urlParams.get('name')||'';
 let stravaFile=null;
 let stepOrder=[];
 let currentStepIdx=0;
@@ -1023,6 +1026,7 @@ async function savePlan(){
   if(userData.equipamiento) url+='&equip='+encodeURIComponent(userData.equipamiento);
   if(userData.gymUbicacion) url+='&gym_ubi='+encodeURIComponent(userData.gymUbicacion);
   if(userData.gymMaterial&&userData.gymMaterial.length>0) url+='&gym_mat='+encodeURIComponent(userData.gymMaterial.join(','));
+  if(userData.email) url+='&email='+encodeURIComponent(userData.email);
   if(userData.carreraTempsObjectiu) url+='&temps_obj='+userData.carreraTempsObjectiu;
   if(userData.carreraRitmeObjectiu) url+='&ritme_obj='+userData.carreraRitmeObjectiu;
   if(userData.carreraVelocitatObjectiu) url+='&vel_obj='+userData.carreraVelocitatObjectiu;
