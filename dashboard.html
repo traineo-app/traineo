@@ -634,6 +634,7 @@ async function initDashboard(user){
         renderAll();
         if(!periodization) loadPeriodization();
         maybeShowCatchUp();
+        pregenTodayDetail();
         return;
       }
     } catch(e){ console.log('No saved plan',e); }
@@ -734,7 +735,7 @@ async function buildPlan(user){
       planDays=applyStravaCompletions(planDays);
       renderAll();
       loadPeriodization();
-      if(currentEmail) await savePlanToSupabase();
+      if(currentEmail){ await savePlanToSupabase(); pregenTodayDetail(); }
       else setTimeout(()=>openEmailModal(),2000);
     } else throw new Error('Format incorrecte');
   } catch(error){
@@ -980,6 +981,33 @@ async function savePlanToSupabase(){
       body:JSON.stringify({email:currentEmail,userData:user,sessions:planDays,resum:window._coachResum||''})
     });
   } catch(e){ console.log('Could not save:',e); }
+}
+
+// Pre-genera el detall de la sessió d'AVUI en segon pla, perquè quan
+// l'usuari l'obri ja estigui cachejat a Supabase i carregui a l'instant.
+function pregenTodayDetail(){
+  if(!currentEmail) return; // sense email no es pot desar el detall
+  const idx=planDays.findIndex(d=>d.day===todayName);
+  if(idx<0) return;
+  const d=planDays[idx];
+  if(!d||d.rest||d.detail) return; // descans o ja té detall → res a fer
+  fetch('/api/session-detail',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      email:currentEmail, setmana:currentWeekStart, day:d.day,
+      session:{title:d.title,sub:d.sub,why:d.why,tags:d.tags||[],duracio_min:d.duracio_min||45},
+      userData:{
+        fcmax:user?.fcmax||185, nivel:user?.nivel||'intermedio', objetivo:user?.objetivo||'',
+        pacez2:user?.pacez2||null, ftp:user?.ftp||null,
+        musculos:params.get('musculos')?params.get('musculos').split(','):[],
+        equipamiento:params.get('equip')||null,
+        gymUbi:params.get('gym_ubi')||null,
+        gymMat:params.get('gym_mat')?params.get('gym_mat').split(','):[]
+      }
+    })
+  }).then(function(r){return r.json();})
+   .then(function(){ /* desat a Supabase pel propi endpoint; res a fer aquí */ })
+   .catch(function(){ /* silenciós: si falla, es generarà quan s'obri */ });
 }
 
 function openEmailModal(){ document.getElementById('modal-email').classList.add('open'); }
@@ -1681,6 +1709,7 @@ window.addEventListener('pageshow',function(e){
         window._coachResum=(cur?cur.resum:(data.plan&&data.plan.resum))||'';
         _weekDataCache={};
         renderAll();
+        pregenTodayDetail();
       }
     })
     .catch(function(){});
