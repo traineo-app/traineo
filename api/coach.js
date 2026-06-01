@@ -1,21 +1,30 @@
 // api/coach.js — traineo coach IA
-// 
-// Fusió de:
-// - Prompt caching del cervell del coach (metodologia ~42K tokens, cost al 10%)
-// - Rich context de l'atleta (Strava, PDF, calibració)
-// - Suport per dos modes: pla setmanal (camps) i chat (messages)
-
 import Anthropic from "@anthropic-ai/sdk";
 import fs from "fs";
 import path from "path";
 
 const anthropic = new Anthropic();
 
-// Llegit un sol cop al cold start, cacheat per Anthropic al 90% en re-crides.
 const METHODOLOGY = fs.readFileSync(
   path.join(process.cwd(), "coach-methodology.md"),
   "utf8"
 );
+
+function describeMaterial(gym_ubi, gym_mat, equipamiento) {
+  if (gym_ubi === 'gimnasio' || equipamiento === 'gym_completo') {
+    return 'Gimnasio completo: acceso a barras, mancuernas, máquinas, poleas, banco. Usa cualquier ejercicio.';
+  }
+  const mats = Array.isArray(gym_mat) ? gym_mat : (typeof gym_mat === 'string' && gym_mat ? gym_mat.split(',') : []);
+  if (mats.length === 0 || mats.includes('nada') || equipamiento === 'cuerpo') {
+    return 'SOLO peso corporal (calistenia). PROHIBIDO usar pesas, barras o máquinas. Usa: flexiones, fondos, sentadillas, zancadas, planchas, puentes de glúteo, dominadas solo si hay barra.';
+  }
+  const matNames = {
+    mancuernas: 'mancuernas', kettlebell: 'kettlebell', gomas: 'gomas elásticas',
+    barra_dominadas: 'barra de dominadas', banco: 'banco y barra'
+  };
+  const list = mats.map(m => matNames[m] || m).join(', ');
+  return `Entrena EN CASA. Material disponible: ${list}. SOLO usa ejercicios que se puedan hacer con ESTE material exacto. NO uses máquinas, poleas ni nada que no esté en la lista. Si falta material para un grupo muscular, sustituye por peso corporal.`;
+}
 
 const BASE_INSTRUCTIONS = `Eres el coach IA de traineo, una app d'entrenament esportiu per a runners, ciclistes, triatletes, swimmers, atletes de força i gent que vol estar en forma.
 
@@ -34,13 +43,13 @@ QUAN GENERIS UN PLA SETMANAL (mode JSON):
 - Respecta el VOLUM REAL (ve de Strava últimes 4 setmanes si està disponible)
 - Distribució 80/20: ~80% Z1-Z2 (aeròbic base), ~20% Z3-Z5 (qualitat)
 - Si hi ha cursa propera, ajusta la fase (base/construcció/específic/taper)
+- Si hi ha sessions de força, respecta SEMPRE el material disponible de l'atleta
 - Retorna JSON estricte sense markdown segons el format demanat al missatge`;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    // Detectar mode: chat lliure (té "messages") o generació de pla (té camps individuals)
     if (req.body.messages && Array.isArray(req.body.messages)) {
       return await handleChat(req, res);
     } else {
@@ -52,11 +61,9 @@ export default async function handler(req, res) {
   }
 }
 
-// ─── MODE CHAT: per futures converses lliures amb el coach ─────────────────
 async function handleChat(req, res) {
   const { messages, userContext } = req.body;
 
-  // Si arriba context de l'usuari, l'injectem com a primer missatge
   let finalMessages = messages;
   if (userContext) {
     finalMessages = [
@@ -81,21 +88,21 @@ async function handleChat(req, res) {
   return res.status(200).json({ reply, usage: response.usage });
 }
 
-// ─── MODE PLA SETMANAL: genera setmana[7] + resum ──────────────────────────
 async function handlePlanGeneration(req, res) {
   const {
     sports, dias, descanso, nivel, fcmax, volum,
     objetivo, carrera, distancia, desnivel, fecha,
     edat, alcada, pes, fcrep, genere,
     pacez2, race5k, race10k, ftp,
-    musculos, obj_gym, equipamiento,
+    musculos, obj_gym, equipamiento, gym_ubi, gym_mat,
     stravaStats, stressTestData,
-    previousWeek, weekNumber, cycleInfo  // ← nous camps per adaptació setmanal
+    previousWeek, weekNumber, cycleInfo
   } = req.body;
 
   const sportsList = Array.isArray(sports) ? sports : (sports || 'running').split(',');
   const hasCardio = sportsList.some(s => ['running','ciclismo','trail','natacion','triatlon'].includes(s));
   const isGymOnly = sportsList.length > 0 && sportsList.every(s => ['gimnasio','calistenia'].includes(s));
+  const hasGym = sportsList.includes('gimnasio') || sportsList.includes('calistenia');
   const isTri = sportsList.includes('triatlon');
   const isDua = sportsList.includes('duatlon');
 
@@ -114,7 +121,6 @@ async function handlePlanGeneration(req, res) {
 
   const volumReal = stravaStats?.last4Weeks?.weeklyAvgHours || parseFloat(volum) || 4;
 
-  // ─── Construir el bloc de context ───────────────────────────────────────
   let ctx = `# DADES DE L'ATLETA\n\n`;
   ctx += `**Esports:** ${sportsList.join(', ')}\n`;
   ctx += `**Nivell:** ${nivel || 'intermedio'}\n`;
@@ -122,7 +128,6 @@ async function handlePlanGeneration(req, res) {
   ctx += `**Volum objectiu:** ${volumReal}h/setmana${stravaStats?.last4Weeks?.weeklyAvgHours ? ' (real de Strava 4 sem)' : ''}\n`;
   ctx += `**Objectiu:** ${objetivo}\n`;
 
-  // Personals
   if (edat || alcada || pes) {
     ctx += `\n## PERSONAL\n`;
     if (edat) ctx += `- Edat: ${edat} anys${genere ? ' · ' + (genere === 'mujer' ? 'dona' : genere === 'hombre' ? 'home' : '') : ''}\n`;
@@ -133,7 +138,6 @@ async function handlePlanGeneration(req, res) {
     if (objetivo === 'peso') ctx += `- OBJECTIU PÈRDUA DE PES: prioritzar Z2 i activitats llargues\n`;
   }
 
-  // Cardio: FCmax, zones, ritmes
   if (!isGymOnly) {
     ctx += `\n## RENDIMENT\n`;
     ctx += `- FCmax: ${fcMax} bpm`;
@@ -148,7 +152,6 @@ async function handlePlanGeneration(req, res) {
     if (stressTestData?.umbral_anaerobic) ctx += `- VT2 (llindar anaeròbic): ${stressTestData.umbral_anaerobic} bpm\n`;
     if (stressTestData?.vo2max) ctx += `- VO2max: ${stressTestData.vo2max} ml/kg/min\n`;
 
-    // Running paces
     if (sportsList.includes('running') || sportsList.includes('trail') || isTri || isDua) {
       ctx += `\n### RUNNING\n`;
       if (pacez2) {
@@ -169,16 +172,23 @@ async function handlePlanGeneration(req, res) {
         if (stravaStats?.running?.best10K_pace) ctx += ` (Strava: ${stravaStats.running.best10K_pace})`;
         ctx += '\n';
       }
+      // Ritme objectiu de cursa
+      if (req.body.ritme_obj) {
+        const ro = parseInt(req.body.ritme_obj);
+        ctx += `- RITME OBJECTIU de cursa: ${fmtPace(ro)} — orienta les sessions de qualitat cap a aquest ritme\n`;
+      }
       if (sportsList.includes('trail') && desnivel > 0) {
         ctx += `- Desnivell objectiu cursa: +${desnivel}m D+\n`;
       }
     }
 
-    // Bici / FTP
     if ((sportsList.includes('ciclismo') || isTri || isDua) && ftp) {
       ctx += `\n### CICLISME\n- FTP: ${ftp}W`;
       if (stressTestData?.ftp) ctx += ` (prova d'esforç)`;
       ctx += '\n';
+    }
+    if (req.body.vel_obj && (sportsList.includes('ciclismo'))) {
+      ctx += `- VELOCITAT OBJECTIU de cursa: ${req.body.vel_obj} km/h mitjana\n`;
     }
 
     if (sportsList.includes('natacion') || isTri) {
@@ -186,7 +196,6 @@ async function handlePlanGeneration(req, res) {
     }
   }
 
-  // Historial Strava
   if (stravaStats) {
     ctx += `\n## HISTÒRIC STRAVA (últims 6 mesos)\n`;
     ctx += `- Activitats: ${stravaStats.recentActivities6mo}\n`;
@@ -198,8 +207,7 @@ async function handlePlanGeneration(req, res) {
     ctx += `\n**IMPORTANT:** ajusta el volum de la setmana al volum REAL (${volumReal}h/sem), no a l'estimació genèrica del nivell.\n`;
   }
 
-  // Gym
-  if (isGymOnly || (musculos && musculos.length > 0)) {
+  if (isGymOnly || hasGym || (musculos && musculos.length > 0)) {
     ctx += `\n## GIMNÀS\n`;
     if (musculos && musculos.length > 0) {
       const musMap = {
@@ -216,13 +224,9 @@ async function handlePlanGeneration(req, res) {
       const objMap = { fuerza:'força i potència', hipertrofia:'hipertròfia', tono:'tonificació i definició', funcional:'funcional i mobilitat' };
       ctx += `- Objectiu: ${objMap[obj_gym] || obj_gym}\n`;
     }
-    if (equipamiento) {
-      const equipMap = { gym_completo:'gimnàs complet', mancuernas:'mancuernes i peses a casa', cuerpo:'només pes corporal / calistenia' };
-      ctx += `- Material: ${equipMap[equipamiento] || equipamiento}\n`;
-    }
+    ctx += `- Material: ${describeMaterial(gym_ubi, gym_mat, equipamiento)}\n`;
   }
 
-// ─── Setmana anterior (clau per adaptació) ──────────────────────────────
   if (previousWeek && previousWeek.sessions) {
     ctx += `\n## SETMANA ANTERIOR — Adapta la nova en funció d'això\n`;
     ctx += `**Fase de la setmana anterior:** ${previousWeek.phase || 'desconeguda'}\n\n`;
@@ -258,10 +262,9 @@ async function handlePlanGeneration(req, res) {
     ctx += `- Si ha saltat o fet parcial una sessió clau (tirada llarga, qualitat) → NO la dobles, analitza per què (fatiga? logística?) i adapta.\n`;
     ctx += `- Si ha completat poc (<60% sessions) → reduceix volum 15-20% i prioritza adherència sobre estímul.\n`;
     ctx += `- Si RPE "fàcil" generalitzat → pots pujar lleugerament intensitat o volum.\n`;
-    ctx += `- Aplica BLOC 9 #57 de la teva metodologia (regla 3+1, lectura de fatiga real).\n`;
+    ctx += `- NO recuperar sessions perdudes: una sessió saltada no es compensa, segueix endavant.\n`;
   }
 
-  // Context de quina setmana del bloc estem (per fases periodització)
   if (weekNumber) {
     ctx += `\n## POSICIÓ AL BLOC\n- Setmana número ${weekNumber} del pla.\n`;
   }
@@ -269,13 +272,17 @@ async function handlePlanGeneration(req, res) {
     ctx += `- Cicle ${cycleInfo.cycleNumber}, setmana ${cycleInfo.cycleWeek}/4 del cicle (rolling).\n`;
     if (cycleInfo.cycleWeek === 4) ctx += `- Aquesta és setmana de DESCÀRREGA: -25/30% volum, mantén freqüència i una mica d'intensitat.\n`;
   }
-  
-  // Cursa
+
   if (objetivo === 'carrera' && carrera) {
     ctx += `\n## OBJECTIU CURSA\n`;
     ctx += `- Cursa: ${carrera}\n`;
     if (distancia) ctx += `- Distància: ${distancia}\n`;
     if (desnivel > 0) ctx += `- Desnivell: +${desnivel}m D+\n`;
+    if (req.body.temps_obj) {
+      const t = parseInt(req.body.temps_obj);
+      const h = Math.floor(t/3600), m = Math.floor((t%3600)/60), s = t%60;
+      ctx += `- Temps objectiu: ${h>0?h+'h ':''}${m}min ${s>0?s+'s':''}\n`;
+    }
     if (fecha) {
       const diff = Math.ceil((new Date(fecha) - new Date()) / (1000*60*60*24));
       ctx += `- Data: ${fecha} (${diff} dies)\n`;
@@ -286,7 +293,6 @@ async function handlePlanGeneration(req, res) {
     }
   }
 
-  // ─── Missatge final amb el format JSON requerit ─────────────────────────
   const userMessage = ctx + `\n\n---\n\nGENERA EL PLA SETMANAL aplicant tota la teva metodologia.
 
 **FORMAT DE RESPOSTA OBLIGATORI** — Retorna NOMÉS un objecte JSON vàlid (sense markdown, sense \`\`\`json, sense explicacions prèvies). Estructura exacta:
@@ -303,8 +309,7 @@ async function handlePlanGeneration(req, res) {
       "tags": ["Running", "Z2"],
       "duracio_min": 45,
       "rest": false
-    },
-    ... 7 elements en total, ordre Lu → Do
+    }
   ],
   "resum": "Frase d'1-2 línies explicant la lògica del pla"
 }
@@ -312,14 +317,13 @@ async function handlePlanGeneration(req, res) {
 
 **RESTRICCIONS ESTRICTES:**
 - Els 7 dies en ordre Lu, Ma, Mi, Ju, Vi, Sá, Do
-- El dia "${descanso}" → rest:true, icon:"💤", title:"Descanso", duracio_min:0
+- El/els dia(es) "${descanso}" → rest:true, icon:"💤", title:"Descanso", duracio_min:0
 - Total duracio_min de sessions d'entrenament ≈ ${Math.round(volumReal * 60)} minuts (volum objectiu)
 - Tags amb zona FC ["Z2"] si running/bici, o grup muscular ["Piernas"] si gym
 - Icones: 🏃 running/trail · 🚴 ciclisme · 🏊 natació · 🏋️ gimnàs · 🤸 calistenia/core · 💤 descans · 🥇 brick triatleta
 - "why" en castellà, frase curta i motivadora
 - "title" en castellà, descriptiu i concret`;
 
-  // ─── Crida a Claude amb prompt caching ─────────────────────────────────
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-6",
     max_tokens: 4096,
@@ -345,7 +349,6 @@ async function handlePlanGeneration(req, res) {
     throw new Error('Resposta sense setmana vàlida');
   }
 
-  // Normalitzar a 7 dies garantits en ordre Lu→Do
   const dayNames = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'];
   const validated = dayNames.map((day, i) => {
     let s = data.setmana.find(x => x.day === day) || data.setmana[i] || { rest: true };
@@ -364,7 +367,7 @@ async function handlePlanGeneration(req, res) {
   return res.status(200).json({
     setmana: validated,
     resum: data.resum || data.resumen || '',
-    phase: data.phase || data.fase || null,  // ← el coach pot retornar la fase si vol
+    phase: data.phase || data.fase || null,
     usage: response.usage
   });
 }
