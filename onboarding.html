@@ -393,7 +393,7 @@
 
 <script>
 const dayNames=['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
-let userData={objetivo:'',carreraDisciplina:'',carreraNombre:'',carreraDistancia:'',carreraDesnivel:0,carreraFecha:'',carreraTempsObjectiu:null,carreraRitmeObjectiu:null,carreraVelocitatObjectiu:null,sports:[],nivel:'',fcmax:185,volum:4,dias:0,descanso:'',edat:null,alcada:null,pes:null,fcrep:null,genere:'',pdfName:'',stravaName:'',stressTestData:null,stravaStats:null,calibrated:{fcmax:null,pacez2:null,ftp:null,nivel:null,volum:null}};
+let userData={objetivo:'',carreraDisciplina:'',carreraNombre:'',carreraDistancia:'',carreraDesnivel:0,carreraFecha:'',carreraTempsObjectiu:null,carreraRitmeObjectiu:null,carreraVelocitatObjectiu:null,sports:[],nivel:'',fcmax:185,volum:4,dias:0,descanso:'',descansos:[],edat:null,alcada:null,pes:null,fcrep:null,genere:'',pdfName:'',stravaName:'',stressTestData:null,stravaStats:null,calibrated:{fcmax:null,pacez2:null,ftp:null,nivel:null,volum:null}};
 let stravaFile=null;
 let stepOrder=[];
 let currentStepIdx=0;
@@ -424,9 +424,10 @@ userData.equipamiento='';
 
 function spreadTrainingDays(dias,descanso){
   dias=Math.max(0,Math.min(7,dias||0));
-  const descIdx=dayNames.indexOf(descanso);
+  const descList=(descanso||'').split(',').map(s=>s.trim());
+  const descIdxs=descList.map(d=>dayNames.indexOf(d)).filter(i=>i>=0);
   const slots=[];
-  for(let i=0;i<7;i++){ if(i!==descIdx) slots.push(i); }
+  for(let i=0;i<7;i++){ if(!descIdxs.includes(i)) slots.push(i); }
   const result=[false,false,false,false,false,false,false];
   if(dias<=0) return result;
   if(dias>=slots.length){ slots.forEach(i=>result[i]=true); return result; }
@@ -794,25 +795,25 @@ function renderCalibration(){
 }
 
 function renderCalField(f){
- if(f.type==='level'){
-  const niveles=[
-    {id:'principiante',title:'Principiante',sub:'Menos de 6 meses entrenando regularmente'},
-    {id:'intermedio',title:'Intermedio',sub:'1-3 años entrenando · hago eventos ocasionales'},
-    {id:'avanzado',title:'Avanzado',sub:'3+ años · compito regularmente'}
-  ];
-  return '<div class="cal-field '+(f.source==='detected'?'detected':'')+'">'+
-    '<div class="cal-row"><span class="cal-name">'+f.name+'</span><span class="cal-source '+f.source+'">'+f.sourceLabel+'</span></div>'+
-    '<div style="display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem">'+
-      niveles.map(function(n){
-        return '<button onclick="selCalNivel(\''+n.id+'\')" class="nivel-card '+(userData.nivel===n.id?'sel':'')+'" data-nivel="'+n.id+'">'+
-          '<div class="nivel-card-title">'+n.title+'</div>'+
-          '<div class="nivel-card-sub">'+n.sub+'</div>'+
-        '</button>';
-      }).join('')+
-    '</div>'+
-    '<div class="cal-help">'+f.help+'</div>'+
-  '</div>';
-}
+  if(f.type==='level'){
+    const niveles=[
+      {id:'principiante',title:'Principiante',sub:'Menos de 6 meses entrenando regularmente'},
+      {id:'intermedio',title:'Intermedio',sub:'1-3 años entrenando · hago eventos ocasionales'},
+      {id:'avanzado',title:'Avanzado',sub:'3+ años · compito regularmente'}
+    ];
+    return '<div class="cal-field '+(f.source==='detected'?'detected':'')+'">'+
+      '<div class="cal-row"><span class="cal-name">'+f.name+'</span><span class="cal-source '+f.source+'">'+f.sourceLabel+'</span></div>'+
+      '<div style="display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem">'+
+        niveles.map(function(n){
+          return '<button onclick="selCalNivel(\''+n.id+'\')" class="nivel-card '+(userData.nivel===n.id?'sel':'')+'" data-nivel="'+n.id+'">'+
+            '<div class="nivel-card-title">'+n.title+'</div>'+
+            '<div class="nivel-card-sub">'+n.sub+'</div>'+
+          '</button>';
+        }).join('')+
+      '</div>'+
+      '<div class="cal-help">'+f.help+'</div>'+
+    '</div>';
+  }
   const valDisplay=f.format==='pace'?paceFmt(f.value):f.value;
   return '<div class="cal-field '+(f.source==='detected'?'detected':'')+'">'+
     '<div class="cal-row"><span class="cal-name">'+f.name+'</span><span class="cal-source '+f.source+'">'+f.sourceLabel+'</span></div>'+
@@ -858,8 +859,25 @@ function updateZonesFromFC(){
 }
 
 function selDay(el){document.querySelectorAll('.day-num').forEach(d=>d.classList.remove('sel'));el.classList.add('sel');userData.dias=parseInt(el.textContent);checkBtn7();}
-function selRest(el){document.querySelectorAll('.rest-day').forEach(d=>d.classList.remove('sel'));el.classList.add('sel');userData.descanso=el.textContent;checkBtn7();}
-function checkBtn7(){document.getElementById('btn7').disabled=!(userData.dias&&userData.descanso);}
+userData.descansos=[];
+function selRest(el){
+  var txt=el.textContent;
+  if(txt==='Ninguno'){
+    document.querySelectorAll('.rest-day').forEach(d=>d.classList.remove('sel'));
+    el.classList.add('sel');
+    userData.descansos=[];
+    userData.descanso='Ninguno';
+  } else {
+    var ninguno=Array.from(document.querySelectorAll('.rest-day')).find(d=>d.textContent==='Ninguno');
+    if(ninguno) ninguno.classList.remove('sel');
+    el.classList.toggle('sel');
+    if(el.classList.contains('sel')){if(!userData.descansos.includes(txt)) userData.descansos.push(txt);}
+    else userData.descansos=userData.descansos.filter(d=>d!==txt);
+    userData.descanso=userData.descansos.length>0?userData.descansos.join(','):'Ninguno';
+  }
+  checkBtn7();
+}
+function checkBtn7(){document.getElementById('btn7').disabled=!(userData.dias&&(userData.descansos.length>0||userData.descanso==='Ninguno'));}
 
 function generatePreview(){
   const fecha=document.getElementById('carrera-fecha')?.value||'';
