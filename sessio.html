@@ -262,6 +262,7 @@ var nivel=gp('nivel','intermedio'),objetivo=gp('objetivo','');
 var pacez2=parseInt(params.get('pacez2'))||null;
 var ftp=parseInt(params.get('ftp'))||null;
 var musculos=gp('musculos',''),equip=gp('equip','');
+var gymUbi=gp('gym_ubi',''),gymMat=gp('gym_mat','');
 var email=gp('email',''),setmana=gp('setmana',''),day=gp('day','');
 var tl=title.toLowerCase();
 var isCycling=tl.includes('bici')||tl.includes('cicl')||tl.includes('rodada');
@@ -311,7 +312,8 @@ function loadDetail(force){
       email:email,setmana:setmana,day:day,forceRegenerate:!!force,
       session:{title:title,sub:sub,why:why,tags:tags?tags.split(','):[],duracio_min:duracio},
       userData:{fcmax:fcmax,nivel:nivel,objetivo:objetivo,pacez2:pacez2,ftp:ftp,
-        musculos:musculos?musculos.split(','):[],equipamiento:equip||null}
+        musculos:musculos?musculos.split(','):[],equipamiento:equip||null,
+        gym_ubi:gymUbi||null,gym_mat:gymMat?gymMat.split(','):[]}
     })
   })
   .then(function(r){return r.json().catch(function(){return {error:'HTTP '+r.status+' — respuesta no-JSON del servidor'};});})
