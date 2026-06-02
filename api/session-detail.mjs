@@ -37,7 +37,7 @@ El coach ya ha planificado una sesion (titulo, duracion, intencion). Tu NO la ca
 
 REGLAS:
 - CARDIO: genera bloques (calentamiento, bloque principal, vuelta a la calma). La suma de minutos es la duracion de la sesion.
-- GIMNASIO/FUERZA/CALISTENIA: genera 5-7 ejercicios coherentes con el grupo muscular Y EL MATERIAL DISPONIBLE. Es OBLIGATORIO respetar el material: si solo hay peso corporal, NO prescribas ejercicios con pesas o máquinas. Si solo hay mancuernas, NO uses barras ni poleas. Adapta cada ejercicio al material exacto del atleta.
+- GIMNASIO/FUERZA/CALISTENIA: genera 5-7 ejercicios coherentes con el grupo muscular Y EL MATERIAL DISPONIBLE. Es OBLIGATORIO respetar el material: si solo hay peso corporal, NO prescribas ejercicios con pesas o máquinas. Si solo hay mancuernas, NO uses barras ni poleas. Adapta cada ejercicio al material exacto del atleta. Los nombres de los ejercicios SIEMPRE en castellano (ej: "Sentadilla búlgara", no "Bulgarian split squat"). Para cada ejercicio incluye un campo "howto" con 1-2 frases en castellano explicando claramente cómo se ejecuta, para alguien que no conoce el ejercicio.
 - Respeta la intencion del titulo: si es Z2, el bloque principal es Z2; si es series, estructura series reales con repeticiones y recuperacion.
 - Numeros concretos SIEMPRE: minutos, repeticiones, distancias, porcentajes de FTP o RM, descansos, zona FC.
 - Aplica la metodologia del cervell para decidir estructura, intensidades, recuperaciones y tecnica.
@@ -118,8 +118,8 @@ FORMATO OBLIGATORIO. Devuelve SOLO este JSON (sin markdown):
     {"label":"Calentamiento","detail":"que hacer, concreto","minutes":12,"zone":"z1","series":null,"rpe":"2-3","cue":"consejo tecnico breve","feel":"que debes notar en este bloque"},
     {"label":"6 x 800 m","detail":"ritmo y recuperacion concretos","minutes":22,"zone":"z4","series":{"reps":6,"distance_m":800,"time_s":null,"rest_s":90},"rpe":"8","cue":"manten la zancada relajada","feel":"respiracion fuerte pero controlada"}
   ],
-  "exercises": [
-    {"name":"Sentadilla trasera","prescription":"4 x 6","load":"75-80% RM","rest_s":150,"muscle":"Cuadriceps y Gluteos","cue":"controla la bajada 3 segundos"}
+ "exercises": [
+    {"name":"Sentadilla trasera","howto":"De pie con la barra sobre los trapecios, baja flexionando rodillas y cadera hasta que los muslos queden paralelos al suelo, manteniendo la espalda recta; sube empujando con los talones","prescription":"4 x 6","load":"75-80% RM","rest_s":150,"muscle":"Cuádriceps y glúteos","cue":"controla la bajada 3 segundos"}
   ],
   "alternatives": {
     "short": "version de unos 30 min: que recortar exactamente manteniendo lo esencial",
