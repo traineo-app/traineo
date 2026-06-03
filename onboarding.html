@@ -1030,6 +1030,7 @@ async function savePlan(){
   if(userData.carreraTempsObjectiu) url+='&temps_obj='+userData.carreraTempsObjectiu;
   if(userData.carreraRitmeObjectiu) url+='&ritme_obj='+userData.carreraRitmeObjectiu;
   if(userData.carreraVelocitatObjectiu) url+='&vel_obj='+userData.carreraVelocitatObjectiu;
+  if(_urlParams.get('fresh')==='1') url+='&fresh=1';
   window.location.href=url;
 }
 
