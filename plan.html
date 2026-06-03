@@ -90,7 +90,11 @@ const user={
   objetivo:decodeURIComponent(params.get('objetivo')||''),
   carrera:decodeURIComponent(params.get('carrera')||''),
   distancia:decodeURIComponent(params.get('distancia')||''),
-  fecha:decodeURIComponent(params.get('fecha')||'')
+  desnivel:parseInt(params.get('desnivel'))||0,
+  fecha:decodeURIComponent(params.get('fecha')||''),
+  ritmeObj:params.get('ritme_obj')?parseInt(params.get('ritme_obj')):null,
+  velObj:params.get('vel_obj')?parseFloat(params.get('vel_obj')):null,
+  tempsObj:params.get('temps_obj')?parseInt(params.get('temps_obj')):null
 };
 
 const hasRace=user.carrera&&user.fecha;
