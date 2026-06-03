@@ -448,6 +448,7 @@ let dragSrcIdx=null;
 let touchSrcIdx=null;
 let touchOverIdx=null;
 let currentEmail=emailParam||'';
+let pendingReset=params.get('fresh')==='1';
 let reajustRequestId=0;
 let coachBannerState=null;
 let completingIdx=null;
@@ -983,6 +984,7 @@ async function savePlanToSupabase(){
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({email:currentEmail,userData:user,sessions:planDays,resum:window._coachResum||''})
+      pendingReset=false;
     });
   } catch(e){ console.log('Could not save:',e); }
 }
