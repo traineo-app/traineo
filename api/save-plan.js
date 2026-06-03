@@ -21,7 +21,7 @@ function setIf(obj, key, val) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  const { email, userData, sessions, resum, weekStartDate } = req.body;
+  const { email, userData, sessions, resum, weekStartDate, resetPlan } = req.body;
   if (!email) return res.status(400).json({ error: 'Email requerit' });
   try {
     // 1. Buscar o crear profile per email
@@ -90,6 +90,21 @@ export default async function handler(req, res) {
         .single();
       if (insErr) throw insErr;
       profileId = created.id;
+    }
+
+    // 1b. RESET: si l'usuari refà l'onboarding ("empezar de cero"), esborra
+    // tots els plans antics i la periodització vella d'aquest perfil.
+    if (resetPlan && profileId) {
+      const { error: delErr } = await supabase
+        .from('plans')
+        .delete()
+        .eq('profile_id', profileId);
+      if (delErr) console.error('No s\'han pogut esborrar els plans antics:', delErr.message);
+      const { error: perErr } = await supabase
+        .from('profiles')
+        .update({ periodization: null })
+        .eq('id', profileId);
+      if (perErr) console.error('No s\'ha pogut netejar la periodització:', perErr.message);
     }
 
     // 2. Upsert plan per (profile_id, setmana)
