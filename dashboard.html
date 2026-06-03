@@ -371,7 +371,7 @@ document.getElementById('greeting-date').textContent=todayName.toUpperCase()+' �
 
 const params=new URLSearchParams(window.location.search);
 const sportsParam=params.get('sports');
-const emailParam=params.get('email');  
+const emailParam=params.get('email');
 
 const user=sportsParam?{
   sports:sportsParam.split(','),
@@ -583,45 +583,11 @@ function normalizePlan(sessions){
   }));
 }
 
-function applyStravaCompletions(plan){
-  try{
-    var stats=JSON.parse(sessionStorage.getItem('traineo_strava_stats')||'null');
-    if(!stats||!stats.currentWeek||stats.currentWeek.length===0) return plan;
-    var acts=stats.currentWeek;
-    return plan.map(function(s){
-      if(s.rest||s.completed) return s;
-      var match=acts.find(function(a){
-        if(a.dayOfWeek!==s.day) return false;
-        var sp=getSportType(s);
-        return (sp==='running'&&a.sport==='running')||
-               (sp==='trail'&&(a.sport==='trail'||a.sport==='running'))||
-               (sp==='cycling'&&a.sport==='ciclismo')||
-               (sp==='gym'&&a.sport==='gimnasio')||
-               (sp==='swim'&&a.sport==='natacion');
-      });
-      if(!match) return s;
-      return Object.assign({},s,{
-        completed:true,
-        completion:{
-          status:'completed',
-          rpe:'good',
-          actualDuration:match.durationMin,
-          plannedDuration:s.duracio_min||45,
-          note:'Importado desde Strava'+(match.distanceKm?' · '+match.distanceKm+'km':''),
-          date:match.date+'T12:00:00.000Z',
-          fromStrava:true
-        }
-      });
-    });
-  }catch(e){return plan;}
-}  
-  
 async function initDashboard(user){
   if(currentEmail){
     document.getElementById('nav-avatar').textContent=currentEmail[0].toUpperCase();
     document.getElementById('greeting-name').textContent='Hola, '+currentEmail.split('@')[0];
     try {
-      // NOU: &_t= evita que el navegador serveixi una resposta cacheada
       const res=await fetch('/api/get-plan?email='+encodeURIComponent(currentEmail)+'&_t='+Date.now());
       const data=await res.json();
       if(data.plan&&data.plan.userData){
@@ -719,8 +685,11 @@ async function buildPlan(user){
         equipamiento: params.get('equip') || null,
         gym_ubi: params.get('gym_ubi') || null,
         gym_mat: params.get('gym_mat') ? params.get('gym_mat').split(',') : [],
-        stravaStats: (function(){ try{ return JSON.parse(sessionStorage.getItem('traineo_strava_stats')||'null'); }catch(e){ return null; } })(),
-        stressTestData: (function(){ try{ return JSON.parse(sessionStorage.getItem('traineo_stress_test_data')||'null'); }catch(e){ return null; } })(),
+        ritme_obj: user.ritmeObj || null,
+        vel_obj: user.velObj || null,
+        temps_obj: user.tempsObj || null,
+        stravaStats: user.stravaStats || (function(){ try{ return JSON.parse(sessionStorage.getItem('traineo_strava_stats')||'null'); }catch(e){ return null; } })(),
+        stressTestData: user.stressTestData || (function(){ try{ return JSON.parse(sessionStorage.getItem('traineo_stress_test_data')||'null'); }catch(e){ return null; } })(),
         previousWeek: previousWeek
       })
     });
@@ -857,18 +826,16 @@ function getWeekData(weekStart){
   if(weekStart===currentWeekStart){
     result={type:'current',sessions:planDays,load:estimateLoad(planDays.filter(s=>!s.rest))};
   } else {
-     // CURSA: gestió post-cursa
+    // CURSA: gestió post-cursa
     if(user&&user.carrera&&user.fecha){
       const raceMonday=getMondayISO(new Date(user.fecha));
       const weeksAfterRace=Math.round((isoToDate(weekStart)-isoToDate(raceMonday))/(7*86400000));
       if(weeksAfterRace===1){
-        // Setmana immediatament posterior → recuperació automàtica
         result={type:'recovery',sessions:buildRecoveryWeek(),load:120};
         _weekDataCache[weekStart]=result;
         return result;
       }
       if(weeksAfterRace>=2){
-        // Més enllà → buit
         result={type:'empty',sessions:null};
         _weekDataCache[weekStart]=result;
         return result;
@@ -895,10 +862,8 @@ function getWeekData(weekStart){
 }
 
 function buildRecoveryWeek(){
-  // Setmana de recuperació post-cursa: suau, segons els dies disponibles
-  const descansos=(user&&user.descanso?user.descanso:'').split(',').map(s=>s.trim());
-  const dias=Math.min(user&&user.dias?user.dias:3,3); // màxim 3 dies, és recuperació
-  const isTrain=spreadTrainingDays(dias,user&&user.descanso||'Ninguno');
+  const dias=Math.min(user&&user.dias?user.dias:3,3);
+  const isTrain=spreadTrainingDays(dias,(user&&user.descanso)||'Ninguno');
   let count=0;
   return dayNames.map(function(d,i){
     if(isTrain[i]&&count<dias){
@@ -1018,20 +983,18 @@ async function savePlanToSupabase(){
     await fetch('/api/save-plan',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email:currentEmail,userData:user,sessions:planDays,resum:window._coachResum||''})
-      pendingReset=false;
+      body:JSON.stringify({email:currentEmail,userData:user,sessions:planDays,resum:window._coachResum||'',resetPlan:pendingReset})
     });
+    pendingReset=false;
   } catch(e){ console.log('Could not save:',e); }
 }
 
-// Pre-genera el detall de la sessió d'AVUI en segon pla, perquè quan
-// l'usuari l'obri ja estigui cachejat a Supabase i carregui a l'instant.
 function pregenTodayDetail(){
-  if(!currentEmail) return; // sense email no es pot desar el detall
+  if(!currentEmail) return;
   const idx=planDays.findIndex(d=>d.day===todayName);
   if(idx<0) return;
   const d=planDays[idx];
-  if(!d||d.rest||d.detail) return; // descans o ja té detall → res a fer
+  if(!d||d.rest||d.detail) return;
   fetch('/api/session-detail',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
@@ -1047,8 +1010,8 @@ function pregenTodayDetail(){
       }
     })
   }).then(function(r){return r.json();})
-   .then(function(){ /* desat a Supabase pel propi endpoint; res a fer aquí */ })
-   .catch(function(){ /* silenciós: si falla, es generarà quan s'obri */ });
+   .then(function(){})
+   .catch(function(){});
 }
 
 function openEmailModal(){ document.getElementById('modal-email').classList.add('open'); }
@@ -1186,11 +1149,12 @@ function renderWeekSection(){
   let badge;
   if(isCurrent) badge='<span class="week-nav-badge">Esta semana</span>';
   else if(isPast) badge='<span class="week-nav-badge" style="background:#F1EFE8;color:#888780">Pasada</span>';
+  else if(wd.type==='recovery') badge='<span class="week-nav-badge" style="background:#EBF5EF;color:#163A28">Recuperación</span>';
   else badge='<span class="week-nav-badge" style="background:#FEF6E5;color:#7C5B0A">Próxima</span>';
 
   let body;
   if(!wd.sessions){
-    body='<div class="week-empty">Semana por planificar.<br>Se generará al llegar, adaptada a lo que hayas hecho.</div>';
+    body='<div class="week-empty">Semana por planificar.<br>Define un nuevo objetivo cuando quieras.</div>';
   } else if(isCurrent){
     body='<div class="plan-list" id="plan-list">'+planDays.map((d,i)=>renderPlanItem(d,i)).join('')+'</div>';
   } else {
@@ -1257,7 +1221,7 @@ function renderStatsCard(){
       '<div class="stat"><div class="stat-val">'+z2pct+'%</div><div class="stat-lbl">En Z2</div></div>'+
       '<div class="stat"><div class="stat-val green">'+done+'/'+train.length+'</div><div class="stat-lbl">Completado</div></div>'+
     '</div>'+
-    (isCurrent?'<button class="btn-reorganize" style="margin-top:.85rem" onclick="window.location.href=\'onboarding.html\'">↺ Reconfigurar plan</button>':'')+
+    (isCurrent?'<button class="btn-reorganize" style="margin-top:.85rem" onclick="window.location.href=\'onboarding.html\'+window.location.search">↺ Reconfigurar plan</button>':'')+
   '</div>';
 }
 
@@ -1274,7 +1238,7 @@ function renderPlanItem(d,i){
   } else if(isToday) cls='today-item';
   else if(d.rest) cls='rest-item';
   else if(isChanged) cls='changed';
-  
+
   let subText='';
   if(d.rest){
     subText=d.sub||'';
@@ -1288,7 +1252,7 @@ function renderPlanItem(d,i){
       subText=d.sub||((d.duracio_min||45)+"'");
     }
   }
-  
+
   return '<div class="plan-item '+cls+'" id="item-'+i+'"'+
     ' draggable="'+(!d.rest)+'"'+
     ' ondragstart="dragStart(event,'+i+')"'+
@@ -1734,9 +1698,6 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-// ─── NOU: bfcache fix ─────────────────────────────────────────────────────────
-// En mòbil, el botó "enrere" restaura la pàgina del bfcache sense re-executar JS.
-// pageshow amb event.persisted=true detecta aquesta restauració i re-llegeix el pla.
 window.addEventListener('pageshow',function(e){
   if(e.persisted&&currentEmail){
     fetch('/api/get-plan?email='+encodeURIComponent(currentEmail)+'&_t='+Date.now())
