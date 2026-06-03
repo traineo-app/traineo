@@ -65,7 +65,7 @@
 <body>
 <div class="app">
   <div class="nav">
-    <button class="btn-back" onclick="window.location.href='dashboard.html'+window.location.search">←</button>
+    <button class="btn-back" onclick="history.back()">←</button>
     <div class="nav-title">Plan completo</div>
   </div>
 
@@ -223,7 +223,7 @@ weeks.forEach((w,i)=>{
           '<div class="week-sessions">'+
             (w.sessions||[]).map(s=>'<div class="week-session"><div class="week-session-dot"></div>'+s+'</div>').join('')+
           '</div>'+
-          (isCurrent?'<button class="btn-open-week" onclick="window.location.href=\'dashboard.html\'+window.location.search">Abrir semana →</button>':'')+
+          (isCurrent?'<button class="btn-open-week" onclick="history.back()">Abrir semana →</button>':'')+
         '</div>'+
       '</div>';
     });
