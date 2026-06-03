@@ -857,6 +857,23 @@ function getWeekData(weekStart){
   if(weekStart===currentWeekStart){
     result={type:'current',sessions:planDays,load:estimateLoad(planDays.filter(s=>!s.rest))};
   } else {
+     // CURSA: gestió post-cursa
+    if(user&&user.carrera&&user.fecha){
+      const raceMonday=getMondayISO(new Date(user.fecha));
+      const weeksAfterRace=Math.round((isoToDate(weekStart)-isoToDate(raceMonday))/(7*86400000));
+      if(weeksAfterRace===1){
+        // Setmana immediatament posterior → recuperació automàtica
+        result={type:'recovery',sessions:buildRecoveryWeek(),load:120};
+        _weekDataCache[weekStart]=result;
+        return result;
+      }
+      if(weeksAfterRace>=2){
+        // Més enllà → buit
+        result={type:'empty',sessions:null};
+        _weekDataCache[weekStart]=result;
+        return result;
+      }
+    }
     const saved=allWeeks.find(w=>w.setmana===weekStart);
     if(saved&&saved.sessions&&saved.sessions.length){
       const norm=normalizePlan(saved.sessions);
@@ -875,6 +892,24 @@ function getWeekData(weekStart){
   }
   _weekDataCache[weekStart]=result;
   return result;
+}
+
+function buildRecoveryWeek(){
+  // Setmana de recuperació post-cursa: suau, segons els dies disponibles
+  const descansos=(user&&user.descanso?user.descanso:'').split(',').map(s=>s.trim());
+  const dias=Math.min(user&&user.dias?user.dias:3,3); // màxim 3 dies, és recuperació
+  const isTrain=spreadTrainingDays(dias,user&&user.descanso||'Ninguno');
+  let count=0;
+  return dayNames.map(function(d,i){
+    if(isTrain[i]&&count<dias){
+      count++;
+      return {day:d,rest:false,icon:'🏃',title:'Recuperación suave',sub:'30 min · Z1-Z2',
+        why:'Recuperación post-carrera',tags:['Z1'],duracio_min:30,
+        skipped:false,completed:false,custom:null};
+    }
+    return {day:d,rest:true,icon:'💤',title:'Descanso',sub:'Recuperación post-carrera',
+      tags:[],why:'',duracio_min:0,skipped:false,completed:false};
+  });
 }
 
 function dayHasSession(iso){
