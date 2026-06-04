@@ -30,6 +30,7 @@ REGLES GENERALS:
 - Respostes en CASTELLÀ (la interfície està en castellà)
 - Aplica la filosofia 80/20 i els principis de càrrega/recuperació del cervell
 - Respecta la nomenclatura de fase segons l'objectiu
+- Quan una setmana inclogui força/gimnàs, els títols de sessió han de reflectir els exercicis i patrons més ben valorats del cervell (força màxima i unilateral: split squat, deadlift/RDL, soleus, Pallof, pliometria simple) i evitar els desaconsellats per endurance (crunch, russian twist, dips/press banca en perfils no natació). Segueix les taules d'EXERCICIS CLAU
 - Volum total setmanal coherent amb el volum base de l'atleta
 - La CORBA DE CÀRREGA importa: ha de pujar progressivament i BAIXAR al final si hi ha cursa (taper). Mai una línia plana ni ascendent fins al final.
 - Retorna JSON estricte sense markdown ni preàmbul`;
