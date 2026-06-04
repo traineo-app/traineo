@@ -44,6 +44,7 @@ QUAN GENERIS UN PLA SETMANAL (mode JSON):
 - Distribució 80/20: ~80% Z1-Z2 (aeròbic base), ~20% Z3-Z5 (qualitat)
 - Si hi ha cursa propera, ajusta la fase (base/construcció/específic/taper) i RESPECTA LA FASE indicada al context
 - Si hi ha sessions de força, respecta SEMPRE el material disponible de l'atleta
+- En sessions de força/gimnàs/calistènia, prioritza SEMPRE els exercicis més ben valorats (★★★★★/★★★★☆) de les taules d'EXERCICIS CLAU del cervell (split squat búlgar, trap bar deadlift, RDL/hip hinge, soleus calf raise bent-knee, step-up, Pallof press, dead bug, planxa lateral, Copenhagen plank, etc.) i EVITA els pitjor valorats (★★☆☆☆ o menys: crunch, russian twist, planxa abdominal com a principal, dips i press banca en perfils endurance excepte natació/híbrids). Respecta les notes de cada taula (p. ex. lunges/walking lunge lluny de sessions clau de running pel cost excèntric)
 - Retorna JSON estricte sense markdown segons el format demanat al missatge`;
 
 export default async function handler(req, res) {
