@@ -1100,7 +1100,7 @@ function renderAll(){
     '<div class="today" onclick="openSessio('+todayRealIdx+')">'+
       '<div class="today-meta">'+
         '<span class="today-label">● Sesión de hoy</span>'+
-        '<span class="today-badge">Semana 1 · Base</span>'+
+        '<span class="today-badge">'+(phaseForWeek(currentWeekStart)||'Esta semana')+'</span>'+
       '</div>'+
       '<div class="today-title">'+(todaySession.skipped?'Descanso inesperado':todaySession.title)+'</div>'+
       '<div class="today-zone">Zona objetivo <strong>'+z2min+'-'+z2max+' bpm</strong> · '+zona+' sostenido</div>'+
