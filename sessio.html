@@ -83,14 +83,14 @@
     .tl-bar{width:5px;align-self:stretch;border-radius:3px;flex-shrink:0;min-height:42px}
     .tl-info{flex:1;min-width:0}
     .tl-label{font-size:.92rem;font-weight:700;color:#111110;letter-spacing:-.2px;line-height:1.2}
-    .tl-detail{font-size:.76rem;color:#888780;font-weight:500;line-height:1.4;margin-top:2px}
+    .tl-detail{font-size:.76rem;color:#888780;font-weight:500;line-height:1.4;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
     .tl-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
     .tl-time{font-family:'Bebas Neue',sans-serif;font-size:1.35rem;color:#163A28;letter-spacing:.5px;line-height:1}
     .tl-zone{font-size:.6rem;font-weight:700;padding:1px 7px;border-radius:10px;color:#fff;letter-spacing:.04em}
     .tl-chev{font-size:.95rem;color:#C8C6BF;transition:transform .2s;flex-shrink:0}
     .tl-block.open .tl-chev{transform:rotate(180deg)}
     .tl-more{max-height:0;overflow:hidden;transition:max-height .25s ease}
-    .tl-block.open .tl-more{max-height:300px}
+    .tl-block.open .tl-more{max-height:600px}
     .tl-more-inner{padding:0 .9rem .8rem;border-top:.5px solid #F0EEE8;margin-top:0;padding-top:.7rem}
     .tl-row{display:flex;gap:.6rem;padding:.3rem 0;align-items:flex-start}
     .tl-k{font-size:.64rem;font-weight:700;color:#888780;text-transform:uppercase;letter-spacing:.05em;width:72px;flex-shrink:0;padding-top:2px}
@@ -493,16 +493,26 @@ function renderDetail(){
 function blockHTML(b,i){
   var z=zObj(b.zone);
   var t=(b.series&&b.series.reps>1)?('×'+b.series.reps):((b.minutes||0)+"'");
-  var hasMore=b.rpe||b.cue||b.feel;
+  // Frase curta visible: primera frase del detail, o escurçada
+  var full=b.detail||'';
+  var shortTxt=full;
+  if(full){
+    var firstDot=full.indexOf('. ');
+    if(firstDot>0&&firstDot<70){ shortTxt=full.slice(0,firstDot+1); }
+    else if(full.length>70){ shortTxt=full.slice(0,67).replace(/\s+\S*$/,'')+'…'; }
+  }
+  var detailIsLong=full&&full.length>shortTxt.length;
+  var hasMore=detailIsLong||b.rpe||b.cue||b.feel;
   var h='<div class="tl-block" id="blk-'+i+'">';
   h+='<div class="tl-main"'+(hasMore?' onclick="toggleBlock('+i+')"':'')+'>';
   h+='<div class="tl-bar" style="background:'+z.color+'"></div>';
-  h+='<div class="tl-info"><div class="tl-label">'+esc(b.label)+'</div>'+(b.detail?'<div class="tl-detail">'+esc(b.detail)+'</div>':'')+'</div>';
+  h+='<div class="tl-info"><div class="tl-label">'+esc(b.label)+'</div>'+(shortTxt?'<div class="tl-detail">'+esc(shortTxt)+'</div>':'')+'</div>';
   h+='<div class="tl-right"><div class="tl-time">'+t+'</div><div class="tl-zone" style="background:'+z.color+'">'+z.label+'</div></div>';
   if(hasMore) h+='<div class="tl-chev">⌄</div>';
   h+='</div>';
   if(hasMore){
     h+='<div class="tl-more"><div class="tl-more-inner">';
+    if(detailIsLong) h+='<div class="tl-row"><span class="tl-k">Qué hacer</span><span class="tl-v">'+esc(full)+'</span></div>';
     if(b.rpe) h+='<div class="tl-row"><span class="tl-k">Esfuerzo</span><span class="tl-v">RPE '+esc(b.rpe)+' / 10</span></div>';
     if(b.feel) h+='<div class="tl-row"><span class="tl-k">Qué notar</span><span class="tl-v">'+esc(b.feel)+'</span></div>';
     if(b.cue) h+='<div class="tl-row"><span class="tl-k">Técnica</span><span class="tl-v">'+esc(b.cue)+'</span></div>';
