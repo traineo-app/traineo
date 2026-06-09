@@ -58,6 +58,14 @@
     .fold-body{max-height:0;overflow:hidden;transition:max-height .25s ease}
     .fold.open .fold-body{max-height:600px;margin-top:.55rem}
     .fold-text{font-size:.82rem;color:#5F5E5A;line-height:1.6;font-weight:500}
+    /* Botó desplegable destacat (per al "por qué" i objectius extra) */
+    .fold.big{margin-top:.55rem;border-top:none;padding-top:0}
+    .fold.big .fold-btn{width:100%;justify-content:space-between;background:#EBF5EF;border:.5px solid rgba(74,158,107,.3);border-radius:10px;padding:.7rem .85rem;color:#163A28;font-size:.78rem;text-transform:none;letter-spacing:0}
+    .fold.big .fold-chev{font-size:.9rem;color:#163A28}
+    .fold.big.open .fold-btn{border-radius:10px 10px 0 0}
+    .fold.big .fold-body{background:#F7FBF8;border:.5px solid rgba(74,158,107,.3);border-top:none;border-radius:0 0 10px 10px}
+    .fold.big.open .fold-body{padding:.75rem .85rem}
+    .fold.big .fold-text{font-size:.84rem;color:#3F4F45}
 
     /* ── Zones FC compactes ── */
     .zones-row{display:flex;gap:4px;margin-bottom:.5rem}
@@ -386,9 +394,9 @@ function secOpen(icon,title){
 }
 // ─── Helper: desplegable de text llarg ───
 var _foldId=0;
-function fold(label,inner){
+function fold(label,inner,cls){
   var id='fold-'+(_foldId++);
-  return '<div class="fold" id="'+id+'"><button class="fold-btn" onclick="document.getElementById(\''+id+'\').classList.toggle(\'open\')">'+esc(label)+' <span class="fold-chev">⌄</span></button><div class="fold-body"><div class="fold-text">'+inner+'</div></div></div>';
+  return '<div class="fold'+(cls?' '+cls:'')+'" id="'+id+'"><button class="fold-btn" onclick="document.getElementById(\''+id+'\').classList.toggle(\'open\')">'+esc(label)+' <span class="fold-chev">⌄</span></button><div class="fold-body"><div class="fold-text">'+inner+'</div></div></div>';
 }
 
 // ════════════════════════════════════════════════════════
@@ -403,23 +411,29 @@ function renderDetail(){
     html+='<div class="sec"><div class="summary-card"><div class="summary-dot"></div><div class="summary-text">'+esc(detail.summary)+'</div></div></div>';
   }
 
-  // 2) Objectius per punts (checkable) — el "por qué" llarg plegat a dins
+  // 2) Objectius: només 2 visibles, la resta plegats. "por qué" en botó destacat
   if(detail.objectives&&detail.objectives.length){
     html+=secOpen('🎯','Objetivos de hoy');
     html+='<div class="points">';
-    detail.objectives.forEach(function(o){
+    var visibles=detail.objectives.slice(0,2);
+    var ocults=detail.objectives.slice(2);
+    visibles.forEach(function(o){
       html+='<div class="point" onclick="this.classList.toggle(\'done\')"><div class="point-check">✓</div><div class="point-text">'+esc(o)+'</div></div>';
     });
     html+='</div>';
+    if(ocults.length){
+      var inner='';
+      ocults.forEach(function(o){ inner+='• '+esc(o)+'<br>'; });
+      html+=fold('Ver '+ocults.length+' objetivo'+(ocults.length>1?'s':'')+' más', inner, 'big');
+    }
     if(detail.why_long){
-      html+=fold('Por qué esta sesión', esc(detail.why_long));
+      html+=fold('¿Por qué esta sesión?', esc(detail.why_long), 'big');
     }
     html+='</div>';
   } else if(detail.why_long){
-    // sense objectius però amb explicació: punt únic + plegat
     html+=secOpen('🎯','El foco de hoy');
     html+='<div class="points"><div class="point"><div class="point-bullet">!</div><div class="point-text">'+esc(detail.summary||title)+'</div></div></div>';
-    html+=fold('Por qué esta sesión', esc(detail.why_long));
+    html+=fold('¿Por qué esta sesión?', esc(detail.why_long), 'big');
     html+='</div>';
   }
 
