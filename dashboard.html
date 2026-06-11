@@ -1286,7 +1286,8 @@ function renderPlanItem(d,i){
     const metrics=getSessionMetrics(d,user);
     if(metrics){
       const mins=d.duracio_min||45;
-      if(metrics.sport==='running'||metrics.sport==='trail') subText=mins+"' · "+metrics.km+' KM · '+metrics.pace+'/KM'+(metrics.elev>0?' · +'+metrics.elev+'M':'');
+      if(metrics.sport==='trail') subText=mins+"' · "+metrics.km+' KM'+(metrics.elev>0?' · +'+metrics.elev+'M D+':' · sin desnivel');
+      else if(metrics.sport==='running') subText=mins+"' · "+metrics.km+' KM · '+metrics.pace+'/KM';
       else if(metrics.sport==='cycling') subText=mins+"' · "+metrics.km+' KM · '+metrics.kmh+' KM/H'+(metrics.elev>0?' · +'+metrics.elev+'M':'');
     } else {
       subText=d.sub||((d.duracio_min||45)+"'");
