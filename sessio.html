@@ -451,9 +451,14 @@ function renderDetail(){
   // 4) Estructura
   if(isGym&&detail.exercises&&detail.exercises.length){
     html+=secOpen('🏋️','Ejercicios');
-    html+='<div class="ex-list">';
+    var wuInner='';methodologyDrills('warmup').forEach(function(d){wuInner+='• '+esc(d)+'<br>';});
+    html+=fold('🔥 Calentamiento (10-12 min)', wuInner, 'big');
+    html+='<div class="ex-list" style="margin-top:.5rem">';
     detail.exercises.forEach(function(e,i){ html+=exerciseCardHTML(e,i); });
-    html+='</div></div>';
+    html+='</div>';
+    var cdInner='';methodologyDrills('cooldown').forEach(function(d){cdInner+='• '+esc(d)+'<br>';});
+    html+=fold('🧘 Para acabar (5 min)', cdInner, 'big');
+    html+='</div>';
   } else if(detail.blocks&&detail.blocks.length){
     html+=secOpen('📊','Estructura de la sesión');
     html+='<div class="timeline">';
@@ -490,6 +495,39 @@ function renderDetail(){
 }
 
 // ─── Bloc cardio visual (barra de color + temps gran + desplegable) ───
+// ─── Exercicis d'escalfament/tornada a la calma segons la metodologia del coach ───
+function getSessionSport(){
+  var t2=title.toLowerCase(),tg2=(tags||'').toLowerCase();
+  if(t2.includes('bici')||t2.includes('cicl')||t2.includes('rodada')||tg2.includes('ciclismo')) return 'cycling';
+  if(t2.includes('fuerza')||t2.includes('gimnas')||t2.includes('full body')||t2.includes('core')||t2.includes('calistenia')||tg2.includes('gimnasio')) return 'gym';
+  return 'running';
+}
+function isWarmupBlock(label){
+  var l=(label||'').toLowerCase();
+  return l.includes('calentamiento')||l.includes('movilidad')||l.includes('activaci');
+}
+function isCooldownBlock(label){
+  var l=(label||'').toLowerCase();
+  return l.includes('vuelta a la calma')||l.includes('enfriamiento')||l.includes('cool')||l.includes('calma')||l.includes('estiramiento');
+}
+function methodologyDrills(kindBlock){
+  var sport=getSessionSport();
+  if(kindBlock==='warmup'){
+    if(sport==='cycling') return ['Pedaleo suave subiendo poco a poco, cadencia alta (90-100 rpm)','2-3 aceleraciones cortas al ritmo de la sesion (si hay intensidad)'];
+    if(sport==='gym') return ['Movilidad de cadera, tobillos y espalda alta (1 min cada una)','Activacion: puente de gluteo, dead bug, paseo lateral con goma','Saltitos suaves (pogos) o skipping si la sesion es de fuerza o potencia'];
+    return ['5-8 min de trote muy suave','Movilidad de tobillos, cadera y espalda alta (2-3 min)','3-4 aceleraciones progresivas cortas (solo si la sesion tiene intensidad)'];
+  }
+  // cooldown
+  if(sport==='cycling') return ['10 min muy suaves con cadencia alta, dejando bajar pulsaciones'];
+  if(sport==='gym') return ['2 min de respiracion tranquila','Movilidad ligera de cadera, tobillo y espalda alta'];
+  return ['5 min de trote muy suave acabando caminando','Estiramientos suaves: gemelos, parte delantera de la cadera, gluteo y espalda alta'];
+}
+function drillsHTML(list){
+  var h='';
+  list.forEach(function(d){ h+='<div class="tl-row"><span class="tl-k">•</span><span class="tl-v">'+esc(d)+'</span></div>'; });
+  return h;
+}
+
 function blockHTML(b,i){
   var z=zObj(b.zone);
   var t=(b.series&&b.series.reps>1)?('×'+b.series.reps):((b.minutes||0)+"'");
@@ -501,8 +539,10 @@ function blockHTML(b,i){
     if(firstDot>0&&firstDot<70){ shortTxt=full.slice(0,firstDot+1); }
     else if(full.length>70){ shortTxt=full.slice(0,67).replace(/\s+\S*$/,'')+'…'; }
   }
+  var isWU=isWarmupBlock(b.label);
+  var isCD=!isWU&&isCooldownBlock(b.label);
   var detailIsLong=full&&full.length>shortTxt.length;
-  var hasMore=detailIsLong||b.rpe||b.cue||b.feel;
+  var hasMore=detailIsLong||b.rpe||b.cue||b.feel||isWU||isCD;
   var h='<div class="tl-block" id="blk-'+i+'">';
   h+='<div class="tl-main"'+(hasMore?' onclick="toggleBlock('+i+')"':'')+'>';
   h+='<div class="tl-bar" style="background:'+z.color+'"></div>';
@@ -513,6 +553,8 @@ function blockHTML(b,i){
   if(hasMore){
     h+='<div class="tl-more"><div class="tl-more-inner">';
     if(detailIsLong) h+='<div class="tl-row"><span class="tl-k">Qué hacer</span><span class="tl-v">'+esc(full)+'</span></div>';
+    if(isWU){ h+='<div class="tl-row" style="margin-top:.2rem"><span class="tl-k" style="color:#163A28">Hazlo así</span><span class="tl-v" style="font-weight:600;color:#163A28">Calentamiento del coach:</span></div>'+drillsHTML(methodologyDrills('warmup')); }
+    if(isCD){ h+='<div class="tl-row" style="margin-top:.2rem"><span class="tl-k" style="color:#163A28">Hazlo así</span><span class="tl-v" style="font-weight:600;color:#163A28">Para acabar bien:</span></div>'+drillsHTML(methodologyDrills('cooldown')); }
     if(b.rpe) h+='<div class="tl-row"><span class="tl-k">Esfuerzo</span><span class="tl-v">RPE '+esc(b.rpe)+' / 10</span></div>';
     if(b.feel) h+='<div class="tl-row"><span class="tl-k">Qué notar</span><span class="tl-v">'+esc(b.feel)+'</span></div>';
     if(b.cue) h+='<div class="tl-row"><span class="tl-k">Técnica</span><span class="tl-v">'+esc(b.cue)+'</span></div>';
