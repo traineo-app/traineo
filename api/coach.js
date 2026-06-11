@@ -225,6 +225,11 @@ async function handlePlanGeneration(req, res) {
       const objMap = { fuerza:'força i potència', hipertrofia:'hipertròfia', tono:'tonificació i definició', funcional:'funcional i mobilitat' };
       ctx += `- Objectiu: ${objMap[obj_gym] || obj_gym}\n`;
     }
+    if (gym_purpose === 'cursa') {
+      ctx += `- PROPOSIT DE LA FORÇA: al servei de la cursa. Aplica força per endurance del cervell: força màxima i unilateral, baixes repeticions, RIR 2-3, lluny de les sessions clau de running. NO hipertròfia.\n`;
+    } else if (gym_purpose === 'aparte') {
+      ctx += `- PROPOSIT DE LA FORÇA: objectiu independent de la cursa (estètic/general). Pots orientar les sessions de gimnàs al seu objectiu (${obj_gym || 'general'}) sense subordinar-les del tot al running, però protegint sempre les sessions clau de cursa (no lower body destructiu el dia abans).\n`;
+    }
     ctx += `- Material: ${describeMaterial(gym_ubi, gym_mat, equipamiento)}\n`;
   }
 
