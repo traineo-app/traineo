@@ -178,8 +178,12 @@ async function handlePlanGeneration(req, res) {
         const ro = parseInt(req.body.ritme_obj);
         ctx += `- RITME OBJECTIU de cursa: ${fmtPace(ro)} — orienta les sessions de qualitat cap a aquest ritme\n`;
       }
-      if (sportsList.includes('trail') && desnivel > 0) {
-        ctx += `- Desnivell objectiu cursa: +${desnivel}m D+\n`;
+      if (sportsList.includes('trail')) {
+        ctx += `\n### TRAIL — DESNIVELL OBLIGATORI\n`;
+        if (desnivel > 0) {
+          ctx += `- Desnivell objectiu de la cursa: +${desnivel}m D+. Les sessions de trail han de construir cap a aquest desnivell de forma progressiva segons la fase.\n`;
+        }
+        ctx += `- CADA sessió de trail HA DE portar "desnivel_m" amb un valor REAL i > 0 (mai 0). Una tirada de trail de 60-90 min sol tenir entre 300 i 1000 m de D+ segons la fase i el perfil de la cursa. Posa metres concrets i coherents, mai zero.\n`;
       }
     }
 
@@ -324,7 +328,8 @@ async function handlePlanGeneration(req, res) {
       "tags": ["Running", "Z2"],
       "duracio_min": 45,
       "desnivel_m": 0,
-      "rest": false
+      "rest": false,
+      "_nota_trail": "si la sesion es trail, desnivel_m DEBE ser > 0 (metros reales de subida)"
     }
   ],
   "resum": "Frase d'1-2 línies explicant la lògica del pla"
